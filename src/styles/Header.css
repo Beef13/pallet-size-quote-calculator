@@ -1,0 +1,43 @@
+/* Header Styles */
+
+.header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+  color: white;
+  padding: var(--spacing-2xl) var(--spacing-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.header-title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+  color: white;
+}
+
+.header-subtitle {
+  font-size: var(--font-size-lg);
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .header {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+
+  .header-title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .header-subtitle {
+    font-size: var(--font-size-base);
+  }
+}
+

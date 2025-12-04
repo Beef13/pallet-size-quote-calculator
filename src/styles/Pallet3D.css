@@ -1,0 +1,75 @@
+/* 3D Pallet Viewer Styles */
+
+.pallet-3d-container {
+  padding: var(--spacing-lg);
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-lg);
+  border: 2px dashed var(--border-color);
+}
+
+.pallet-3d-container h3 {
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-color);
+  text-align: center;
+  font-size: var(--font-size-xl);
+}
+
+.canvas-wrapper {
+  width: 100%;
+  height: 500px;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: var(--shadow-lg);
+  cursor: grab;
+}
+
+.canvas-wrapper:active {
+  cursor: grabbing;
+}
+
+.canvas-wrapper canvas {
+  display: block;
+}
+
+.controls-info {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.controls-info p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.controls-info strong {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .canvas-wrapper {
+    height: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  .canvas-wrapper {
+    height: 300px;
+  }
+  
+  .pallet-3d-container h3 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .controls-info p {
+    font-size: 12px;
+  }
+}
+

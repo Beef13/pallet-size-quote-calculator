@@ -1,0 +1,221 @@
+/* Price Editor Styles */
+
+.price-editor-container {
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+}
+
+/* Header */
+.price-editor-header {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.price-editor-header h2 {
+  color: var(--text-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.editor-description {
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  margin-bottom: 0;
+}
+
+/* Save Message */
+.save-message {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-lg);
+  font-weight: 500;
+  text-align: center;
+}
+
+.save-message.success {
+  background-color: #d1fae5;
+  border: 1px solid var(--success-color);
+  color: #065f46;
+}
+
+/* Price Tables */
+.price-tables {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.price-table-section {
+  background-color: var(--background-color);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+}
+
+.timber-type-heading {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+}
+
+.table-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.table-group:last-child {
+  margin-bottom: 0;
+}
+
+.table-subheading {
+  color: var(--secondary-color);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+  padding-left: var(--spacing-sm);
+  border-left: 4px solid var(--primary-color);
+}
+
+/* Table Styles */
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.price-table thead {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.price-table th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--font-size-base);
+}
+
+.price-table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.price-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.price-table tbody tr:hover {
+  background-color: var(--background-color);
+}
+
+/* Price Input */
+.price-input {
+  width: 100%;
+  max-width: 150px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-color);
+  transition: var(--transition);
+}
+
+.price-input:hover {
+  border-color: var(--secondary-color);
+}
+
+.price-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Editor Actions */
+.editor-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-lg);
+}
+
+.editor-actions button {
+  flex: 1;
+}
+
+/* Editor Info */
+.editor-info {
+  padding: var(--spacing-lg);
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--border-radius-lg);
+}
+
+.editor-info h4 {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-lg);
+}
+
+.editor-info ul {
+  list-style-position: inside;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.editor-info li {
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .price-editor-container {
+    padding: var(--spacing-lg);
+  }
+
+  .price-table {
+    font-size: var(--font-size-sm);
+  }
+
+  .price-table th,
+  .price-table td {
+    padding: var(--spacing-sm);
+  }
+
+  .price-input {
+    max-width: 100px;
+    font-size: var(--font-size-sm);
+  }
+
+  .editor-actions {
+    flex-direction: column;
+  }
+
+  .editor-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .price-table-section {
+    padding: var(--spacing-md);
+  }
+
+  /* Make table scrollable on small screens */
+  .price-table-section {
+    overflow-x: auto;
+  }
+
+  .price-table {
+    min-width: 500px;
+  }
+}
+
