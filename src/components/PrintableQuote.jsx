@@ -43,11 +43,12 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
   const bottomGap = bottomGapSize || 0
 
   // SVG scaling - fit to viewbox while maintaining proportions
-  const svgPadding = 40
+  // Increased padding to prevent clipping of dimension text
+  const svgPadding = 80
   
-  // Font sizes for dimensions (larger for readability)
-  const dimFontSize = Math.max(28, Math.round(palletWidth / 40))
-  const dimFontSizeSmall = Math.max(24, Math.round(palletWidth / 50))
+  // Font sizes for dimensions - increased by 50% for readability
+  const dimFontSize = Math.max(42, Math.round(palletWidth / 27))
+  const dimFontSizeSmall = Math.max(36, Math.round(palletWidth / 33))
 
   const today = new Date().toLocaleDateString('en-AU', {
     day: '2-digit',
@@ -74,9 +75,9 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
           <div className="diagram-box">
             <div className="diagram-label">PLAN VIEW</div>
             <svg 
-              viewBox={`0 0 ${palletWidth + 100} ${palletLength + 100}`} 
+              viewBox={`0 0 ${palletWidth + 180} ${palletLength + 180}`} 
               className="diagram-svg"
-              style={{ maxHeight: '200px' }}
+              style={{ maxHeight: '220px' }}
             >
               {/* Pallet outline */}
               <rect 
@@ -136,47 +137,47 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               })()}
               
               {/* Width dimension - top */}
-              <line x1={svgPadding} y1="18" x2={svgPadding + palletWidth} y2="18" stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding} y1="10" x2={svgPadding} y2="26" stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding + palletWidth} y1="10" x2={svgPadding + palletWidth} y2="26" stroke="#000" strokeWidth="1" />
-              <text x={svgPadding + palletWidth/2} y="14" textAnchor="middle" fontSize={dimFontSize} fontFamily="Arial" fontWeight="bold">{palletWidth}</text>
+              <line x1={svgPadding} y1="35" x2={svgPadding + palletWidth} y2="35" stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding} y1="20" x2={svgPadding} y2="50" stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding + palletWidth} y1="20" x2={svgPadding + palletWidth} y2="50" stroke="#000" strokeWidth="2" />
+              <text x={svgPadding + palletWidth/2} y="25" textAnchor="middle" fontSize={dimFontSize} fontFamily="Arial" fontWeight="bold">{palletWidth}</text>
               
               {/* Length dimension - right */}
-              <line x1={svgPadding + palletWidth + 18} y1={svgPadding} x2={svgPadding + palletWidth + 18} y2={svgPadding + palletLength} stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding + palletWidth + 10} y1={svgPadding} x2={svgPadding + palletWidth + 26} y2={svgPadding} stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding + palletWidth + 10} y1={svgPadding + palletLength} x2={svgPadding + palletWidth + 26} y2={svgPadding + palletLength} stroke="#000" strokeWidth="1" />
-              <text x={svgPadding + palletWidth + 35} y={svgPadding + palletLength/2} textAnchor="middle" fontSize={dimFontSize} fontFamily="Arial" fontWeight="bold" transform={`rotate(90, ${svgPadding + palletWidth + 35}, ${svgPadding + palletLength/2})`}>{palletLength}</text>
+              <line x1={svgPadding + palletWidth + 35} y1={svgPadding} x2={svgPadding + palletWidth + 35} y2={svgPadding + palletLength} stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding + palletWidth + 20} y1={svgPadding} x2={svgPadding + palletWidth + 50} y2={svgPadding} stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding + palletWidth + 20} y1={svgPadding + palletLength} x2={svgPadding + palletWidth + 50} y2={svgPadding + palletLength} stroke="#000" strokeWidth="2" />
+              <text x={svgPadding + palletWidth + 65} y={svgPadding + palletLength/2} textAnchor="middle" fontSize={dimFontSize} fontFamily="Arial" fontWeight="bold" transform={`rotate(90, ${svgPadding + palletWidth + 65}, ${svgPadding + palletLength/2})`}>{palletLength}</text>
               
               {/* Gap dimension - between first two boards */}
               {numberOfTopBoards >= 2 && topGap > 0 && (
                 <>
                   <line 
                     x1={svgPadding + boardWidth} 
-                    y1={svgPadding + palletLength + 15} 
+                    y1={svgPadding + palletLength + 30} 
                     x2={svgPadding + boardWidth + topGap} 
-                    y2={svgPadding + palletLength + 15} 
+                    y2={svgPadding + palletLength + 30} 
                     stroke="#000" 
-                    strokeWidth="1" 
+                    strokeWidth="2" 
                   />
                   <line 
                     x1={svgPadding + boardWidth} 
-                    y1={svgPadding + palletLength + 8} 
+                    y1={svgPadding + palletLength + 15} 
                     x2={svgPadding + boardWidth} 
-                    y2={svgPadding + palletLength + 22} 
+                    y2={svgPadding + palletLength + 45} 
                     stroke="#000" 
-                    strokeWidth="1" 
+                    strokeWidth="2" 
                   />
                   <line 
                     x1={svgPadding + boardWidth + topGap} 
-                    y1={svgPadding + palletLength + 8} 
+                    y1={svgPadding + palletLength + 15} 
                     x2={svgPadding + boardWidth + topGap} 
-                    y2={svgPadding + palletLength + 22} 
+                    y2={svgPadding + palletLength + 45} 
                     stroke="#000" 
-                    strokeWidth="1" 
+                    strokeWidth="2" 
                   />
                   <text 
                     x={svgPadding + boardWidth + topGap/2} 
-                    y={svgPadding + palletLength + 38} 
+                    y={svgPadding + palletLength + 70} 
                     textAnchor="middle" 
                     fontSize={dimFontSizeSmall} 
                     fontFamily="Arial"
@@ -193,9 +194,9 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
           <div className="diagram-box">
             <div className="diagram-label">FRONT ELEVATION</div>
             <svg 
-              viewBox={`0 0 ${palletWidth + 100} ${palletHeight + 80}`} 
+              viewBox={`0 0 ${palletWidth + 180} ${palletHeight + 140}`} 
               className="diagram-svg"
-              style={{ maxHeight: '140px' }}
+              style={{ maxHeight: '160px' }}
             >
               {/* Top board layer */}
               <rect 
@@ -247,16 +248,16 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               />
               
               {/* Width dimension */}
-              <line x1={svgPadding} y1={svgPadding + palletHeight + 18} x2={svgPadding + palletWidth} y2={svgPadding + palletHeight + 18} stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding} y1={svgPadding + palletHeight + 10} x2={svgPadding} y2={svgPadding + palletHeight + 26} stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding + palletWidth} y1={svgPadding + palletHeight + 10} x2={svgPadding + palletWidth} y2={svgPadding + palletHeight + 26} stroke="#000" strokeWidth="1" />
-              <text x={svgPadding + palletWidth/2} y={svgPadding + palletHeight + 42} textAnchor="middle" fontSize={dimFontSize} fontFamily="Arial" fontWeight="bold">{palletWidth}</text>
+              <line x1={svgPadding} y1={svgPadding + palletHeight + 35} x2={svgPadding + palletWidth} y2={svgPadding + palletHeight + 35} stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding} y1={svgPadding + palletHeight + 20} x2={svgPadding} y2={svgPadding + palletHeight + 50} stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding + palletWidth} y1={svgPadding + palletHeight + 20} x2={svgPadding + palletWidth} y2={svgPadding + palletHeight + 50} stroke="#000" strokeWidth="2" />
+              <text x={svgPadding + palletWidth/2} y={svgPadding + palletHeight + 75} textAnchor="middle" fontSize={dimFontSize} fontFamily="Arial" fontWeight="bold">{palletWidth}</text>
               
               {/* Height dimension */}
-              <line x1="18" y1={svgPadding} x2="18" y2={svgPadding + palletHeight} stroke="#000" strokeWidth="1" />
-              <line x1="10" y1={svgPadding} x2="26" y2={svgPadding} stroke="#000" strokeWidth="1" />
-              <line x1="10" y1={svgPadding + palletHeight} x2="26" y2={svgPadding + palletHeight} stroke="#000" strokeWidth="1" />
-              <text x="16" y={svgPadding + palletHeight/2} textAnchor="middle" fontSize={dimFontSizeSmall} fontFamily="Arial" fontWeight="bold" transform={`rotate(-90, 16, ${svgPadding + palletHeight/2})`}>{palletHeight}</text>
+              <line x1="35" y1={svgPadding} x2="35" y2={svgPadding + palletHeight} stroke="#000" strokeWidth="2" />
+              <line x1="20" y1={svgPadding} x2="50" y2={svgPadding} stroke="#000" strokeWidth="2" />
+              <line x1="20" y1={svgPadding + palletHeight} x2="50" y2={svgPadding + palletHeight} stroke="#000" strokeWidth="2" />
+              <text x="25" y={svgPadding + palletHeight/2} textAnchor="middle" fontSize={dimFontSizeSmall} fontFamily="Arial" fontWeight="bold" transform={`rotate(-90, 25, ${svgPadding + palletHeight/2})`}>{palletHeight}</text>
             </svg>
           </div>
 
@@ -264,9 +265,9 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
           <div className="diagram-box">
             <div className="diagram-label">SIDE ELEVATION</div>
             <svg 
-              viewBox={`0 0 ${palletLength + 100} ${palletHeight + 80}`} 
+              viewBox={`0 0 ${palletLength + 180} ${palletHeight + 140}`} 
               className="diagram-svg"
-              style={{ maxHeight: '140px' }}
+              style={{ maxHeight: '160px' }}
             >
               {/* Top boards - end grain view */}
               {(() => {
@@ -328,16 +329,16 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               })()}
               
               {/* Length dimension */}
-              <line x1={svgPadding} y1={svgPadding + palletHeight + 18} x2={svgPadding + palletLength} y2={svgPadding + palletHeight + 18} stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding} y1={svgPadding + palletHeight + 10} x2={svgPadding} y2={svgPadding + palletHeight + 26} stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding + palletLength} y1={svgPadding + palletHeight + 10} x2={svgPadding + palletLength} y2={svgPadding + palletHeight + 26} stroke="#000" strokeWidth="1" />
-              <text x={svgPadding + palletLength/2} y={svgPadding + palletHeight + 42} textAnchor="middle" fontSize={dimFontSize} fontFamily="Arial" fontWeight="bold">{palletLength}</text>
+              <line x1={svgPadding} y1={svgPadding + palletHeight + 35} x2={svgPadding + palletLength} y2={svgPadding + palletHeight + 35} stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding} y1={svgPadding + palletHeight + 20} x2={svgPadding} y2={svgPadding + palletHeight + 50} stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding + palletLength} y1={svgPadding + palletHeight + 20} x2={svgPadding + palletLength} y2={svgPadding + palletHeight + 50} stroke="#000" strokeWidth="2" />
+              <text x={svgPadding + palletLength/2} y={svgPadding + palletHeight + 75} textAnchor="middle" fontSize={dimFontSize} fontFamily="Arial" fontWeight="bold">{palletLength}</text>
               
               {/* Height dimension */}
-              <line x1={svgPadding + palletLength + 18} y1={svgPadding} x2={svgPadding + palletLength + 18} y2={svgPadding + palletHeight} stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding + palletLength + 10} y1={svgPadding} x2={svgPadding + palletLength + 26} y2={svgPadding} stroke="#000" strokeWidth="1" />
-              <line x1={svgPadding + palletLength + 10} y1={svgPadding + palletHeight} x2={svgPadding + palletLength + 26} y2={svgPadding + palletHeight} stroke="#000" strokeWidth="1" />
-              <text x={svgPadding + palletLength + 35} y={svgPadding + palletHeight/2} textAnchor="middle" fontSize={dimFontSizeSmall} fontFamily="Arial" fontWeight="bold" transform={`rotate(90, ${svgPadding + palletLength + 35}, ${svgPadding + palletHeight/2})`}>{palletHeight}</text>
+              <line x1={svgPadding + palletLength + 35} y1={svgPadding} x2={svgPadding + palletLength + 35} y2={svgPadding + palletHeight} stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding + palletLength + 20} y1={svgPadding} x2={svgPadding + palletLength + 50} y2={svgPadding} stroke="#000" strokeWidth="2" />
+              <line x1={svgPadding + palletLength + 20} y1={svgPadding + palletHeight} x2={svgPadding + palletLength + 50} y2={svgPadding + palletHeight} stroke="#000" strokeWidth="2" />
+              <text x={svgPadding + palletLength + 65} y={svgPadding + palletHeight/2} textAnchor="middle" fontSize={dimFontSizeSmall} fontFamily="Arial" fontWeight="bold" transform={`rotate(90, ${svgPadding + palletLength + 65}, ${svgPadding + palletHeight/2})`}>{palletHeight}</text>
             </svg>
           </div>
         </div>
