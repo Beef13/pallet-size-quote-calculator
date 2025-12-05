@@ -148,7 +148,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               <line x1={svgPadding + palletWidth + 20} y1={svgPadding + palletLength} x2={svgPadding + palletWidth + 50} y2={svgPadding + palletLength} stroke="#000" strokeWidth="2" />
               <text x={svgPadding + palletWidth + 65} y={svgPadding + palletLength/2} textAnchor="middle" fontSize={dimFontSize} fontFamily="Arial" fontWeight="bold" transform={`rotate(90, ${svgPadding + palletWidth + 65}, ${svgPadding + palletLength/2})`}>{palletLength}</text>
               
-              {/* Gap dimension - between first two boards */}
+              {/* Top gap dimension - between first two top boards */}
               {numberOfTopBoards >= 2 && topGap > 0 && (
                 <>
                   <line 
@@ -183,7 +183,47 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
                     fontFamily="Arial"
                     fontWeight="bold"
                   >
-                    {Math.round(topGap)} gap
+                    {Math.round(topGap)} top
+                  </text>
+                </>
+              )}
+              
+              {/* Bottom gap dimension - between first two bottom boards */}
+              {numberOfBottomBoards >= 2 && bottomGap > 0 && (
+                <>
+                  <line 
+                    x1={svgPadding + palletWidth - boardWidth - bottomGap} 
+                    y1={svgPadding + palletLength + 30} 
+                    x2={svgPadding + palletWidth - boardWidth} 
+                    y2={svgPadding + palletLength + 30} 
+                    stroke="#000" 
+                    strokeWidth="2" 
+                  />
+                  <line 
+                    x1={svgPadding + palletWidth - boardWidth - bottomGap} 
+                    y1={svgPadding + palletLength + 15} 
+                    x2={svgPadding + palletWidth - boardWidth - bottomGap} 
+                    y2={svgPadding + palletLength + 45} 
+                    stroke="#000" 
+                    strokeWidth="2" 
+                  />
+                  <line 
+                    x1={svgPadding + palletWidth - boardWidth} 
+                    y1={svgPadding + palletLength + 15} 
+                    x2={svgPadding + palletWidth - boardWidth} 
+                    y2={svgPadding + palletLength + 45} 
+                    stroke="#000" 
+                    strokeWidth="2" 
+                  />
+                  <text 
+                    x={svgPadding + palletWidth - boardWidth - bottomGap/2} 
+                    y={svgPadding + palletLength + 70} 
+                    textAnchor="middle" 
+                    fontSize={dimFontSizeSmall} 
+                    fontFamily="Arial"
+                    fontWeight="bold"
+                  >
+                    {Math.round(bottomGap)} btm
                   </text>
                 </>
               )}

@@ -303,7 +303,18 @@ function PalletStructure({ previewData }) {
               start={[topBoardPositions[0] + boardWidth / 2, bearerStandingHeight / 2 + boardThickness, palletDepth / 2]}
               end={[topBoardPositions[1] - boardWidth / 2, bearerStandingHeight / 2 + boardThickness, palletDepth / 2]}
               offset={3.0}
-              label={`${Math.round(previewData.topGapSize)}mm gap`}
+              label={`${Math.round(previewData.topGapSize)}mm top gap`}
+              direction="horizontal"
+            />
+          )}
+          
+          {/* Gap dimension between first two bottom boards (if gap exists) */}
+          {previewData.numberOfBottomBoards >= 2 && bottomGap > 0.001 && (
+            <DimensionLine
+              start={[bottomBoardPositions[0] + boardWidth / 2, -bearerStandingHeight / 2 - boardThickness, palletDepth / 2]}
+              end={[bottomBoardPositions[1] - boardWidth / 2, -bearerStandingHeight / 2 - boardThickness, palletDepth / 2]}
+              offset={-2.5}
+              label={`${Math.round(previewData.bottomGapSize)}mm btm gap`}
               direction="horizontal"
             />
           )}
