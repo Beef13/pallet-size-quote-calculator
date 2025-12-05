@@ -1,43 +1,46 @@
-/* Header Styles */
+/* Header Styles - Clean Modern Design */
 
 .header {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
-  color: white;
-  padding: var(--spacing-2xl) var(--spacing-md);
-  box-shadow: var(--shadow-lg);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.25rem 2rem;
 }
 
 .header-content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   text-align: center;
 }
 
 .header-title {
-  font-size: var(--font-size-3xl);
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: var(--spacing-sm);
   color: white;
+  margin: 0 0 0.25rem 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .header-subtitle {
-  font-size: var(--font-size-lg);
-  opacity: 0.9;
-  margin-bottom: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
+/* Responsive */
+@media (max-width: 768px) {
   .header {
-    padding: var(--spacing-xl) var(--spacing-md);
+    padding: 1rem 1.25rem;
   }
 
   .header-title {
-    font-size: var(--font-size-2xl);
+    font-size: 1.25rem;
   }
 
   .header-subtitle {
-    font-size: var(--font-size-base);
+    font-size: 0.8rem;
   }
 }
-

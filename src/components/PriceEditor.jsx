@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import timberData from '../data/timber-prices.json'
+import LockIcon from './LockIcon'
 import '../styles/PriceEditor.css'
 
 function PriceEditor({ onPriceUpdate }) {
   const [prices, setPrices] = useState({ timberTypes: [] })
   const [editingCell, setEditingCell] = useState(null)
   const [saveMessage, setSaveMessage] = useState('')
+  const [lockedFields, setLockedFields] = useState(new Set())
+  const [allLocked, setAllLocked] = useState(true)
 
   useEffect(() => {
     // Load prices from localStorage if available, otherwise use default
@@ -14,6 +17,21 @@ function PriceEditor({ onPriceUpdate }) {
       setPrices(JSON.parse(savedPrices))
     } else {
       setPrices(timberData)
+    }
+    
+    // Load lock state
+    const savedLockState = localStorage.getItem('priceLockedFields')
+    if (savedLockState) {
+      setLockedFields(new Set(JSON.parse(savedLockState)))
+    } else {
+      // Lock all fields by default
+      const allFieldIds = []
+      timberData.timberTypes.forEach(type => {
+        type.boardSizes.forEach(size => allFieldIds.push(`${type.id}-board-${size.id}`))
+        type.bearerSizes.forEach(size => allFieldIds.push(`${type.id}-bearer-${size.id}`))
+      })
+      allFieldIds.push('nails')
+      setLockedFields(new Set(allFieldIds))
     }
   }, [])
 
@@ -30,6 +48,37 @@ function PriceEditor({ onPriceUpdate }) {
     }
     
     setPrices(updatedPrices)
+  }
+
+  const toggleLock = (fieldId) => {
+    const newLockedFields = new Set(lockedFields)
+    if (newLockedFields.has(fieldId)) {
+      newLockedFields.delete(fieldId)
+    } else {
+      newLockedFields.add(fieldId)
+    }
+    setLockedFields(newLockedFields)
+    localStorage.setItem('priceLockedFields', JSON.stringify([...newLockedFields]))
+  }
+
+  const toggleAllLocks = () => {
+    if (allLocked) {
+      // Unlock all
+      setLockedFields(new Set())
+      localStorage.setItem('priceLockedFields', JSON.stringify([]))
+      setAllLocked(false)
+    } else {
+      // Lock all
+      const allFieldIds = []
+      prices.timberTypes.forEach(type => {
+        type.boardSizes.forEach(size => allFieldIds.push(`${type.id}-board-${size.id}`))
+        type.bearerSizes.forEach(size => allFieldIds.push(`${type.id}-bearer-${size.id}`))
+      })
+      allFieldIds.push('nails')
+      setLockedFields(new Set(allFieldIds))
+      localStorage.setItem('priceLockedFields', JSON.stringify(allFieldIds))
+      setAllLocked(true)
+    }
   }
 
   const handleSave = () => {
@@ -89,6 +138,7 @@ function PriceEditor({ onPriceUpdate }) {
               <th>Item</th>
               <th>Unit</th>
               <th>Price per Unit ($)</th>
+              <th>Lock</th>
             </tr>
           </thead>
           <tbody>
@@ -105,8 +155,15 @@ function PriceEditor({ onPriceUpdate }) {
                     updatedPrices.nailPricePerNail = parseFloat(e.target.value) || 0
                     setPrices(updatedPrices)
                   }}
+                  disabled={lockedFields.has('nails')}
                   min="0"
                   step="0.01"
+                />
+              </td>
+              <td>
+                <LockIcon 
+                  isLocked={lockedFields.has('nails')} 
+                  onClick={() => toggleLock('nails')}
                 />
               </td>
             </tr>
@@ -128,28 +185,40 @@ function PriceEditor({ onPriceUpdate }) {
                     <th>Width (mm)</th>
                     <th>Thickness (mm)</th>
                     <th>Price per Board ($)</th>
+                    <th>Lock</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {timberType.boardSizes.map(size => (
-                    <tr key={size.id}>
-                      <td>{size.dimensions}</td>
-                      <td>{size.width}</td>
-                      <td>{size.thickness}</td>
-                      <td>
-                        <input
-                          type="number"
-                          className="price-input"
-                          value={size.pricePerBoard}
-                          onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, 'board')}
-                          onFocus={() => setEditingCell(`${timberType.id}-board-${size.id}`)}
-                          onBlur={() => setEditingCell(null)}
-                          min="0"
-                          step="0.01"
-                        />
-                      </td>
-                    </tr>
-                  ))}
+                  {timberType.boardSizes.map(size => {
+                    const fieldId = `${timberType.id}-board-${size.id}`
+                    const isLocked = lockedFields.has(fieldId)
+                    return (
+                      <tr key={size.id}>
+                        <td>{size.dimensions}</td>
+                        <td>{size.width}</td>
+                        <td>{size.thickness}</td>
+                        <td>
+                          <input
+                            type="number"
+                            className="price-input"
+                            value={size.pricePerBoard}
+                            onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, 'board')}
+                            onFocus={() => setEditingCell(fieldId)}
+                            onBlur={() => setEditingCell(null)}
+                            disabled={isLocked}
+                            min="0"
+                            step="0.01"
+                          />
+                        </td>
+                        <td>
+                          <LockIcon 
+                            isLocked={isLocked} 
+                            onClick={() => toggleLock(fieldId)}
+                          />
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -163,28 +232,40 @@ function PriceEditor({ onPriceUpdate }) {
                     <th>Width (mm)</th>
                     <th>Thickness (mm)</th>
                     <th>Price per Bearer ($)</th>
+                    <th>Lock</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {timberType.bearerSizes.map(size => (
-                    <tr key={size.id}>
-                      <td>{size.dimensions}</td>
-                      <td>{size.width}</td>
-                      <td>{size.thickness}</td>
-                      <td>
-                        <input
-                          type="number"
-                          className="price-input"
-                          value={size.pricePerBearer}
-                          onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, 'bearer')}
-                          onFocus={() => setEditingCell(`${timberType.id}-bearer-${size.id}`)}
-                          onBlur={() => setEditingCell(null)}
-                          min="0"
-                          step="0.01"
-                        />
-                      </td>
-                    </tr>
-                  ))}
+                  {timberType.bearerSizes.map(size => {
+                    const fieldId = `${timberType.id}-bearer-${size.id}`
+                    const isLocked = lockedFields.has(fieldId)
+                    return (
+                      <tr key={size.id}>
+                        <td>{size.dimensions}</td>
+                        <td>{size.width}</td>
+                        <td>{size.thickness}</td>
+                        <td>
+                          <input
+                            type="number"
+                            className="price-input"
+                            value={size.pricePerBearer}
+                            onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, 'bearer')}
+                            onFocus={() => setEditingCell(fieldId)}
+                            onBlur={() => setEditingCell(null)}
+                            disabled={isLocked}
+                            min="0"
+                            step="0.01"
+                          />
+                        </td>
+                        <td>
+                          <LockIcon 
+                            isLocked={isLocked} 
+                            onClick={() => toggleLock(fieldId)}
+                          />
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -193,6 +274,9 @@ function PriceEditor({ onPriceUpdate }) {
       </div>
 
       <div className="editor-actions">
+        <button onClick={toggleAllLocks} className="btn btn-secondary">
+          {allLocked ? '🔓 Unlock All Prices' : '🔒 Lock All Prices'}
+        </button>
         <button onClick={handleSave} className="btn btn-primary">
           Save Changes
         </button>
@@ -207,10 +291,12 @@ function PriceEditor({ onPriceUpdate }) {
       <div className="editor-info">
         <h4>Instructions:</h4>
         <ul>
-          <li>Click on any price field to edit</li>
-          <li>Click "Save Changes" to store your updates</li>
-          <li>Use "Export Prices" to download a backup</li>
-          <li>Use "Reset to Default" to restore original prices</li>
+          <li>🔒 <strong>Lock/Unlock:</strong> Click the lock icon next to each price to enable editing</li>
+          <li>🔓 <strong>Unlock All:</strong> Use the "Unlock All Prices" button to edit multiple fields</li>
+          <li>✏️ <strong>Edit:</strong> Click unlocked price fields to change values</li>
+          <li>💾 <strong>Save:</strong> Click "Save Changes" to store your updates</li>
+          <li>📥 <strong>Export:</strong> Download a backup of all prices</li>
+          <li>🔄 <strong>Reset:</strong> Restore original default prices</li>
         </ul>
       </div>
     </div>

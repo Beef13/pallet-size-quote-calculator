@@ -1,0 +1,262 @@
+/* Pallet Builder Styles - Matching Screenshot Design */
+
+.pallet-builder {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 600px;
+  gap: 0;
+  width: 500px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Form Panel - Left Side */
+.builder-form-panel {
+  flex: 0 0 820px;
+  width: 820px;
+  padding: 2rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 10;
+  overflow-y: auto;
+  height: calc(100vh - 180px);
+}
+
+/* Form Card */
+.form-card {
+  background: #ffffff;
+  border-radius: 24px;
+  /* padding: 2rem; */
+  width: 400px;
+  max-width: 860px;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 10px 40px -10px rgba(0, 0, 0, 0.15);
+}
+
+.form-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Form Layout */
+.builder-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+  margin: 0.5rem 0;
+}
+
+/* Form Fields */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.form-field input,
+.form-field select {
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.form-field input::placeholder {
+  color: #9ca3af;
+}
+
+.form-field input:hover,
+.form-field select:hover {
+  border-color: #d1d5db;
+  background: #ffffff;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-field select:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Error Message */
+.error-message {
+  padding: 0.875rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #dc2626;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.btn-calculate,
+.btn-clear {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.btn-calculate {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);
+}
+
+.btn-calculate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
+}
+
+.btn-calculate:active {
+  transform: translateY(0);
+}
+
+.btn-clear {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-clear:hover {
+  background: #d1d5db;
+  transform: translateY(-2px);
+}
+
+.btn-clear:active {
+  transform: translateY(0);
+}
+
+/* Preview Panel - Right Side */
+.builder-preview-panel {
+  flex: 1 1 auto;
+  position: relative;
+  min-height: 600px;
+  height: calc(100vh - 180px);
+  background: transparent;
+  overflow: hidden;
+}
+
+/* Results Overlay */
+.results-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+  backdrop-filter: blur(4px);
+}
+
+.results-overlay > * {
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .pallet-builder {
+    flex-direction: column;
+  }
+
+  .builder-form-panel {
+    flex: none;
+    width: 100%;
+    padding: 1.5rem;
+    height: auto;
+    max-height: none;
+  }
+
+  .builder-preview-panel {
+    flex: none;
+    width: 100%;
+    height: 500px;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  .builder-form-panel {
+    padding: 1rem;
+  }
+
+  .form-card {
+    padding: 1.5rem;
+    border-radius: 20px;
+  }
+
+  .form-title {
+    font-size: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+}
+

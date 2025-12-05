@@ -1,206 +1,127 @@
 {
-  "nailPricePerNail": 0.02,
+  "nailPricePerNail": 0,
   "timberTypes": [
     {
-      "id": "pine",
-      "name": "Pine",
+      "id": "pine-green-case",
+      "name": "Pine Green Case",
+      "pricePerCubicMetre": 360,
       "boardSizes": [
         {
-          "id": "100x22",
-          "dimensions": "100x22mm",
+          "id": "100x12",
+          "dimensions": "100x12mm",
           "width": 100,
-          "thickness": 22,
-          "pricePerBoard": 2.50
+          "thickness": 12,
+          "pricePerBoard": 0.42
         },
         {
-          "id": "120x22",
-          "dimensions": "120x22mm",
-          "width": 120,
-          "thickness": 22,
-          "pricePerBoard": 2.95
-        },
-        {
-          "id": "150x22",
-          "dimensions": "150x22mm",
-          "width": 150,
-          "thickness": 22,
-          "pricePerBoard": 3.75
-        }
-      ],
-      "bearerSizes": [
-        {
-          "id": "75x38",
-          "dimensions": "75x38mm",
-          "width": 75,
-          "thickness": 38,
-          "pricePerBearer": 4.50
-        },
-        {
-          "id": "100x38",
-          "dimensions": "100x38mm",
+          "id": "100x17",
+          "dimensions": "100x17mm",
           "width": 100,
-          "thickness": 38,
-          "pricePerBearer": 5.80
+          "thickness": 17,
+          "pricePerBoard": 0.62
         },
         {
-          "id": "100x50",
-          "dimensions": "100x50mm",
+          "id": "100x19",
+          "dimensions": "100x19mm",
           "width": 100,
-          "thickness": 50,
-          "pricePerBearer": 7.20
-        }
-      ]
-    },
-    {
-      "id": "treated-pine",
-      "name": "Treated Pine",
-      "boardSizes": [
+          "thickness": 19,
+          "pricePerBoard": 0.75
+        },
         {
           "id": "100x25",
           "dimensions": "100x25mm",
           "width": 100,
           "thickness": 25,
-          "pricePerBoard": 3.20
+          "pricePerBoard": 0.97
         },
         {
-          "id": "120x25",
-          "dimensions": "120x25mm",
-          "width": 120,
-          "thickness": 25,
-          "pricePerBoard": 3.80
+          "id": "125x12",
+          "dimensions": "125x12mm",
+          "width": 125,
+          "thickness": 12,
+          "pricePerBoard": 0.53
+        },
+        {
+          "id": "150x12",
+          "dimensions": "150x12mm",
+          "width": 150,
+          "thickness": 12,
+          "pricePerBoard": 0.64
+        },
+        {
+          "id": "150x17",
+          "dimensions": "150x17mm",
+          "width": 150,
+          "thickness": 17,
+          "pricePerBoard": 0.93
+        },
+        {
+          "id": "150x19",
+          "dimensions": "150x19mm",
+          "width": 150,
+          "thickness": 19,
+          "pricePerBoard": 1.12
         },
         {
           "id": "150x25",
           "dimensions": "150x25mm",
           "width": 150,
           "thickness": 25,
-          "pricePerBoard": 4.75
+          "pricePerBoard": 1.36
         }
       ],
       "bearerSizes": [
-        {
-          "id": "75x38",
-          "dimensions": "75x38mm",
-          "width": 75,
-          "thickness": 38,
-          "pricePerBearer": 5.50
-        },
         {
           "id": "100x38",
           "dimensions": "100x38mm",
           "width": 100,
           "thickness": 38,
-          "pricePerBearer": 6.90
-        },
-        {
-          "id": "100x50",
-          "dimensions": "100x50mm",
-          "width": 100,
-          "thickness": 50,
-          "pricePerBearer": 8.50
+          "pricePerBearer": 1.50
         }
       ]
     },
     {
-      "id": "hardwood",
-      "name": "Hardwood",
+      "id": "kiln-dried",
+      "name": "Kiln Dried Material (KD)",
       "boardSizes": [
         {
-          "id": "100x22",
-          "dimensions": "100x22mm",
-          "width": 100,
+          "id": "90x19",
+          "dimensions": "90x19mm",
+          "width": 90,
+          "thickness": 19,
+          "pricePerBoard": 1.15
+        },
+        {
+          "id": "90x22",
+          "dimensions": "90x22mm",
+          "width": 90,
           "thickness": 22,
-          "pricePerBoard": 4.50
+          "pricePerBoard": 1.15
         },
         {
-          "id": "120x25",
-          "dimensions": "120x25mm",
-          "width": 120,
-          "thickness": 25,
-          "pricePerBoard": 5.50
-        },
-        {
-          "id": "150x30",
-          "dimensions": "150x30mm",
-          "width": 150,
-          "thickness": 30,
-          "pricePerBoard": 7.25
+          "id": "140x19",
+          "dimensions": "140x19mm",
+          "width": 140,
+          "thickness": 19,
+          "pricePerBoard": 1.39
         }
       ],
       "bearerSizes": [
         {
-          "id": "75x50",
-          "dimensions": "75x50mm",
-          "width": 75,
-          "thickness": 50,
-          "pricePerBearer": 8.50
+          "id": "90x35",
+          "dimensions": "90x35mm",
+          "width": 90,
+          "thickness": 35,
+          "pricePerBearer": 1.50
         },
         {
-          "id": "100x50",
-          "dimensions": "100x50mm",
-          "width": 100,
-          "thickness": 50,
-          "pricePerBearer": 11.00
-        },
-        {
-          "id": "100x75",
-          "dimensions": "100x75mm",
-          "width": 100,
-          "thickness": 75,
-          "pricePerBearer": 15.50
-        }
-      ]
-    },
-    {
-      "id": "oak",
-      "name": "Oak",
-      "boardSizes": [
-        {
-          "id": "100x25",
-          "dimensions": "100x25mm",
-          "width": 100,
-          "thickness": 25,
-          "pricePerBoard": 6.50
-        },
-        {
-          "id": "120x25",
-          "dimensions": "120x25mm",
-          "width": 120,
-          "thickness": 25,
-          "pricePerBoard": 7.80
-        },
-        {
-          "id": "150x30",
-          "dimensions": "150x30mm",
-          "width": 150,
-          "thickness": 30,
-          "pricePerBoard": 10.50
-        }
-      ],
-      "bearerSizes": [
-        {
-          "id": "75x50",
-          "dimensions": "75x50mm",
-          "width": 75,
-          "thickness": 50,
-          "pricePerBearer": 12.50
-        },
-        {
-          "id": "100x50",
-          "dimensions": "100x50mm",
-          "width": 100,
-          "thickness": 50,
-          "pricePerBearer": 16.00
-        },
-        {
-          "id": "100x75",
-          "dimensions": "100x75mm",
-          "width": 100,
-          "thickness": 75,
-          "pricePerBearer": 22.00
+          "id": "90x45",
+          "dimensions": "90x45mm",
+          "width": 90,
+          "thickness": 45,
+          "pricePerBearer": 1.65
         }
       ]
     }
   ]
 }
-

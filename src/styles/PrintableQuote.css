@@ -1,0 +1,344 @@
+/* Printable Quote - Clean Black & White */
+
+.printable-quote {
+  display: none;
+}
+
+@media print {
+  /* Hide everything except printable quote */
+  body * {
+    visibility: hidden;
+  }
+  
+  .printable-quote,
+  .printable-quote * {
+    visibility: visible;
+  }
+  
+  .printable-quote {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white;
+    padding: 10mm 15mm;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    color: #000;
+    line-height: 1.3;
+  }
+
+  /* Header */
+  .print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #000;
+  }
+
+  .print-header h1 {
+    font-size: 16pt;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 1px;
+  }
+
+  .print-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 9pt;
+    color: #333;
+  }
+
+  /* Diagram Section */
+  .diagram-section {
+    margin-bottom: 15px;
+  }
+
+  .diagrams-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .diagram-box {
+    flex: 1;
+    text-align: center;
+    max-width: 33%;
+  }
+
+  .diagram-label {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    color: #000;
+  }
+
+  .diagram-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .dimension-summary {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    font-size: 9pt;
+    color: #000;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+  }
+
+  .dimension-summary strong {
+    font-weight: 600;
+  }
+
+  /* Quote Table */
+  .quote-section {
+    margin-bottom: 10px;
+  }
+
+  .quote-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+
+  .quote-table th,
+  .quote-table td {
+    padding: 5px 6px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .quote-table th {
+    font-weight: 700;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid #000;
+    background: none;
+  }
+
+  .quote-table .amount-col,
+  .quote-table th.amount-col {
+    text-align: right;
+  }
+
+  .quote-table td:nth-child(4),
+  .quote-table th:nth-child(4),
+  .quote-table td:nth-child(5),
+  .quote-table th:nth-child(5) {
+    text-align: center;
+  }
+
+  /* Totals Section - Right aligned, no borders */
+  .totals-section {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #000;
+  }
+
+  .total-line {
+    display: flex;
+    justify-content: flex-end;
+    gap: 30px;
+    padding: 4px 6px;
+    font-size: 9pt;
+  }
+
+  .total-label {
+    text-align: right;
+    min-width: 100px;
+  }
+
+  .total-value {
+    text-align: right;
+    min-width: 80px;
+    font-weight: 600;
+  }
+
+  .total-line.qty-line {
+    font-size: 8pt;
+    color: #666;
+    padding: 2px 6px;
+  }
+
+  .total-line.qty-line .total-value {
+    font-weight: 400;
+  }
+
+  .total-line.grand-total {
+    font-size: 12pt;
+    font-weight: 700;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: 2px solid #000;
+  }
+
+  .total-line.grand-total .total-value {
+    font-weight: 700;
+  }
+
+  /* Footer */
+  .print-footer {
+    text-align: center;
+    font-size: 8pt;
+    color: #666;
+    padding-top: 10px;
+    margin-top: 15px;
+    border-top: 1px solid #ccc;
+  }
+
+  /* Page settings */
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+}
+
+/* Screen preview (for development) */
+@media screen {
+  .printable-quote.preview {
+    display: block;
+    max-width: 210mm;
+    margin: 20px auto;
+    padding: 10mm 15mm;
+    background: white;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    color: #000;
+    line-height: 1.3;
+  }
+  
+  .printable-quote.preview .print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #000;
+  }
+
+  .printable-quote.preview .print-header h1 {
+    font-size: 16pt;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .printable-quote.preview .print-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 9pt;
+  }
+
+  .printable-quote.preview .diagrams-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .printable-quote.preview .diagram-box {
+    flex: 1;
+    text-align: center;
+    max-width: 33%;
+  }
+
+  .printable-quote.preview .diagram-label {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .printable-quote.preview .diagram-svg {
+    width: 100%;
+    height: auto;
+  }
+
+  .printable-quote.preview .dimension-summary {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    font-size: 9pt;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+  }
+
+  .printable-quote.preview .quote-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+
+  .printable-quote.preview .quote-table th,
+  .printable-quote.preview .quote-table td {
+    padding: 5px 6px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .printable-quote.preview .quote-table th {
+    font-weight: 700;
+    border-bottom: 2px solid #000;
+  }
+
+  .printable-quote.preview .quote-table .amount-col {
+    text-align: right;
+  }
+
+  .printable-quote.preview .totals-section {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #000;
+  }
+
+  .printable-quote.preview .total-line {
+    display: flex;
+    justify-content: flex-end;
+    gap: 30px;
+    padding: 4px 6px;
+    font-size: 9pt;
+  }
+
+  .printable-quote.preview .total-label {
+    text-align: right;
+    min-width: 100px;
+  }
+
+  .printable-quote.preview .total-value {
+    text-align: right;
+    min-width: 80px;
+    font-weight: 600;
+  }
+
+  .printable-quote.preview .total-line.grand-total {
+    font-size: 12pt;
+    font-weight: 700;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: 2px solid #000;
+  }
+
+  .printable-quote.preview .print-footer {
+    text-align: center;
+    font-size: 8pt;
+    color: #666;
+    padding-top: 10px;
+    margin-top: 15px;
+    border-top: 1px solid #ccc;
+  }
+}

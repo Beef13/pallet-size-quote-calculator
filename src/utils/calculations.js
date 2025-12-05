@@ -93,6 +93,6 @@ export function formatCurrency(value) {
  * @returns {string} Formatted dimension string with unit
  */
 export function formatDimension(value) {
-  return `${parseFloat(value).toFixed(2)}mm`;
+  return `${Math.round(parseFloat(value))}mm`;
 }
 

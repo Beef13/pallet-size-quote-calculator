@@ -128,13 +128,53 @@
   transition: var(--transition);
 }
 
-.price-input:hover {
+.price-input:hover:not(:disabled) {
   border-color: var(--secondary-color);
 }
 
 .price-input:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.price-input:disabled {
+  background-color: #fef2f2;
+  color: #991b1b;
+  cursor: not-allowed;
+  border-color: #fca5a5;
+  opacity: 0.8;
+}
+
+/* Lock Button - Now using custom LockIcon component */
+/* Legacy button styles kept for backward compatibility */
+.lock-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+  min-width: 40px;
+  height: 40px;
+}
+
+.lock-button:hover {
+  background-color: var(--background-color);
+  transform: scale(1.1);
+}
+
+.lock-button:active {
+  transform: scale(0.95);
+}
+
+/* Table cell for lock icons */
+.price-table td:has(.lock-button) {
+  text-align: center;
+  width: 60px;
 }
 
 /* Editor Actions */

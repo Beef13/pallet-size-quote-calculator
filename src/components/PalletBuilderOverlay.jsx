@@ -1,0 +1,946 @@
+import { useState, useEffect, useMemo } from 'react'
+import timberData from '../data/timber-prices.json'
+import { calculateGapSize, calculateTotalPrice, validateInputs, formatCurrency, formatDimension } from '../utils/calculations'
+import Pallet3DLive from './Pallet3DLive'
+import LockIcon from './LockIcon'
+import PrintableQuote from './PrintableQuote'
+import '../styles/PalletBuilderOverlay.css'
+
+// Edit Icon SVG component
+function EditIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  )
+}
+
+function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
+  // Panel collapsed state
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false)
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState('calculator')
+  
+  // Form state
+  const [palletWidth, setPalletWidth] = useState('')
+  const [palletLength, setPalletLength] = useState('')
+  const [selectedBoardType, setSelectedBoardType] = useState('')
+  const [selectedBoardSize, setSelectedBoardSize] = useState('')
+  const [numberOfTopBoards, setNumberOfTopBoards] = useState('')
+  const [numberOfBottomBoards, setNumberOfBottomBoards] = useState('')
+  const [selectedBearerType, setSelectedBearerType] = useState('')
+  const [selectedBearerSize, setSelectedBearerSize] = useState('')
+  const [numberOfBearers, setNumberOfBearers] = useState('')
+  const [error, setError] = useState('')
+  const [palletQuantity, setPalletQuantity] = useState('')
+  
+  // Price editor state
+  const [prices, setPrices] = useState({ timberTypes: [] })
+  const [lockedFields, setLockedFields] = useState(new Set())
+  const [expandedGroups, setExpandedGroups] = useState(new Set(['pine-green-case'])) // First group expanded by default
+
+  // Available sizes
+  const [availableBoardSizes, setAvailableBoardSizes] = useState([])
+  const [availableBearerSizes, setAvailableBearerSizes] = useState([])
+
+  // Load prices - merge saved prices with current timber data structure
+  useEffect(() => {
+    const savedPrices = localStorage.getItem('timberPrices')
+    
+    // Always start with the current timber data structure
+    let currentPrices = JSON.parse(JSON.stringify(timberData))
+    
+    // If we have saved prices, try to merge the price values
+    if (savedPrices) {
+      try {
+        const saved = JSON.parse(savedPrices)
+        // Only merge if the saved data has the same timber type IDs
+        currentPrices.timberTypes.forEach(type => {
+          const savedType = saved.timberTypes?.find(t => t.id === type.id)
+          if (savedType) {
+            type.boardSizes.forEach(size => {
+              const savedSize = savedType.boardSizes?.find(s => s.id === size.id)
+              if (savedSize?.pricePerBoard !== undefined) {
+                size.pricePerBoard = savedSize.pricePerBoard
+              }
+            })
+            type.bearerSizes.forEach(size => {
+              const savedSize = savedType.bearerSizes?.find(s => s.id === size.id)
+              if (savedSize?.pricePerBearer !== undefined) {
+                size.pricePerBearer = savedSize.pricePerBearer
+              }
+            })
+          }
+        })
+        if (saved.nailPricePerNail !== undefined) {
+          currentPrices.nailPricePerNail = saved.nailPricePerNail
+        }
+      } catch (e) {
+        console.log('Could not merge saved prices, using defaults')
+      }
+    }
+    
+    setPrices(currentPrices)
+    
+    const allFieldIds = []
+    timberData.timberTypes.forEach(type => {
+      type.boardSizes.forEach(size => allFieldIds.push(`${type.id}-board-${size.id}`))
+      type.bearerSizes.forEach(size => allFieldIds.push(`${type.id}-bearer-${size.id}`))
+    })
+    allFieldIds.push('nails')
+    setLockedFields(new Set(allFieldIds))
+  }, [])
+
+  useEffect(() => {
+    if (selectedBoardType) {
+      const type = timberData.timberTypes.find(t => t.id === selectedBoardType)
+      setAvailableBoardSizes(type ? type.boardSizes : [])
+      setSelectedBoardSize('')
+    } else {
+      setAvailableBoardSizes([])
+    }
+  }, [selectedBoardType])
+
+  useEffect(() => {
+    if (selectedBearerType) {
+      const type = timberData.timberTypes.find(t => t.id === selectedBearerType)
+      setAvailableBearerSizes(type ? type.bearerSizes : [])
+      setSelectedBearerSize('')
+    } else {
+      setAvailableBearerSizes([])
+    }
+  }, [selectedBearerType])
+
+  // Get current board width for calculations
+  const currentBoardWidth = useMemo(() => {
+    if (!selectedBoardType || !selectedBoardSize) return 0
+    const type = timberData.timberTypes.find(t => t.id === selectedBoardType)
+    const size = type?.boardSizes.find(s => s.id === selectedBoardSize)
+    return size?.width || 0
+  }, [selectedBoardType, selectedBoardSize])
+
+  // Get current bearer thickness for calculations
+  const currentBearerThickness = useMemo(() => {
+    if (!selectedBearerType || !selectedBearerSize) return 0
+    const type = timberData.timberTypes.find(t => t.id === selectedBearerType)
+    const size = type?.bearerSizes.find(s => s.id === selectedBearerSize)
+    return size?.thickness || 0
+  }, [selectedBearerType, selectedBearerSize])
+
+  // Calculate max boards that can fit without overlapping
+  // Returns -1 when we shouldn't apply any limit (partial input or unreasonably small width)
+  const maxBoardsAllowed = useMemo(() => {
+    const width = parseFloat(palletWidth) || 0
+    if (!currentBoardWidth) {
+      return 15 // No board size selected, allow all
+    }
+    // Require minimum 2 boards worth of width to be considered "complete"
+    // This prevents adjustments during intermediate typing (e.g., "100", "116" when typing "1165")
+    const minReasonableWidth = currentBoardWidth * 2
+    if (!width || width < minReasonableWidth) {
+      return -1 // Invalid/partial width - don't limit
+    }
+    
+    const maxBoards = Math.floor(width / currentBoardWidth)
+    return Math.min(15, maxBoards) // Cap at 15
+  }, [palletWidth, currentBoardWidth])
+
+  // For UI display - show 15 when not limiting
+  const maxBoardsForUI = maxBoardsAllowed === -1 ? 15 : maxBoardsAllowed
+
+  // Calculate max bearers that can fit without overlapping
+  // Returns -1 when we shouldn't apply any limit (partial input or unreasonably small length)
+  const maxBearersAllowed = useMemo(() => {
+    const length = parseFloat(palletLength) || 0
+    if (!currentBearerThickness) {
+      return 15 // No bearer size selected, allow all
+    }
+    // Require minimum 2 bearers worth of length to be considered "complete"
+    // This prevents adjustments during intermediate typing
+    const minReasonableLength = currentBearerThickness * 2
+    if (!length || length < minReasonableLength) {
+      return -1 // Invalid/partial length - don't limit
+    }
+    
+    const maxBearers = Math.floor(length / currentBearerThickness)
+    return Math.min(15, maxBearers) // Cap at 15
+  }, [palletLength, currentBearerThickness])
+
+  // For UI display - show 15 when not limiting
+  const maxBearersForUI = maxBearersAllowed === -1 ? 15 : maxBearersAllowed
+
+  // Auto-adjust top boards when max changes (only if valid limit and boards selected)
+  useEffect(() => {
+    if (maxBoardsAllowed > 0 && numberOfTopBoards) {
+      const boards = parseInt(numberOfTopBoards) || 0
+      if (boards > maxBoardsAllowed) {
+        setNumberOfTopBoards(String(maxBoardsAllowed))
+      }
+    }
+  }, [maxBoardsAllowed, numberOfTopBoards])
+
+  // Auto-adjust bottom boards when max changes (only if valid limit and boards selected)
+  useEffect(() => {
+    if (maxBoardsAllowed > 0 && numberOfBottomBoards) {
+      const boards = parseInt(numberOfBottomBoards) || 0
+      if (boards > maxBoardsAllowed) {
+        setNumberOfBottomBoards(String(maxBoardsAllowed))
+      }
+    }
+  }, [maxBoardsAllowed, numberOfBottomBoards])
+
+  // Auto-adjust bearers when max changes (only if valid limit and bearers selected)
+  useEffect(() => {
+    if (maxBearersAllowed > 0 && numberOfBearers) {
+      const bearers = parseInt(numberOfBearers) || 0
+      if (bearers > maxBearersAllowed) {
+        setNumberOfBearers(String(maxBearersAllowed))
+      }
+    }
+  }, [maxBearersAllowed, numberOfBearers])
+
+  // Compute the actual displayed value for selects (capped to max)
+  const displayedTopBoards = numberOfTopBoards && maxBoardsAllowed > 0 
+    ? String(Math.min(parseInt(numberOfTopBoards) || 1, maxBoardsAllowed))
+    : numberOfTopBoards
+  const displayedBottomBoards = numberOfBottomBoards && maxBoardsAllowed > 0
+    ? String(Math.min(parseInt(numberOfBottomBoards) || 1, maxBoardsAllowed))
+    : numberOfBottomBoards
+  const displayedBearers = numberOfBearers && maxBearersAllowed > 0
+    ? String(Math.min(parseInt(numberOfBearers) || 1, maxBearersAllowed))
+    : numberOfBearers
+
+  // Live preview data
+  const livePreviewData = useMemo(() => {
+    const width = parseFloat(palletWidth) || 0
+    const length = parseFloat(palletLength) || 0
+    // Use capped values for 3D preview
+    const topBoards = parseInt(displayedTopBoards) || 0
+    const bottomBoards = parseInt(displayedBottomBoards) || 0
+    const bearers = parseInt(displayedBearers) || 0
+
+    // Board dimensions
+    let boardWidth = 100
+    let boardThickness = 22
+    if (selectedBoardType && selectedBoardSize) {
+      const type = timberData.timberTypes.find(t => t.id === selectedBoardType)
+      const size = type?.boardSizes.find(s => s.id === selectedBoardSize)
+      if (size) {
+        boardWidth = size.width
+        boardThickness = size.thickness
+      }
+    }
+
+    // Bearer dimensions
+    let bearerWidth = 75
+    let bearerHeight = 38
+    if (selectedBearerType && selectedBearerSize) {
+      const type = timberData.timberTypes.find(t => t.id === selectedBearerType)
+      const size = type?.bearerSizes.find(s => s.id === selectedBearerSize)
+      if (size) {
+        bearerWidth = size.width
+        bearerHeight = size.thickness
+      }
+    }
+
+    const topGap = topBoards > 1 ? calculateGapSize(width, boardWidth, topBoards) : 0
+    const bottomGap = bottomBoards > 1 ? calculateGapSize(width, boardWidth, bottomBoards) : 0
+
+    return {
+      palletWidth: width,
+      palletLength: length,
+      boardWidth: boardWidth,
+      boardThickness: boardThickness,
+      bearerWidth: bearerWidth,
+      bearerHeight: bearerHeight,
+      numberOfTopBoards: topBoards,
+      numberOfBottomBoards: bottomBoards,
+      numberOfBearers: bearers,
+      topGapSize: Math.max(0, topGap),
+      bottomGapSize: Math.max(0, bottomGap)
+    }
+  }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, selectedBoardType, selectedBoardSize, selectedBearerType, selectedBearerSize])
+
+  // Real-time progressive quote calculation - updates as each element is added
+  const liveQuote = useMemo(() => {
+    const width = parseFloat(palletWidth) || 0
+    const length = parseFloat(palletLength) || 0
+    // Use capped values for quote calculation
+    const topBoards = parseInt(displayedTopBoards) || 0
+    const bottomBoards = parseInt(displayedBottomBoards) || 0
+    const bearers = parseInt(displayedBearers) || 0
+
+    // Get timber types and sizes
+    const boardTimberType = prices.timberTypes.find(t => t.id === selectedBoardType)
+    const bearerTimberType = prices.timberTypes.find(t => t.id === selectedBearerType)
+    const boardSize = boardTimberType?.boardSizes.find(s => s.id === selectedBoardSize)
+    const bearerSize = bearerTimberType?.bearerSizes.find(s => s.id === selectedBearerSize)
+
+    // Progressive price calculation
+    let runningTotal = 0
+    let topBoardsTotal = 0
+    let bottomBoardsTotal = 0
+    let bearersTotal = 0
+    let nailsTotal = 0
+    let totalNails = 0
+    let topGapSize = 0
+    let bottomGapSize = 0
+
+    // Calculate top boards price if we have board info
+    if (boardSize && topBoards > 0) {
+      topBoardsTotal = parseFloat(calculateTotalPrice(boardSize.pricePerBoard, topBoards))
+      runningTotal += topBoardsTotal
+      if (width > 0) {
+        topGapSize = calculateGapSize(width, boardSize.width, topBoards)
+      }
+    }
+
+    // Calculate bottom boards price if we have board info
+    if (boardSize && bottomBoards > 0) {
+      bottomBoardsTotal = parseFloat(calculateTotalPrice(boardSize.pricePerBoard, bottomBoards))
+      runningTotal += bottomBoardsTotal
+      if (width > 0) {
+        bottomGapSize = calculateGapSize(width, boardSize.width, bottomBoards)
+      }
+    }
+
+    // Calculate bearers price if we have bearer info
+    if (bearerSize && bearers > 0) {
+      bearersTotal = parseFloat(calculateTotalPrice(bearerSize.pricePerBearer, bearers))
+      runningTotal += bearersTotal
+    }
+
+    // Calculate nails if we have both boards and bearers
+    const nailPrice = prices.nailPricePerNail || 0.02
+    if (topBoards > 0 && bearers > 0) {
+      totalNails += topBoards * bearers * 2
+    }
+    if (bottomBoards > 0 && bearers > 0) {
+      totalNails += bottomBoards * bearers * 2
+    }
+    if (totalNails > 0) {
+      nailsTotal = parseFloat(calculateTotalPrice(nailPrice, totalNails))
+      runningTotal += nailsTotal
+    }
+
+    // Check if quote is complete (all required fields filled)
+    const isComplete = width > 0 && length > 0 && topBoards > 0 && bottomBoards > 0 && 
+                       bearers > 0 && boardTimberType && bearerTimberType && boardSize && bearerSize
+
+    // Return progressive quote data
+    return {
+      timberType: boardTimberType?.name || '',
+      bearerTimberType: bearerTimberType?.name || '',
+      boardSize: boardSize?.dimensions || '',
+      bearerSize: bearerSize?.dimensions || '',
+      numberOfTopBoards: topBoards,
+      numberOfBearers: bearers,
+      numberOfBottomBoards: bottomBoards,
+      pricePerBoard: boardSize?.pricePerBoard || 0,
+      pricePerBearer: bearerSize?.pricePerBearer || 0,
+      topBoardsTotal,
+      bearersTotal,
+      bottomBoardsTotal,
+      totalNails,
+      pricePerNail: nailPrice,
+      nailsTotal,
+      totalPrice: runningTotal,
+      palletWidth: width,
+      palletLength: length,
+      boardWidth: boardSize?.width || 0,
+      topGapSize,
+      bottomGapSize,
+      isComplete,
+      hasAnyPrice: runningTotal > 0
+    }
+  }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, selectedBoardType, selectedBoardSize, selectedBearerType, selectedBearerSize, prices])
+
+  const handleClear = () => {
+    setPalletWidth('')
+    setPalletLength('')
+    setSelectedBoardType('')
+    setSelectedBoardSize('')
+    setNumberOfTopBoards('')
+    setNumberOfBottomBoards('')
+    setSelectedBearerType('')
+    setSelectedBearerSize('')
+    setNumberOfBearers('')
+    setError('')
+    setPalletQuantity('')
+    onQuoteCalculated(null)
+  }
+
+  const toggleLock = (fieldId) => {
+    const newLockedFields = new Set(lockedFields)
+    if (newLockedFields.has(fieldId)) {
+      newLockedFields.delete(fieldId)
+    } else {
+      newLockedFields.add(fieldId)
+    }
+    setLockedFields(newLockedFields)
+  }
+
+  // Get all field IDs for a category
+  const getCategoryFieldIds = (categoryId) => {
+    if (categoryId === 'hardware') {
+      return ['nails']
+    }
+    const type = timberData.timberTypes.find(t => t.id === categoryId)
+    if (!type) return []
+    const boardIds = type.boardSizes.map(s => `${categoryId}-board-${s.id}`)
+    const bearerIds = type.bearerSizes.map(s => `${categoryId}-bearer-${s.id}`)
+    return [...boardIds, ...bearerIds]
+  }
+
+  // Check if all fields in a category are locked
+  const isCategoryLocked = (categoryId) => {
+    const fieldIds = getCategoryFieldIds(categoryId)
+    return fieldIds.length > 0 && fieldIds.every(id => lockedFields.has(id))
+  }
+
+  // Toggle all locks in a category
+  const toggleCategoryLock = (categoryId, e) => {
+    e.stopPropagation() // Prevent toggle from expanding/collapsing
+    const fieldIds = getCategoryFieldIds(categoryId)
+    const newLockedFields = new Set(lockedFields)
+    const allLocked = isCategoryLocked(categoryId)
+    
+    fieldIds.forEach(id => {
+      if (allLocked) {
+        newLockedFields.delete(id)
+      } else {
+        newLockedFields.add(id)
+      }
+    })
+    setLockedFields(newLockedFields)
+  }
+
+  const toggleGroup = (groupId) => {
+    const newExpanded = new Set(expandedGroups)
+    if (newExpanded.has(groupId)) {
+      newExpanded.delete(groupId)
+    } else {
+      newExpanded.add(groupId)
+    }
+    setExpandedGroups(newExpanded)
+  }
+
+  const handlePriceChange = (typeId, sizeId, newPrice, itemType) => {
+    const updatedPrices = { ...prices }
+    const typeIndex = updatedPrices.timberTypes.findIndex(t => t.id === typeId)
+    
+    if (itemType === 'board') {
+      const sizeIndex = updatedPrices.timberTypes[typeIndex].boardSizes.findIndex(s => s.id === sizeId)
+      updatedPrices.timberTypes[typeIndex].boardSizes[sizeIndex].pricePerBoard = parseFloat(newPrice) || 0
+    } else {
+      const sizeIndex = updatedPrices.timberTypes[typeIndex].bearerSizes.findIndex(s => s.id === sizeId)
+      updatedPrices.timberTypes[typeIndex].bearerSizes[sizeIndex].pricePerBearer = parseFloat(newPrice) || 0
+    }
+    
+    setPrices(updatedPrices)
+  }
+
+  const handleSavePrices = () => {
+    localStorage.setItem('timberPrices', JSON.stringify(prices))
+  }
+
+  return (
+    <div className={`builder-layout ${isPanelCollapsed ? 'panel-collapsed' : ''}`}>
+      {/* Collapsed Edit Button */}
+      {isPanelCollapsed && (
+        <button 
+          className="expand-panel-btn"
+          onClick={() => setIsPanelCollapsed(false)}
+          title="Open Editor"
+        >
+          <EditIcon />
+        </button>
+      )}
+
+      {/* Left Panel - Form Card */}
+      <div className={`form-panel ${isPanelCollapsed ? 'hidden' : ''}`}>
+        <div className="form-card">
+          {/* Collapse Button */}
+          <button 
+            className="collapse-panel-btn"
+            onClick={() => setIsPanelCollapsed(true)}
+            title="Collapse Panel"
+          >
+            ✕
+          </button>
+          
+          {/* Tab Navigation */}
+          <div className="card-tabs">
+            <button 
+              className={`card-tab ${activeTab === 'calculator' ? 'active' : ''}`}
+              onClick={() => setActiveTab('calculator')}
+            >
+              Builder
+            </button>
+            <button 
+              className={`card-tab ${activeTab === 'quote' ? 'active' : ''} ${liveQuote?.isComplete ? 'has-quote' : ''}`}
+              onClick={() => setActiveTab('quote')}
+            >
+              Quote {liveQuote?.hasAnyPrice && <span className={`quote-ready-dot ${liveQuote.isComplete ? '' : 'partial'}`}>●</span>}
+            </button>
+            <button 
+              className={`card-tab ${activeTab === 'prices' ? 'active' : ''}`}
+              onClick={() => setActiveTab('prices')}
+            >
+              Prices
+            </button>
+          </div>
+
+          {activeTab === 'calculator' ? (
+            <>
+              <div className="card-content">
+              
+                <div className="quote-form">
+                  {/* Pallet Dimensions */}
+                  <div className="form-row three-col">
+                    <div className="form-field">
+                      <label>Preset Size</label>
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const [w, l] = e.target.value.split('x')
+                            setPalletWidth(w)
+                            setPalletLength(l)
+                          }
+                        }}
+                        value={palletWidth && palletLength ? `${palletWidth}x${palletLength}` : ''}
+                      >
+                        <option value="">Custom...</option>
+                        <option value="1165x1165">1165 × 1165mm</option>
+                        <option value="1140x1140">1140 × 1140mm</option>
+                      </select>
+                    </div>
+                    <div className="form-field">
+                      <label>Width (mm)</label>
+                      <input
+                        type="number"
+                        value={palletWidth}
+                        onChange={(e) => setPalletWidth(e.target.value)}
+                        placeholder="e.g., 1200"
+                      />
+                    </div>
+                    <div className="form-field">
+                      <label>Length (mm)</label>
+                      <input
+                        type="number"
+                        value={palletLength}
+                        onChange={(e) => setPalletLength(e.target.value)}
+                        placeholder="e.g., 1200"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="section-divider" />
+
+                  {/* Board Timber Type - Full Width */}
+                  <div className="form-field">
+                    <label>Timber Type (Boards)</label>
+                    <select
+                      value={selectedBoardType}
+                      onChange={(e) => setSelectedBoardType(e.target.value)}
+                    >
+                      <option value="">Select timber type...</option>
+                      {timberData.timberTypes.map(type => (
+                        <option key={type.id} value={type.id}>{type.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Board Size - Full Width */}
+                  <div className="form-field">
+                    <label>Board Size (Top & Bottom)</label>
+                    <select
+                      value={selectedBoardSize}
+                      onChange={(e) => setSelectedBoardSize(e.target.value)}
+                      disabled={!selectedBoardType}
+                    >
+                      <option value="">Select board size...</option>
+                      {availableBoardSizes.map(size => (
+                        <option key={size.id} value={size.id}>{size.dimensions}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Number of Boards - Two Column */}
+                  <div className="form-row two-col">
+                    <div className="form-field">
+                      <label>No. of Boards (BOTTOM) {maxBoardsAllowed > 0 && maxBoardsAllowed < 15 && <span className="max-hint">(max {maxBoardsAllowed})</span>}</label>
+                      <select
+                        value={displayedBottomBoards}
+                        onChange={(e) => setNumberOfBottomBoards(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {[...Array(maxBoardsForUI)].map((_, i) => (
+                          <option key={i + 1} value={i + 1}>{i + 1}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-field">
+                      <label>No. of Boards (TOP) {maxBoardsAllowed > 0 && maxBoardsAllowed < 15 && <span className="max-hint">(max {maxBoardsAllowed})</span>}</label>
+                      <select
+                        value={displayedTopBoards}
+                        onChange={(e) => setNumberOfTopBoards(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {[...Array(maxBoardsForUI)].map((_, i) => (
+                          <option key={i + 1} value={i + 1}>{i + 1}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="section-divider" />
+
+                  {/* Bearer Timber Type - Full Width */}
+                  <div className="form-field">
+                    <label>Timber Type (Bearers)</label>
+                    <select
+                      value={selectedBearerType}
+                      onChange={(e) => setSelectedBearerType(e.target.value)}
+                    >
+                      <option value="">Select timber type...</option>
+                      {timberData.timberTypes.map(type => (
+                        <option key={type.id} value={type.id}>{type.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Bearer Size and Number - Two Column */}
+                  <div className="form-row two-col">
+                    <div className="form-field">
+                      <label>Bearer Size</label>
+                      <select
+                        value={selectedBearerSize}
+                        onChange={(e) => setSelectedBearerSize(e.target.value)}
+                        disabled={!selectedBearerType}
+                      >
+                        <option value="">Select bearer size...</option>
+                        {availableBearerSizes.map(size => (
+                          <option key={size.id} value={size.id}>{size.dimensions}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-field">
+                      <label>No. of Bearers {maxBearersAllowed > 0 && maxBearersAllowed < 15 && <span className="max-hint">(max {maxBearersAllowed})</span>}</label>
+                      <select
+                        value={displayedBearers}
+                        onChange={(e) => setNumberOfBearers(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {[...Array(maxBearersForUI)].map((_, i) => (
+                          <option key={i + 1} value={i + 1}>{i + 1}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {error && <div className="error-msg">{error}</div>}
+
+                  <div className="form-actions">
+                    <button type="button" onClick={handleClear} className="btn-clear">Clear All</button>
+                  </div>
+                </div>
+
+              </div>
+            </>
+          ) : activeTab === 'quote' ? (
+            <>
+              <div className="card-content">
+                {liveQuote?.hasAnyPrice ? (
+                  <div className="quote-results">
+                    <div className="quote-header">
+                      <h3>Quote Summary</h3>
+                      <span className={`quote-status ${liveQuote.isComplete ? 'ready' : 'partial'}`}>
+                        {liveQuote.isComplete ? 'Complete' : 'In Progress'}
+                      </span>
+                    </div>
+                    
+                    <div className="result-grid">
+                      {(liveQuote.palletWidth > 0 || liveQuote.palletLength > 0) && (
+                        <div className="result-row">
+                          <span>Pallet Size</span>
+                          <span>{liveQuote.palletWidth || '—'} × {liveQuote.palletLength || '—'} mm</span>
+                        </div>
+                      )}
+                      {liveQuote.topBoardsTotal > 0 && (
+                        <div className="result-row">
+                          <span>Top Boards ({liveQuote.numberOfTopBoards}× {liveQuote.boardSize || '—'})</span>
+                          <span>{formatCurrency(liveQuote.topBoardsTotal)}</span>
+                        </div>
+                      )}
+                      {liveQuote.bottomBoardsTotal > 0 && (
+                        <div className="result-row">
+                          <span>Bottom Boards ({liveQuote.numberOfBottomBoards}× {liveQuote.boardSize || '—'})</span>
+                          <span>{formatCurrency(liveQuote.bottomBoardsTotal)}</span>
+                        </div>
+                      )}
+                      {liveQuote.bearersTotal > 0 && (
+                        <div className="result-row">
+                          <span>Bearers ({liveQuote.numberOfBearers}× {liveQuote.bearerSize || '—'})</span>
+                          <span>{formatCurrency(liveQuote.bearersTotal)}</span>
+                        </div>
+                      )}
+                      {liveQuote.nailsTotal > 0 && (
+                        <div className="result-row">
+                          <span>Nails ({liveQuote.totalNails})</span>
+                          <span>{formatCurrency(liveQuote.nailsTotal)}</span>
+                        </div>
+                      )}
+                      
+                      {liveQuote.topGapSize > 0 && (
+                        <>
+                          <div className="section-divider" />
+                          <div className="result-row highlight">
+                            <span>Top Gap</span>
+                            <span>{formatDimension(liveQuote.topGapSize)}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <div className={`subtotal-row ${!liveQuote.isComplete ? 'partial' : ''}`}>
+                      <span>{liveQuote.isComplete ? 'Subtotal (1 Pallet)' : 'Running Total'}</span>
+                      <span>{formatCurrency(liveQuote.totalPrice)}</span>
+                    </div>
+
+                    <div className="quantity-row">
+                      <label>Number of Pallets</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={palletQuantity}
+                        onChange={(e) => setPalletQuantity(e.target.value)}
+                        onBlur={(e) => {
+                          const val = parseInt(e.target.value)
+                          if (!val || val < 1) setPalletQuantity('1')
+                        }}
+                        placeholder="1"
+                        className="quantity-input"
+                      />
+                    </div>
+
+                    <div className={`total-row ${!liveQuote.isComplete ? 'partial' : ''}`}>
+                      <span>Total ({parseInt(palletQuantity) || 1} Pallet{(parseInt(palletQuantity) || 1) > 1 ? 's' : ''})</span>
+                      <span>{formatCurrency(liveQuote.totalPrice * (parseInt(palletQuantity) || 1))}</span>
+                    </div>
+
+                    <div className="form-actions">
+                      <button onClick={() => window.print()} className="btn-calculate">Print Quote</button>
+                      <button onClick={handleClear} className="btn-clear">New Quote</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="quote-empty">
+                    <div className="quote-empty-icon">📋</div>
+                    <h3>No Quote Yet</h3>
+                    <p>Fill in all fields in the Builder tab to see your quote calculated in real-time.</p>
+                    <button onClick={() => setActiveTab('calculator')} className="btn-calculate">
+                      Go to Builder
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="card-content price-editor-content">
+              
+              <div className="price-header">
+                <span className="price-header-label">Size</span>
+                <span className="price-header-currency">$/metre</span>
+              </div>
+              
+              <div className="price-editor-scroll">
+                {prices.timberTypes.map(timberType => {
+                  const isExpanded = expandedGroups.has(timberType.id)
+                  const categoryLocked = isCategoryLocked(timberType.id)
+                  return (
+                    <div key={timberType.id} className={`price-group ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                      <div className="price-group-header">
+                        <button className="price-group-toggle" onClick={() => toggleGroup(timberType.id)}>
+                          <span className="toggle-icon">{isExpanded ? '▼' : '▶'}</span>
+                          <span className="toggle-title">{timberType.name}</span>
+                        </button>
+                        <div className="master-lock" onClick={(e) => toggleCategoryLock(timberType.id, e)}>
+                          <span className="master-lock-label">ALL</span>
+                          <LockIcon isLocked={categoryLocked} onClick={(e) => toggleCategoryLock(timberType.id, e)} />
+                        </div>
+                      </div>
+                      
+                      {isExpanded && (
+                        <div className="price-group-content">
+                          <div className="price-subgroup">
+                            <span className="subgroup-label">Boards (per metre)</span>
+                            {timberType.boardSizes.map(size => {
+                              const fieldId = `${timberType.id}-board-${size.id}`
+                              const isLocked = lockedFields.has(fieldId)
+                              return (
+                                <div key={size.id} className="price-item">
+                                  <span>{size.dimensions}</span>
+                                  <div className="price-input-wrap">
+                                    <span className="price-prefix">$</span>
+                                    <input
+                                      type="number"
+                                      value={size.pricePerBoard}
+                                      onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, 'board')}
+                                      disabled={isLocked}
+                                      step="0.01"
+                                    />
+                                    <LockIcon isLocked={isLocked} onClick={() => toggleLock(fieldId)} />
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+
+                          <div className="price-subgroup">
+                            <span className="subgroup-label">Bearers (per metre)</span>
+                            {timberType.bearerSizes.map(size => {
+                              const fieldId = `${timberType.id}-bearer-${size.id}`
+                              const isLocked = lockedFields.has(fieldId)
+                              return (
+                                <div key={size.id} className="price-item">
+                                  <span>{size.dimensions}</span>
+                                  <div className="price-input-wrap">
+                                    <span className="price-prefix">$</span>
+                                    <input
+                                      type="number"
+                                      value={size.pricePerBearer}
+                                      onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, 'bearer')}
+                                      disabled={isLocked}
+                                      step="0.01"
+                                    />
+                                    <LockIcon isLocked={isLocked} onClick={() => toggleLock(fieldId)} />
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                
+                <div className={`price-group ${expandedGroups.has('hardware') ? 'expanded' : 'collapsed'}`}>
+                  <div className="price-group-header">
+                    <button className="price-group-toggle" onClick={() => toggleGroup('hardware')}>
+                      <span className="toggle-icon">{expandedGroups.has('hardware') ? '▼' : '▶'}</span>
+                      <span className="toggle-title">Hardware</span>
+                    </button>
+                    <div className="master-lock" onClick={(e) => toggleCategoryLock('hardware', e)}>
+                      <span className="master-lock-label">ALL</span>
+                      <LockIcon isLocked={isCategoryLocked('hardware')} onClick={(e) => toggleCategoryLock('hardware', e)} />
+                    </div>
+                  </div>
+                  
+                  {expandedGroups.has('hardware') && (
+                    <div className="price-group-content">
+                      <div className="price-item">
+                        <span>Nail (per unit)</span>
+                        <div className="price-input-wrap">
+                          <input
+                            type="number"
+                            value={prices.nailPricePerNail || 0.02}
+                            onChange={(e) => {
+                              const updated = { ...prices }
+                              updated.nailPricePerNail = parseFloat(e.target.value) || 0
+                              setPrices(updated)
+                            }}
+                            disabled={lockedFields.has('nails')}
+                            step="0.01"
+                          />
+                          <LockIcon isLocked={lockedFields.has('nails')} onClick={() => toggleLock('nails')} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="price-save-actions">
+                <button onClick={handleSavePrices} className="btn-calculate">Save Prices</button>
+              </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Right Panel - 3D Pallet */}
+      <div className="pallet-panel">
+        {/* Live Price Header */}
+        <div className="live-price-header">
+          <div className="quantity-input-group">
+            <label>Pallets</label>
+            <input
+              type="number"
+              min="1"
+              value={palletQuantity}
+              onChange={(e) => {
+                const val = e.target.value
+                if (val === '' || /^\d+$/.test(val)) {
+                  setPalletQuantity(val)
+                }
+              }}
+              onBlur={() => {
+                if (palletQuantity === '' || parseInt(palletQuantity) < 1) {
+                  setPalletQuantity('1')
+                }
+              }}
+              placeholder="1"
+              className="quantity-input"
+            />
+          </div>
+          <div className="live-price-display">
+            {liveQuote?.hasAnyPrice ? (
+              <>
+                <span className="price-label">{liveQuote.isComplete ? 'Total' : 'Running'}</span>
+                <span className={`price-value ${!liveQuote.isComplete ? 'partial' : ''}`}>
+                  ${((liveQuote.totalPrice || 0) * (parseInt(palletQuantity) || 1)).toFixed(2)}
+                </span>
+              </>
+            ) : (
+              <span className="price-placeholder">$0.00</span>
+            )}
+          </div>
+        </div>
+
+        <Pallet3DLive previewData={livePreviewData} />
+        
+        {/* Top Boards Slider */}
+        <div className="dimension-sliders">
+          <div className="slider-group">
+            <label>
+              <span className="slider-label">Top Boards</span>
+              <span className="slider-value">{displayedTopBoards || 0}{maxBoardsAllowed > 0 && maxBoardsAllowed < 15 ? ` / ${maxBoardsAllowed}` : ''}</span>
+            </label>
+            <input
+              type="range"
+              min="1"
+              max={maxBoardsForUI}
+              step="1"
+              value={parseInt(displayedTopBoards) || 1}
+              onChange={(e) => setNumberOfTopBoards(e.target.value)}
+              className="dimension-slider"
+            />
+          </div>
+        </div>
+        
+        <div className="drag-hint">Drag to rotate • Scroll to zoom</div>
+      </div>
+
+      {/* Printable Quote - only visible when printing */}
+      <PrintableQuote quoteData={liveQuote} quantity={parseInt(palletQuantity) || 1} />
+    </div>
+  )
+}
+
+export default PalletBuilderOverlay

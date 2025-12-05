@@ -1,0 +1,102 @@
+/* Lock Icon Styles */
+
+.lock-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  border-radius: 4px;
+}
+
+.lock-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.lock-button:active {
+  transform: scale(0.95);
+}
+
+.lock-icon {
+  transition: var(--transition);
+}
+
+/* Locked State - Grey */
+.lock-button.locked {
+  color: #9ca3af;
+}
+
+.lock-button.locked:hover {
+  color: #6b7280;
+}
+
+/* Unlocked State */
+.lock-button.unlocked {
+  color: var(--success-color);
+}
+
+.lock-button.unlocked:hover {
+  color: #059669;
+}
+
+/* Shackle Animation */
+.lock-button.unlocked .lock-shackle {
+  animation: swingOpen 0.6s ease-out forwards;
+  transform-origin: 8px 7px; /* Left hinge point */
+}
+
+.lock-button.locked .lock-shackle {
+  animation: swingClose 0.4s ease-in-out forwards;
+  transform-origin: 8px 7px;
+}
+
+@keyframes swingOpen {
+  0% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-45deg);
+  }
+  50% {
+    transform: rotate(-50deg);
+  }
+  70% {
+    transform: rotate(-42deg);
+  }
+  85% {
+    transform: rotate(-46deg);
+  }
+  100% {
+    transform: rotate(-45deg);
+  }
+}
+
+@keyframes swingClose {
+  0% {
+    transform: rotate(-45deg);
+  }
+  50% {
+    transform: rotate(-10deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Lock body subtle pulse on unlock */
+.lock-button.unlocked .lock-body {
+  animation: unlock-pulse 0.4s ease-out;
+}
+
+@keyframes unlock-pulse {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
