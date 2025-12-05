@@ -40,6 +40,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [prices, setPrices] = useState({ timberTypes: [] })
   const [lockedFields, setLockedFields] = useState(new Set())
   const [expandedGroups, setExpandedGroups] = useState(new Set(['pine-green-case'])) // First group expanded by default
+  
+  // Saved presets state
+  const [savedPresets, setSavedPresets] = useState([])
+  const [showSavePresetModal, setShowSavePresetModal] = useState(false)
+  const [newPresetName, setNewPresetName] = useState('')
 
   // Available sizes
   const [availableBoardSizes, setAvailableBoardSizes] = useState([])
@@ -92,6 +97,112 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     allFieldIds.push('nails')
     setLockedFields(new Set(allFieldIds))
   }, [])
+
+  // Load saved presets from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('palletPresets')
+    if (saved) {
+      try {
+        setSavedPresets(JSON.parse(saved))
+      } catch (e) {
+        console.log('Could not load saved presets')
+      }
+    }
+  }, [])
+
+  // Save preset to localStorage
+  const savePreset = () => {
+    if (!newPresetName.trim()) return
+    
+    const preset = {
+      id: Date.now().toString(),
+      name: newPresetName.trim(),
+      palletWidth,
+      palletLength,
+      selectedBoardType,
+      selectedBoardSize,
+      numberOfTopBoards,
+      numberOfBottomBoards,
+      selectedBearerType,
+      selectedBearerSize,
+      numberOfBearers
+    }
+    
+    const updatedPresets = [...savedPresets, preset]
+    setSavedPresets(updatedPresets)
+    localStorage.setItem('palletPresets', JSON.stringify(updatedPresets))
+    setNewPresetName('')
+    setShowSavePresetModal(false)
+  }
+
+  // Load a saved preset
+  const loadPreset = (preset) => {
+    setPalletWidth(preset.palletWidth || '')
+    setPalletLength(preset.palletLength || '')
+    setSelectedBoardType(preset.selectedBoardType || '')
+    setSelectedBoardSize(preset.selectedBoardSize || '')
+    setNumberOfTopBoards(preset.numberOfTopBoards || '')
+    setNumberOfBottomBoards(preset.numberOfBottomBoards || '')
+    setSelectedBearerType(preset.selectedBearerType || '')
+    setSelectedBearerSize(preset.selectedBearerSize || '')
+    setNumberOfBearers(preset.numberOfBearers || '')
+  }
+
+  // Delete a saved preset
+  const deletePreset = (presetId) => {
+    const updatedPresets = savedPresets.filter(p => p.id !== presetId)
+    setSavedPresets(updatedPresets)
+    localStorage.setItem('palletPresets', JSON.stringify(updatedPresets))
+  }
+
+  // Export presets to JSON file
+  const exportPresets = () => {
+    const dataToExport = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      presets: savedPresets,
+      prices: prices
+    }
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `pallet-presets-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // Import presets from JSON file
+  const importPresets = (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+    
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result)
+        if (data.presets && Array.isArray(data.presets)) {
+          // Merge imported presets with existing (avoid duplicates by name)
+          const existingNames = new Set(savedPresets.map(p => p.name))
+          const newPresets = data.presets.filter(p => !existingNames.has(p.name))
+          const mergedPresets = [...savedPresets, ...newPresets.map(p => ({ ...p, id: Date.now().toString() + Math.random() }))]
+          setSavedPresets(mergedPresets)
+          localStorage.setItem('palletPresets', JSON.stringify(mergedPresets))
+        }
+        if (data.prices) {
+          setPrices(data.prices)
+          localStorage.setItem('timberPrices', JSON.stringify(data.prices))
+        }
+        alert(`Imported ${data.presets?.length || 0} presets successfully!`)
+      } catch (err) {
+        alert('Error importing file. Please check the file format.')
+      }
+    }
+    reader.readAsText(file)
+    event.target.value = '' // Reset file input
+  }
 
   useEffect(() => {
     if (selectedBoardType) {
@@ -501,20 +612,36 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   {/* Pallet Dimensions */}
                   <div className="form-row three-col">
                     <div className="form-field">
-                      <label>Preset Size</label>
+                      <label>Load Preset</label>
                       <select
                         onChange={(e) => {
-                          if (e.target.value) {
-                            const [w, l] = e.target.value.split('x')
+                          const value = e.target.value
+                          if (value.startsWith('saved:')) {
+                            const presetId = value.replace('saved:', '')
+                            const preset = savedPresets.find(p => p.id === presetId)
+                            if (preset) loadPreset(preset)
+                          } else if (value) {
+                            const [w, l] = value.split('x')
                             setPalletWidth(w)
                             setPalletLength(l)
                           }
                         }}
-                        value={palletWidth && palletLength ? `${palletWidth}x${palletLength}` : ''}
+                        value=""
                       >
-                        <option value="">Custom...</option>
-                        <option value="1165x1165">1165 × 1165mm</option>
-                        <option value="1140x1140">1140 × 1140mm</option>
+                        <option value="">Select...</option>
+                        <optgroup label="Standard Sizes">
+                          <option value="1165x1165">1165 × 1165mm</option>
+                          <option value="1140x1140">1140 × 1140mm</option>
+                        </optgroup>
+                        {savedPresets.length > 0 && (
+                          <optgroup label="My Saved Presets">
+                            {savedPresets.map(preset => (
+                              <option key={preset.id} value={`saved:${preset.id}`}>
+                                {preset.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                       </select>
                     </div>
                     <div className="form-field">
@@ -645,10 +772,67 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
                   <div className="form-actions">
                     <button type="button" onClick={handleClear} className="btn-clear">Clear All</button>
+                    <button type="button" onClick={() => setShowSavePresetModal(true)} className="btn-save-preset">Save Preset</button>
                   </div>
+                  
+                  <div className="preset-actions">
+                    <button type="button" onClick={exportPresets} className="btn-export">
+                      ↓ Export
+                    </button>
+                    <label className="btn-import">
+                      ↑ Import
+                      <input type="file" accept=".json" onChange={importPresets} hidden />
+                    </label>
+                  </div>
+                  
+                  {/* Saved Presets List */}
+                  {savedPresets.length > 0 && (
+                    <div className="saved-presets-section">
+                      <div className="saved-presets-header">
+                        <span>Saved Presets ({savedPresets.length})</span>
+                      </div>
+                      <div className="saved-presets-list">
+                        {savedPresets.map(preset => (
+                          <div key={preset.id} className="saved-preset-item">
+                            <span className="preset-name">{preset.name}</span>
+                            <span className="preset-size">{preset.palletWidth}×{preset.palletLength}</span>
+                            <button 
+                              className="preset-delete-btn"
+                              onClick={() => deletePreset(preset.id)}
+                              title="Delete preset"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
               </div>
+              
+              {/* Save Preset Modal */}
+              {showSavePresetModal && (
+                <div className="modal-overlay" onClick={() => setShowSavePresetModal(false)}>
+                  <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <h3>Save Preset</h3>
+                    <p>Save current configuration as a preset:</p>
+                    <input
+                      type="text"
+                      value={newPresetName}
+                      onChange={(e) => setNewPresetName(e.target.value)}
+                      placeholder="Enter preset name..."
+                      autoFocus
+                      onKeyDown={(e) => e.key === 'Enter' && savePreset()}
+                    />
+                    <div className="modal-actions">
+                      <button onClick={() => setShowSavePresetModal(false)} className="btn-cancel">Cancel</button>
+                      <button onClick={savePreset} className="btn-save" disabled={!newPresetName.trim()}>Save</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           ) : activeTab === 'quote' ? (
             <>

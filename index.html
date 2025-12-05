@@ -2,13 +2,40 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Timber Pallet Quote Calculator</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Calculate quotes for timber pallets with 3D visualization" />
+    <meta name="theme-color" content="#4a90a4" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Pallet Calc" />
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/pallet-size-quote-calculator/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="/pallet-size-quote-calculator/icons/icon.svg" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/pallet-size-quote-calculator/manifest.json" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/pallet-size-quote-calculator/sw.js')
+            .then((registration) => {
+              console.log('SW registered:', registration.scope);
+            })
+            .catch((error) => {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
-

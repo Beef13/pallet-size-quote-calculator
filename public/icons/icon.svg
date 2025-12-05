@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#4a90a4"/>
+  
+  <!-- Top boards -->
+  <rect x="60" y="120" width="392" height="40" rx="4" fill="#e8d5b7"/>
+  <rect x="60" y="180" width="392" height="40" rx="4" fill="#e8d5b7"/>
+  <rect x="60" y="240" width="392" height="40" rx="4" fill="#e8d5b7"/>
+  
+  <!-- Bearers (vertical supports) -->
+  <rect x="80" y="300" width="60" height="100" rx="4" fill="#c9a66b"/>
+  <rect x="226" y="300" width="60" height="100" rx="4" fill="#c9a66b"/>
+  <rect x="372" y="300" width="60" height="100" rx="4" fill="#c9a66b"/>
+  
+  <!-- Shadow effect on bearers -->
+  <rect x="80" y="300" width="60" height="10" rx="2" fill="#a88a55"/>
+  <rect x="226" y="300" width="60" height="10" rx="2" fill="#a88a55"/>
+  <rect x="372" y="300" width="60" height="10" rx="2" fill="#a88a55"/>
+</svg>
+
