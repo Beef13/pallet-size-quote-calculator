@@ -13,11 +13,11 @@
     <meta name="apple-mobile-web-app-title" content="Pallet Calc" />
     
     <!-- Icons -->
-    <link rel="icon" type="image/svg+xml" href="/pallet-size-quote-calculator/icons/icon.svg" />
-    <link rel="apple-touch-icon" href="/pallet-size-quote-calculator/icons/icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+    <link rel="apple-touch-icon" href="./icons/icon.svg" />
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/pallet-size-quote-calculator/manifest.json" />
+    <link rel="manifest" href="./manifest.json" />
   </head>
   <body>
     <div id="root"></div>
@@ -27,7 +27,12 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/pallet-size-quote-calculator/sw.js')
+          // Determine the correct SW path based on environment
+          const swPath = window.location.pathname.includes('pallet-size-quote-calculator') 
+            ? '/pallet-size-quote-calculator/sw.js' 
+            : '/sw.js';
+          
+          navigator.serviceWorker.register(swPath)
             .then((registration) => {
               console.log('SW registered:', registration.scope);
             })
