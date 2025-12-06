@@ -944,7 +944,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       </select>
                     </div>
                     <div className="form-field">
-                      <label>Board Size (Bottom)</label>
+                      <label>Size</label>
                       <select
                         value={selectedBottomBoardSize}
                         onChange={(e) => setSelectedBottomBoardSize(e.target.value)}
@@ -1034,7 +1034,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       </select>
                     </div>
                     <div className="form-field">
-                      <label>Board Size (Top)</label>
+                      <label>Size</label>
                       <select
                         value={selectedTopBoardSize}
                         onChange={(e) => setSelectedTopBoardSize(e.target.value)}
@@ -1126,7 +1126,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   {/* Bearer Size and Number - Two Column */}
                   <div className="form-row two-col">
                     <div className="form-field">
-                      <label>Bearer Size</label>
+                      <label>Size</label>
                       <select
                         value={selectedBearerSize}
                         onChange={(e) => setSelectedBearerSize(e.target.value)}
