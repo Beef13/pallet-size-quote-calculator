@@ -1687,6 +1687,14 @@ html.dark-mode .price-group-toggle:hover {
   background: transparent;
 }
 
+html.dark-mode .toggle-title {
+  color: #9ca3af;
+}
+
+html.dark-mode .price-group.expanded .toggle-title {
+  color: #ffffff;
+}
+
 html.dark-mode .group-title {
   color: #e5e7eb;
 }
