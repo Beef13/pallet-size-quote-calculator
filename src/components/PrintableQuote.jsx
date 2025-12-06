@@ -7,7 +7,8 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
   const {
     palletWidth,
     palletLength,
-    boardSize,
+    topBoardSize,
+    bottomBoardSize,
     bearerSize,
     numberOfTopBoards,
     numberOfBottomBoards,
@@ -20,23 +21,26 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
     totalPrice,
     topGapSize,
     bottomGapSize,
-    timberType,
+    topBoardTimberType,
+    bottomBoardTimberType,
     bearerTimberType,
-    pricePerBoard,
-    pricePerBearer,
-    boardWidth: actualBoardWidth
+    pricePerTopBoard,
+    pricePerBottomBoard,
+    pricePerBearer
   } = quoteData
 
   const grandTotal = totalPrice * quantity
 
   // Parse actual dimensions from size strings (e.g., "100x19mm")
-  const boardWidth = actualBoardWidth || parseInt(boardSize?.split('x')[0]) || 100
-  const boardThickness = parseInt(boardSize?.split('x')[1]) || 19
+  const topBoardWidth = parseInt(topBoardSize?.split('x')[0]) || 100
+  const topBoardThickness = parseInt(topBoardSize?.split('x')[1]) || 19
+  const bottomBoardWidth = parseInt(bottomBoardSize?.split('x')[0]) || 100
+  const bottomBoardThickness = parseInt(bottomBoardSize?.split('x')[1]) || 19
   const bearerWidth = parseInt(bearerSize?.split('x')[0]) || 100  // This is the standing height
   const bearerThickness = parseInt(bearerSize?.split('x')[1]) || 38  // This is the depth
 
   // Calculate pallet height (same as 3D model)
-  const palletHeight = boardThickness + bearerWidth + boardThickness
+  const palletHeight = topBoardThickness + bearerWidth + bottomBoardThickness
 
   // Calculate gaps (same as 3D model)
   const topGap = topGapSize || 0
@@ -94,13 +98,13 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               {Array.from({ length: numberOfTopBoards }).map((_, i) => {
                 const xPos = i === 0 
                   ? svgPadding
-                  : svgPadding + (i * (boardWidth + topGap))
+                  : svgPadding + (i * (topBoardWidth + topGap))
                 return (
                   <rect
                     key={`board-${i}`}
                     x={xPos}
                     y={svgPadding}
-                    width={boardWidth}
+                    width={topBoardWidth}
                     height={palletLength}
                     fill="none"
                     stroke="#000"
@@ -152,31 +156,31 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               {numberOfTopBoards >= 2 && topGap > 0 && (
                 <>
                   <line 
-                    x1={svgPadding + boardWidth} 
+                    x1={svgPadding + topBoardWidth} 
                     y1={svgPadding + palletLength + 30} 
-                    x2={svgPadding + boardWidth + topGap} 
+                    x2={svgPadding + topBoardWidth + topGap} 
                     y2={svgPadding + palletLength + 30} 
                     stroke="#000" 
                     strokeWidth="2" 
                   />
                   <line 
-                    x1={svgPadding + boardWidth} 
+                    x1={svgPadding + topBoardWidth} 
                     y1={svgPadding + palletLength + 15} 
-                    x2={svgPadding + boardWidth} 
+                    x2={svgPadding + topBoardWidth} 
                     y2={svgPadding + palletLength + 45} 
                     stroke="#000" 
                     strokeWidth="2" 
                   />
                   <line 
-                    x1={svgPadding + boardWidth + topGap} 
+                    x1={svgPadding + topBoardWidth + topGap} 
                     y1={svgPadding + palletLength + 15} 
-                    x2={svgPadding + boardWidth + topGap} 
+                    x2={svgPadding + topBoardWidth + topGap} 
                     y2={svgPadding + palletLength + 45} 
                     stroke="#000" 
                     strokeWidth="2" 
                   />
                   <text 
-                    x={svgPadding + boardWidth + topGap/2} 
+                    x={svgPadding + topBoardWidth + topGap/2} 
                     y={svgPadding + palletLength + 70} 
                     textAnchor="middle" 
                     fontSize={dimFontSizeSmall} 
@@ -192,31 +196,31 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               {numberOfBottomBoards >= 2 && bottomGap > 0 && (
                 <>
                   <line 
-                    x1={svgPadding + palletWidth - boardWidth - bottomGap} 
+                    x1={svgPadding + palletWidth - bottomBoardWidth - bottomGap} 
                     y1={svgPadding + palletLength + 30} 
-                    x2={svgPadding + palletWidth - boardWidth} 
+                    x2={svgPadding + palletWidth - bottomBoardWidth} 
                     y2={svgPadding + palletLength + 30} 
                     stroke="#000" 
                     strokeWidth="2" 
                   />
                   <line 
-                    x1={svgPadding + palletWidth - boardWidth - bottomGap} 
+                    x1={svgPadding + palletWidth - bottomBoardWidth - bottomGap} 
                     y1={svgPadding + palletLength + 15} 
-                    x2={svgPadding + palletWidth - boardWidth - bottomGap} 
+                    x2={svgPadding + palletWidth - bottomBoardWidth - bottomGap} 
                     y2={svgPadding + palletLength + 45} 
                     stroke="#000" 
                     strokeWidth="2" 
                   />
                   <line 
-                    x1={svgPadding + palletWidth - boardWidth} 
+                    x1={svgPadding + palletWidth - bottomBoardWidth} 
                     y1={svgPadding + palletLength + 15} 
-                    x2={svgPadding + palletWidth - boardWidth} 
+                    x2={svgPadding + palletWidth - bottomBoardWidth} 
                     y2={svgPadding + palletLength + 45} 
                     stroke="#000" 
                     strokeWidth="2" 
                   />
                   <text 
-                    x={svgPadding + palletWidth - boardWidth - bottomGap/2} 
+                    x={svgPadding + palletWidth - bottomBoardWidth - bottomGap/2} 
                     y={svgPadding + palletLength + 70} 
                     textAnchor="middle" 
                     fontSize={dimFontSizeSmall} 
@@ -243,7 +247,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
                 x={svgPadding} 
                 y={svgPadding} 
                 width={palletWidth} 
-                height={boardThickness} 
+                height={topBoardThickness} 
                 fill="none" 
                 stroke="#000" 
                 strokeWidth="1.5" 
@@ -265,7 +269,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
                     <rect
                       key={`bearer-front-${i}`}
                       x={xPos}
-                      y={svgPadding + boardThickness}
+                      y={svgPadding + topBoardThickness}
                       width={bearerVisualWidth}
                       height={bearerWidth}
                       fill="none"
@@ -279,9 +283,9 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               {/* Bottom board layer */}
               <rect 
                 x={svgPadding} 
-                y={svgPadding + boardThickness + bearerWidth} 
+                y={svgPadding + topBoardThickness + bearerWidth} 
                 width={palletWidth} 
-                height={boardThickness} 
+                height={bottomBoardThickness} 
                 fill="none" 
                 stroke="#000" 
                 strokeWidth="1.5" 
@@ -311,7 +315,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
             >
               {/* Top boards - end grain view */}
               {(() => {
-                const scaledBoardWidth = boardWidth * (palletLength / palletWidth)
+                const scaledBoardWidth = topBoardWidth * (palletLength / palletWidth)
                 const scaledGap = topGap * (palletLength / palletWidth)
                 const totalBoardsWidth = numberOfTopBoards * scaledBoardWidth + (numberOfTopBoards - 1) * scaledGap
                 const startX = svgPadding + (palletLength - totalBoardsWidth) / 2
@@ -324,7 +328,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
                       x={xPos}
                       y={svgPadding}
                       width={scaledBoardWidth}
-                      height={boardThickness}
+                      height={topBoardThickness}
                       fill="none"
                       stroke="#000"
                       strokeWidth="1"
@@ -336,7 +340,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               {/* Bearer - full length (this is what you see from the side) */}
               <rect 
                 x={svgPadding} 
-                y={svgPadding + boardThickness} 
+                y={svgPadding + topBoardThickness} 
                 width={palletLength} 
                 height={bearerWidth} 
                 fill="none" 
@@ -346,7 +350,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
               
               {/* Bottom boards - end grain view */}
               {(() => {
-                const scaledBoardWidth = boardWidth * (palletLength / palletWidth)
+                const scaledBoardWidth = bottomBoardWidth * (palletLength / palletWidth)
                 const scaledGap = bottomGap * (palletLength / palletWidth)
                 const totalBoardsWidth = numberOfBottomBoards * scaledBoardWidth + (numberOfBottomBoards - 1) * scaledGap
                 const startX = svgPadding + (palletLength - totalBoardsWidth) / 2
@@ -357,9 +361,9 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
                     <rect
                       key={`bottom-side-${i}`}
                       x={xPos}
-                      y={svgPadding + boardThickness + bearerWidth}
+                      y={svgPadding + topBoardThickness + bearerWidth}
                       width={scaledBoardWidth}
-                      height={boardThickness}
+                      height={bottomBoardThickness}
                       fill="none"
                       stroke="#000"
                       strokeWidth="1"
@@ -407,18 +411,18 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
           <tbody>
             <tr>
               <td>Top Boards</td>
-              <td>{timberType}</td>
-              <td>{boardSize}</td>
+              <td>{topBoardTimberType}</td>
+              <td>{topBoardSize}</td>
               <td>{numberOfTopBoards}</td>
-              <td>{pricePerBoard?.toFixed(2)}</td>
+              <td>{pricePerTopBoard?.toFixed(2)}</td>
               <td className="amount-col">${topBoardsTotal?.toFixed(2)}</td>
             </tr>
             <tr>
               <td>Bottom Boards</td>
-              <td>{timberType}</td>
-              <td>{boardSize}</td>
+              <td>{bottomBoardTimberType}</td>
+              <td>{bottomBoardSize}</td>
               <td>{numberOfBottomBoards}</td>
-              <td>{pricePerBoard?.toFixed(2)}</td>
+              <td>{pricePerBottomBoard?.toFixed(2)}</td>
               <td className="amount-col">${bottomBoardsTotal?.toFixed(2)}</td>
             </tr>
             <tr>
