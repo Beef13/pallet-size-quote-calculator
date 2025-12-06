@@ -21,13 +21,13 @@
 
 /* Add right margin to prevent scrollbar overlap on content */
 .card-content {
-  padding-right: 16px;
+  padding-right: 26px;
 }
 
 .quote-form,
 .quote-results,
 .price-editor-scroll {
-  margin-right: 4px;
+  margin-right: 14px;
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) */
