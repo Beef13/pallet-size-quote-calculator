@@ -383,9 +383,9 @@
 
 /* Section Dividers - between form sections */
 .section-divider {
-  height: 2px;
+  height: 1px;
   background: #e5e7eb;
-  margin: 4px 0;
+  margin: 16px 0;
   border-radius: 1px;
 }
 
