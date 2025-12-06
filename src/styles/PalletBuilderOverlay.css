@@ -1491,6 +1491,11 @@ html.dark-mode .card-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Dark mode - Tab container background */
+html.dark-mode .card-tabs {
+  background: #252538;
+}
+
 html.dark-mode .card-tab {
   color: #9ca3af;
   background: #252538;
