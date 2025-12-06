@@ -441,6 +441,17 @@
   color: #059669;
 }
 
+/* Leader Board Row - subtle differentiation */
+.result-row.leader-row {
+  background: #f0f7fa;
+  border-color: #d1e4eb;
+}
+
+.result-row.leader-row span:first-child {
+  color: #3d7a8c;
+  font-style: italic;
+}
+
 /* Subtotal Row - single pallet price */
 .subtotal-row {
   display: flex;

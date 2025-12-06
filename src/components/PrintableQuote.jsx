@@ -26,7 +26,22 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
     bearerTimberType,
     pricePerTopBoard,
     pricePerBottomBoard,
-    pricePerBearer
+    pricePerBearer,
+    // Leader board data
+    useCustomTopLeaders,
+    topLeaderTimberType,
+    topLeaderSize,
+    topLeaderCount,
+    topInnerBoards,
+    topLeadersTotal,
+    pricePerTopLeader,
+    useCustomBottomLeaders,
+    bottomLeaderTimberType,
+    bottomLeaderSize,
+    bottomLeaderCount,
+    bottomInnerBoards,
+    bottomLeadersTotal,
+    pricePerBottomLeader
   } = quoteData
 
   const grandTotal = totalPrice * quantity
@@ -409,19 +424,43 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
             </tr>
           </thead>
           <tbody>
+            {/* Top Leader Boards (if custom leaders enabled) */}
+            {useCustomTopLeaders && topLeadersTotal > 0 && (
+              <tr>
+                <td>Top Leaders</td>
+                <td>{topLeaderTimberType}</td>
+                <td>{topLeaderSize}</td>
+                <td>{topLeaderCount}</td>
+                <td>{pricePerTopLeader?.toFixed(2)}</td>
+                <td className="amount-col">${topLeadersTotal?.toFixed(2)}</td>
+              </tr>
+            )}
+            {/* Top Inner Boards */}
             <tr>
               <td>Top Boards</td>
               <td>{topBoardTimberType}</td>
               <td>{topBoardSize}</td>
-              <td>{numberOfTopBoards}</td>
+              <td>{useCustomTopLeaders ? topInnerBoards : numberOfTopBoards}</td>
               <td>{pricePerTopBoard?.toFixed(2)}</td>
               <td className="amount-col">${topBoardsTotal?.toFixed(2)}</td>
             </tr>
+            {/* Bottom Leader Boards (if custom leaders enabled) */}
+            {useCustomBottomLeaders && bottomLeadersTotal > 0 && (
+              <tr>
+                <td>Bottom Leaders</td>
+                <td>{bottomLeaderTimberType}</td>
+                <td>{bottomLeaderSize}</td>
+                <td>{bottomLeaderCount}</td>
+                <td>{pricePerBottomLeader?.toFixed(2)}</td>
+                <td className="amount-col">${bottomLeadersTotal?.toFixed(2)}</td>
+              </tr>
+            )}
+            {/* Bottom Inner Boards */}
             <tr>
               <td>Bottom Boards</td>
               <td>{bottomBoardTimberType}</td>
               <td>{bottomBoardSize}</td>
-              <td>{numberOfBottomBoards}</td>
+              <td>{useCustomBottomLeaders ? bottomInnerBoards : numberOfBottomBoards}</td>
               <td>{pricePerBottomBoard?.toFixed(2)}</td>
               <td className="amount-col">${bottomBoardsTotal?.toFixed(2)}</td>
             </tr>

@@ -535,9 +535,17 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     const topBoardTimberType = prices.timberTypes.find(t => t.id === selectedTopBoardType)
     const topBoardSize = topBoardTimberType?.boardSizes.find(s => s.id === selectedTopBoardSize)
     
+    // Get timber types and sizes for top leader boards (edge boards)
+    const topLeaderTimberType = prices.timberTypes.find(t => t.id === selectedTopLeaderType)
+    const topLeaderSize = topLeaderTimberType?.boardSizes.find(s => s.id === selectedTopLeaderSize)
+    
     // Get timber types and sizes for bottom boards
     const bottomBoardTimberType = prices.timberTypes.find(t => t.id === selectedBottomBoardType)
     const bottomBoardSize = bottomBoardTimberType?.boardSizes.find(s => s.id === selectedBottomBoardSize)
+    
+    // Get timber types and sizes for bottom leader boards (edge boards)
+    const bottomLeaderTimberType = prices.timberTypes.find(t => t.id === selectedBottomLeaderType)
+    const bottomLeaderSize = bottomLeaderTimberType?.boardSizes.find(s => s.id === selectedBottomLeaderSize)
     
     // Get timber types and sizes for bearers
     const bearerTimberType = prices.timberTypes.find(t => t.id === selectedBearerType)
@@ -546,28 +554,74 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     // Progressive price calculation
     let runningTotal = 0
     let topBoardsTotal = 0
+    let topLeadersTotal = 0
     let bottomBoardsTotal = 0
+    let bottomLeadersTotal = 0
     let bearersTotal = 0
     let nailsTotal = 0
     let totalNails = 0
     let topGapSize = 0
     let bottomGapSize = 0
+    
+    // Track board counts for display
+    let topInnerBoards = topBoards
+    let topLeaderCount = 0
+    let bottomInnerBoards = bottomBoards
+    let bottomLeaderCount = 0
 
-    // Calculate top boards price if we have board info
-    if (topBoardSize && topBoards > 0) {
-      topBoardsTotal = parseFloat(calculateTotalPrice(topBoardSize.pricePerBoard, topBoards))
-      runningTotal += topBoardsTotal
-      if (width > 0) {
-        topGapSize = calculateGapSize(width, topBoardSize.width, topBoards)
+    // Calculate top boards price (accounting for custom leaders)
+    if (topBoards > 0) {
+      if (useCustomTopLeaders && topLeaderSize && topBoards >= 2) {
+        // 2 leader boards + remaining inner boards
+        topLeaderCount = 2
+        topInnerBoards = topBoards - 2
+        topLeadersTotal = parseFloat(calculateTotalPrice(topLeaderSize.pricePerBoard, 2))
+        runningTotal += topLeadersTotal
+        
+        if (topBoardSize && topInnerBoards > 0) {
+          topBoardsTotal = parseFloat(calculateTotalPrice(topBoardSize.pricePerBoard, topInnerBoards))
+          runningTotal += topBoardsTotal
+        }
+        
+        // Calculate gap with mixed board widths
+        if (width > 0 && topBoards > 1) {
+          const totalBoardsWidth = (2 * topLeaderSize.width) + (topInnerBoards * (topBoardSize?.width || 0))
+          topGapSize = (width - totalBoardsWidth) / (topBoards - 1)
+        }
+      } else if (topBoardSize) {
+        topBoardsTotal = parseFloat(calculateTotalPrice(topBoardSize.pricePerBoard, topBoards))
+        runningTotal += topBoardsTotal
+        if (width > 0) {
+          topGapSize = calculateGapSize(width, topBoardSize.width, topBoards)
+        }
       }
     }
 
-    // Calculate bottom boards price if we have board info
-    if (bottomBoardSize && bottomBoards > 0) {
-      bottomBoardsTotal = parseFloat(calculateTotalPrice(bottomBoardSize.pricePerBoard, bottomBoards))
-      runningTotal += bottomBoardsTotal
-      if (width > 0) {
-        bottomGapSize = calculateGapSize(width, bottomBoardSize.width, bottomBoards)
+    // Calculate bottom boards price (accounting for custom leaders)
+    if (bottomBoards > 0) {
+      if (useCustomBottomLeaders && bottomLeaderSize && bottomBoards >= 2) {
+        // 2 leader boards + remaining inner boards
+        bottomLeaderCount = 2
+        bottomInnerBoards = bottomBoards - 2
+        bottomLeadersTotal = parseFloat(calculateTotalPrice(bottomLeaderSize.pricePerBoard, 2))
+        runningTotal += bottomLeadersTotal
+        
+        if (bottomBoardSize && bottomInnerBoards > 0) {
+          bottomBoardsTotal = parseFloat(calculateTotalPrice(bottomBoardSize.pricePerBoard, bottomInnerBoards))
+          runningTotal += bottomBoardsTotal
+        }
+        
+        // Calculate gap with mixed board widths
+        if (width > 0 && bottomBoards > 1) {
+          const totalBoardsWidth = (2 * bottomLeaderSize.width) + (bottomInnerBoards * (bottomBoardSize?.width || 0))
+          bottomGapSize = (width - totalBoardsWidth) / (bottomBoards - 1)
+        }
+      } else if (bottomBoardSize) {
+        bottomBoardsTotal = parseFloat(calculateTotalPrice(bottomBoardSize.pricePerBoard, bottomBoards))
+        runningTotal += bottomBoardsTotal
+        if (width > 0) {
+          bottomGapSize = calculateGapSize(width, bottomBoardSize.width, bottomBoards)
+        }
       }
     }
 
@@ -591,9 +645,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     }
 
     // Check if quote is complete (all required fields filled)
+    // When using custom leaders, also need leader type/size selected
+    const topLeadersValid = !useCustomTopLeaders || (topLeaderTimberType && topLeaderSize)
+    const bottomLeadersValid = !useCustomBottomLeaders || (bottomLeaderTimberType && bottomLeaderSize)
+    
     const isComplete = width > 0 && length > 0 && topBoards > 0 && bottomBoards > 0 && 
                        bearers > 0 && topBoardTimberType && bottomBoardTimberType && bearerTimberType && 
-                       topBoardSize && bottomBoardSize && bearerSize
+                       topBoardSize && bottomBoardSize && bearerSize && topLeadersValid && bottomLeadersValid
 
     // Return progressive quote data
     return {
@@ -603,15 +661,33 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       topBoardSize: topBoardSize?.dimensions || '',
       bottomBoardSize: bottomBoardSize?.dimensions || '',
       bearerSize: bearerSize?.dimensions || '',
+      // Leader board info
+      useCustomTopLeaders,
+      topLeaderTimberType: topLeaderTimberType?.name || '',
+      topLeaderSize: topLeaderSize?.dimensions || '',
+      topLeaderCount,
+      topInnerBoards,
+      useCustomBottomLeaders,
+      bottomLeaderTimberType: bottomLeaderTimberType?.name || '',
+      bottomLeaderSize: bottomLeaderSize?.dimensions || '',
+      bottomLeaderCount,
+      bottomInnerBoards,
+      // Board counts
       numberOfTopBoards: topBoards,
       numberOfBearers: bearers,
       numberOfBottomBoards: bottomBoards,
+      // Prices per unit
       pricePerTopBoard: topBoardSize?.pricePerBoard || 0,
       pricePerBottomBoard: bottomBoardSize?.pricePerBoard || 0,
+      pricePerTopLeader: topLeaderSize?.pricePerBoard || 0,
+      pricePerBottomLeader: bottomLeaderSize?.pricePerBoard || 0,
       pricePerBearer: bearerSize?.pricePerBearer || 0,
+      // Totals
       topBoardsTotal,
-      bearersTotal,
+      topLeadersTotal,
       bottomBoardsTotal,
+      bottomLeadersTotal,
+      bearersTotal,
       totalNails,
       pricePerNail: nailPrice,
       nailsTotal,
@@ -625,7 +701,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       isComplete,
       hasAnyPrice: runningTotal > 0
     }
-  }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, selectedTopBoardType, selectedTopBoardSize, selectedBottomBoardType, selectedBottomBoardSize, selectedBearerType, selectedBearerSize, prices])
+  }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, selectedTopBoardType, selectedTopBoardSize, selectedBottomBoardType, selectedBottomBoardSize, selectedBearerType, selectedBearerSize, prices, useCustomTopLeaders, selectedTopLeaderType, selectedTopLeaderSize, useCustomBottomLeaders, selectedBottomLeaderType, selectedBottomLeaderSize])
 
   const handleClear = () => {
     setPalletWidth('')
@@ -1137,15 +1213,31 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           <span>{liveQuote.palletWidth || '—'} × {liveQuote.palletLength || '—'} mm</span>
                         </div>
                       )}
+                      {/* Top Leader Boards (if custom leaders enabled) */}
+                      {liveQuote.topLeadersTotal > 0 && (
+                        <div className="result-row leader-row">
+                          <span>Top Leaders ({liveQuote.topLeaderCount}× {liveQuote.topLeaderSize || '—'})</span>
+                          <span>{formatCurrency(liveQuote.topLeadersTotal)}</span>
+                        </div>
+                      )}
+                      {/* Top Inner Boards */}
                       {liveQuote.topBoardsTotal > 0 && (
                         <div className="result-row">
-                          <span>Top Boards ({liveQuote.numberOfTopBoards}× {liveQuote.topBoardSize || '—'})</span>
+                          <span>Top Boards ({liveQuote.useCustomTopLeaders ? liveQuote.topInnerBoards : liveQuote.numberOfTopBoards}× {liveQuote.topBoardSize || '—'})</span>
                           <span>{formatCurrency(liveQuote.topBoardsTotal)}</span>
                         </div>
                       )}
+                      {/* Bottom Leader Boards (if custom leaders enabled) */}
+                      {liveQuote.bottomLeadersTotal > 0 && (
+                        <div className="result-row leader-row">
+                          <span>Bottom Leaders ({liveQuote.bottomLeaderCount}× {liveQuote.bottomLeaderSize || '—'})</span>
+                          <span>{formatCurrency(liveQuote.bottomLeadersTotal)}</span>
+                        </div>
+                      )}
+                      {/* Bottom Inner Boards */}
                       {liveQuote.bottomBoardsTotal > 0 && (
                         <div className="result-row">
-                          <span>Bottom Boards ({liveQuote.numberOfBottomBoards}× {liveQuote.bottomBoardSize || '—'})</span>
+                          <span>Bottom Boards ({liveQuote.useCustomBottomLeaders ? liveQuote.bottomInnerBoards : liveQuote.numberOfBottomBoards}× {liveQuote.bottomBoardSize || '—'})</span>
                           <span>{formatCurrency(liveQuote.bottomBoardsTotal)}</span>
                         </div>
                       )}
