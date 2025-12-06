@@ -147,8 +147,15 @@ function PalletStructure({ previewData }) {
   // Separate board dimensions for top and bottom
   const topBoardWidth = (previewData.topBoardWidth || 100) * scale
   const topBoardThickness = (previewData.topBoardThickness || 22) * scale
+  const topLeaderWidth = (previewData.topLeaderWidth || previewData.topBoardWidth || 100) * scale
+  const topLeaderThickness = (previewData.topLeaderThickness || previewData.topBoardThickness || 22) * scale
+  const useCustomTopLeaders = previewData.useCustomTopLeaders || false
+  
   const bottomBoardWidth = (previewData.bottomBoardWidth || 100) * scale
   const bottomBoardThickness = (previewData.bottomBoardThickness || 22) * scale
+  const bottomLeaderWidth = (previewData.bottomLeaderWidth || previewData.bottomBoardWidth || 100) * scale
+  const bottomLeaderThickness = (previewData.bottomLeaderThickness || previewData.bottomBoardThickness || 22) * scale
+  const useCustomBottomLeaders = previewData.useCustomBottomLeaders || false
   
   // Bearer stands on its short side (thickness), with the width as vertical height
   const bearerStandingHeight = (previewData.bearerWidth || 75) * scale  // Vertical height (75mm stands tall)
@@ -157,22 +164,47 @@ function PalletStructure({ previewData }) {
   const topGap = previewData.topGapSize * scale
   const bottomGap = previewData.bottomGapSize * scale
 
-  // Memoize board positions for performance
-  const topBoardPositions = useMemo(() => {
-    return Array.from({ length: previewData.numberOfTopBoards }).map((_, i) => {
-      return i === 0 
-        ? -palletWidth / 2 + topBoardWidth / 2
-        : -palletWidth / 2 + topBoardWidth / 2 + (i * (topBoardWidth + topGap))
-    })
-  }, [previewData.numberOfTopBoards, palletWidth, topBoardWidth, topGap])
+  // Memoize board positions and widths for top boards (accounting for custom leaders)
+  const topBoardData = useMemo(() => {
+    const numBoards = previewData.numberOfTopBoards
+    if (numBoards === 0) return []
+    
+    const data = []
+    let currentX = -palletWidth / 2
+    
+    for (let i = 0; i < numBoards; i++) {
+      const isEdge = i === 0 || i === numBoards - 1
+      const boardW = (useCustomTopLeaders && isEdge) ? topLeaderWidth : topBoardWidth
+      const boardT = (useCustomTopLeaders && isEdge) ? topLeaderThickness : topBoardThickness
+      
+      const xPos = currentX + boardW / 2
+      data.push({ xPos, width: boardW, thickness: boardT, isLeader: useCustomTopLeaders && isEdge })
+      
+      currentX += boardW + topGap
+    }
+    return data
+  }, [previewData.numberOfTopBoards, palletWidth, topBoardWidth, topBoardThickness, topLeaderWidth, topLeaderThickness, topGap, useCustomTopLeaders])
 
-  const bottomBoardPositions = useMemo(() => {
-    return Array.from({ length: previewData.numberOfBottomBoards }).map((_, i) => {
-      return i === 0
-        ? -palletWidth / 2 + bottomBoardWidth / 2
-        : -palletWidth / 2 + bottomBoardWidth / 2 + (i * (bottomBoardWidth + bottomGap))
-    })
-  }, [previewData.numberOfBottomBoards, palletWidth, bottomBoardWidth, bottomGap])
+  // Memoize board positions and widths for bottom boards (accounting for custom leaders)
+  const bottomBoardData = useMemo(() => {
+    const numBoards = previewData.numberOfBottomBoards
+    if (numBoards === 0) return []
+    
+    const data = []
+    let currentX = -palletWidth / 2
+    
+    for (let i = 0; i < numBoards; i++) {
+      const isEdge = i === 0 || i === numBoards - 1
+      const boardW = (useCustomBottomLeaders && isEdge) ? bottomLeaderWidth : bottomBoardWidth
+      const boardT = (useCustomBottomLeaders && isEdge) ? bottomLeaderThickness : bottomBoardThickness
+      
+      const xPos = currentX + boardW / 2
+      data.push({ xPos, width: boardW, thickness: boardT, isLeader: useCustomBottomLeaders && isEdge })
+      
+      currentX += boardW + bottomGap
+    }
+    return data
+  }, [previewData.numberOfBottomBoards, palletWidth, bottomBoardWidth, bottomBoardThickness, bottomLeaderWidth, bottomLeaderThickness, bottomGap, useCustomBottomLeaders])
 
   const bearerPositions = useMemo(() => {
     const totalBearerDepth = bearerDepth * previewData.numberOfBearers
@@ -193,13 +225,13 @@ function PalletStructure({ previewData }) {
 
   return (
     <group ref={groupRef} position={[0, 0, 0]}>
-      {/* Top Boards - Light wood color */}
-      {topBoardPositions.map((xPos, index) => (
+      {/* Top Boards - Light wood color, leaders are slightly different shade */}
+      {topBoardData.map((board, index) => (
         <Board
           key={`top-${index}`}
-          position={[xPos, bearerStandingHeight / 2 + topBoardThickness / 2, 0]}
-          size={[topBoardWidth, topBoardThickness, palletDepth]}
-          color="#e8d5b7"
+          position={[board.xPos, bearerStandingHeight / 2 + board.thickness / 2, 0]}
+          size={[board.width, board.thickness, palletDepth]}
+          color={board.isLeader ? "#d4c4a7" : "#e8d5b7"}
         />
       ))}
       
@@ -213,45 +245,45 @@ function PalletStructure({ previewData }) {
         />
       ))}
       
-      {/* Bottom Boards - Medium wood color */}
-      {bottomBoardPositions.map((xPos, index) => (
+      {/* Bottom Boards - Medium wood color, leaders are slightly different shade */}
+      {bottomBoardData.map((board, index) => (
         <Board
           key={`bottom-${index}`}
-          position={[xPos, -bearerStandingHeight / 2 - bottomBoardThickness / 2, 0]}
-          size={[bottomBoardWidth, bottomBoardThickness, palletDepth]}
-          color="#d4b896"
+          position={[board.xPos, -bearerStandingHeight / 2 - board.thickness / 2, 0]}
+          size={[board.width, board.thickness, palletDepth]}
+          color={board.isLeader ? "#c4a886" : "#d4b896"}
         />
       ))}
       
       {/* Nails for top boards - positioned so nail head sticks up 0.03 units above board */}
-      {topBoardPositions.map((boardX, boardIdx) => 
+      {topBoardData.map((board, boardIdx) => 
         bearerPositions.map((bearerZ, bearerIdx) => {
-          const boardTopSurface = bearerStandingHeight / 2 + topBoardThickness
+          const boardTopSurface = bearerStandingHeight / 2 + board.thickness
           const nailHeight = 0.2
           const stickUpAmount = 0.03  // Amount nail sticks up above board
           const nailY = boardTopSurface - (nailHeight / 2) + stickUpAmount
-          const nailOffset = topBoardWidth * 0.2
+          const nailOffset = board.width * 0.2
           return (
             <React.Fragment key={`top-nail-${boardIdx}-${bearerIdx}`}>
-              <Nail position={[boardX - nailOffset, nailY, bearerZ]} />
-              <Nail position={[boardX + nailOffset, nailY, bearerZ]} />
+              <Nail position={[board.xPos - nailOffset, nailY, bearerZ]} />
+              <Nail position={[board.xPos + nailOffset, nailY, bearerZ]} />
             </React.Fragment>
           )
         })
       )}
       
       {/* Nails for bottom boards - positioned so nail point sticks down 0.03 units below board */}
-      {bottomBoardPositions.map((boardX, boardIdx) => 
+      {bottomBoardData.map((board, boardIdx) => 
         bearerPositions.map((bearerZ, bearerIdx) => {
-          const boardBottomSurface = -bearerStandingHeight / 2 - bottomBoardThickness
+          const boardBottomSurface = -bearerStandingHeight / 2 - board.thickness
           const nailHeight = 0.2
           const stickDownAmount = 0.03  // Amount nail sticks down below board
           const nailY = boardBottomSurface + (nailHeight / 2) - stickDownAmount
-          const nailOffset = bottomBoardWidth * 0.2
+          const nailOffset = board.width * 0.2
           return (
             <React.Fragment key={`bottom-nail-${boardIdx}-${bearerIdx}`}>
-              <Nail position={[boardX - nailOffset, nailY, bearerZ]} />
-              <Nail position={[boardX + nailOffset, nailY, bearerZ]} />
+              <Nail position={[board.xPos - nailOffset, nailY, bearerZ]} />
+              <Nail position={[board.xPos + nailOffset, nailY, bearerZ]} />
             </React.Fragment>
           )
         })
@@ -301,10 +333,10 @@ function PalletStructure({ previewData }) {
           />
           
           {/* Gap dimension between first two top boards (if gap exists) */}
-          {previewData.numberOfTopBoards >= 2 && topGap > 0.001 && (
+          {previewData.numberOfTopBoards >= 2 && topGap > 0.001 && topBoardData.length >= 2 && (
             <DimensionLine
-              start={[topBoardPositions[0] + topBoardWidth / 2, bearerStandingHeight / 2 + topBoardThickness, palletDepth / 2]}
-              end={[topBoardPositions[1] - topBoardWidth / 2, bearerStandingHeight / 2 + topBoardThickness, palletDepth / 2]}
+              start={[topBoardData[0].xPos + topBoardData[0].width / 2, bearerStandingHeight / 2 + topBoardData[0].thickness, palletDepth / 2]}
+              end={[topBoardData[1].xPos - topBoardData[1].width / 2, bearerStandingHeight / 2 + topBoardData[1].thickness, palletDepth / 2]}
               offset={3.0}
               label={`${Math.round(previewData.topGapSize)}mm top gap`}
               direction="horizontal"
@@ -312,10 +344,10 @@ function PalletStructure({ previewData }) {
           )}
           
           {/* Gap dimension between first two bottom boards (if gap exists) */}
-          {previewData.numberOfBottomBoards >= 2 && bottomGap > 0.001 && (
+          {previewData.numberOfBottomBoards >= 2 && bottomGap > 0.001 && bottomBoardData.length >= 2 && (
             <DimensionLine
-              start={[bottomBoardPositions[0] + bottomBoardWidth / 2, -bearerStandingHeight / 2 - bottomBoardThickness, palletDepth / 2]}
-              end={[bottomBoardPositions[1] - bottomBoardWidth / 2, -bearerStandingHeight / 2 - bottomBoardThickness, palletDepth / 2]}
+              start={[bottomBoardData[0].xPos + bottomBoardData[0].width / 2, -bearerStandingHeight / 2 - bottomBoardData[0].thickness, palletDepth / 2]}
+              end={[bottomBoardData[1].xPos - bottomBoardData[1].width / 2, -bearerStandingHeight / 2 - bottomBoardData[1].thickness, palletDepth / 2]}
               offset={-2.5}
               label={`${Math.round(previewData.bottomGapSize)}mm btm gap`}
               direction="horizontal"

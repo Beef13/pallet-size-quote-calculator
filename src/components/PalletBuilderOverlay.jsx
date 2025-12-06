@@ -32,6 +32,14 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [selectedBottomBoardSize, setSelectedBottomBoardSize] = useState('')
   const [numberOfTopBoards, setNumberOfTopBoards] = useState('')
   const [numberOfBottomBoards, setNumberOfBottomBoards] = useState('')
+  
+  // Custom leader boards (edge boards with different size)
+  const [useCustomTopLeaders, setUseCustomTopLeaders] = useState(false)
+  const [selectedTopLeaderType, setSelectedTopLeaderType] = useState('')
+  const [selectedTopLeaderSize, setSelectedTopLeaderSize] = useState('')
+  const [useCustomBottomLeaders, setUseCustomBottomLeaders] = useState(false)
+  const [selectedBottomLeaderType, setSelectedBottomLeaderType] = useState('')
+  const [selectedBottomLeaderSize, setSelectedBottomLeaderSize] = useState('')
   const [selectedBearerType, setSelectedBearerType] = useState('')
   const [selectedBearerSize, setSelectedBearerSize] = useState('')
   const [numberOfBearers, setNumberOfBearers] = useState('')
@@ -51,6 +59,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Available sizes
   const [availableTopBoardSizes, setAvailableTopBoardSizes] = useState([])
   const [availableBottomBoardSizes, setAvailableBottomBoardSizes] = useState([])
+  const [availableTopLeaderSizes, setAvailableTopLeaderSizes] = useState([])
+  const [availableBottomLeaderSizes, setAvailableBottomLeaderSizes] = useState([])
   const [availableBearerSizes, setAvailableBearerSizes] = useState([])
 
   // Load prices - merge saved prices with current timber data structure
@@ -128,6 +138,12 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       selectedBottomBoardSize,
       numberOfTopBoards,
       numberOfBottomBoards,
+      useCustomTopLeaders,
+      selectedTopLeaderType,
+      selectedTopLeaderSize,
+      useCustomBottomLeaders,
+      selectedBottomLeaderType,
+      selectedBottomLeaderSize,
       selectedBearerType,
       selectedBearerSize,
       numberOfBearers
@@ -151,6 +167,14 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setSelectedBottomBoardSize(preset.selectedBottomBoardSize || preset.selectedBoardSize || '')
     setNumberOfTopBoards(preset.numberOfTopBoards || '')
     setNumberOfBottomBoards(preset.numberOfBottomBoards || '')
+    // Leader board settings
+    setUseCustomTopLeaders(preset.useCustomTopLeaders || false)
+    setSelectedTopLeaderType(preset.selectedTopLeaderType || '')
+    setSelectedTopLeaderSize(preset.selectedTopLeaderSize || '')
+    setUseCustomBottomLeaders(preset.useCustomBottomLeaders || false)
+    setSelectedBottomLeaderType(preset.selectedBottomLeaderType || '')
+    setSelectedBottomLeaderSize(preset.selectedBottomLeaderSize || '')
+    // Bearer settings
     setSelectedBearerType(preset.selectedBearerType || '')
     setSelectedBearerSize(preset.selectedBearerSize || '')
     setNumberOfBearers(preset.numberOfBearers || '')
@@ -231,6 +255,28 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       setAvailableBottomBoardSizes([])
     }
   }, [selectedBottomBoardType])
+
+  // Load top leader sizes when type changes
+  useEffect(() => {
+    if (selectedTopLeaderType) {
+      const type = timberData.timberTypes.find(t => t.id === selectedTopLeaderType)
+      setAvailableTopLeaderSizes(type ? type.boardSizes : [])
+      setSelectedTopLeaderSize('')
+    } else {
+      setAvailableTopLeaderSizes([])
+    }
+  }, [selectedTopLeaderType])
+
+  // Load bottom leader sizes when type changes
+  useEffect(() => {
+    if (selectedBottomLeaderType) {
+      const type = timberData.timberTypes.find(t => t.id === selectedBottomLeaderType)
+      setAvailableBottomLeaderSizes(type ? type.boardSizes : [])
+      setSelectedBottomLeaderSize('')
+    } else {
+      setAvailableBottomLeaderSizes([])
+    }
+  }, [selectedBottomLeaderType])
 
   useEffect(() => {
     if (selectedBearerType) {
@@ -382,6 +428,18 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       }
     }
 
+    // Top leader board dimensions (edge boards)
+    let topLeaderWidth = topBoardWidth
+    let topLeaderThickness = topBoardThickness
+    if (useCustomTopLeaders && selectedTopLeaderType && selectedTopLeaderSize) {
+      const type = timberData.timberTypes.find(t => t.id === selectedTopLeaderType)
+      const size = type?.boardSizes.find(s => s.id === selectedTopLeaderSize)
+      if (size) {
+        topLeaderWidth = size.width
+        topLeaderThickness = size.thickness
+      }
+    }
+
     // Bottom board dimensions
     let bottomBoardWidth = 100
     let bottomBoardThickness = 22
@@ -391,6 +449,18 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       if (size) {
         bottomBoardWidth = size.width
         bottomBoardThickness = size.thickness
+      }
+    }
+
+    // Bottom leader board dimensions (edge boards)
+    let bottomLeaderWidth = bottomBoardWidth
+    let bottomLeaderThickness = bottomBoardThickness
+    if (useCustomBottomLeaders && selectedBottomLeaderType && selectedBottomLeaderSize) {
+      const type = timberData.timberTypes.find(t => t.id === selectedBottomLeaderType)
+      const size = type?.boardSizes.find(s => s.id === selectedBottomLeaderSize)
+      if (size) {
+        bottomLeaderWidth = size.width
+        bottomLeaderThickness = size.thickness
       }
     }
 
@@ -406,16 +476,42 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       }
     }
 
-    const topGap = topBoards > 1 ? calculateGapSize(width, topBoardWidth, topBoards) : 0
-    const bottomGap = bottomBoards > 1 ? calculateGapSize(width, bottomBoardWidth, bottomBoards) : 0
+    // Calculate gap accounting for custom leaders
+    // Top gap: if custom leaders, edge boards are different width
+    let topGap = 0
+    if (topBoards > 1) {
+      if (useCustomTopLeaders && topBoards > 2) {
+        // 2 leader boards + (topBoards-2) inner boards
+        const totalBoardsWidth = (2 * topLeaderWidth) + ((topBoards - 2) * topBoardWidth)
+        topGap = (width - totalBoardsWidth) / (topBoards - 1)
+      } else {
+        topGap = calculateGapSize(width, topBoardWidth, topBoards)
+      }
+    }
+
+    let bottomGap = 0
+    if (bottomBoards > 1) {
+      if (useCustomBottomLeaders && bottomBoards > 2) {
+        const totalBoardsWidth = (2 * bottomLeaderWidth) + ((bottomBoards - 2) * bottomBoardWidth)
+        bottomGap = (width - totalBoardsWidth) / (bottomBoards - 1)
+      } else {
+        bottomGap = calculateGapSize(width, bottomBoardWidth, bottomBoards)
+      }
+    }
 
     return {
       palletWidth: width,
       palletLength: length,
       topBoardWidth: topBoardWidth,
       topBoardThickness: topBoardThickness,
+      topLeaderWidth: useCustomTopLeaders ? topLeaderWidth : topBoardWidth,
+      topLeaderThickness: useCustomTopLeaders ? topLeaderThickness : topBoardThickness,
+      useCustomTopLeaders,
       bottomBoardWidth: bottomBoardWidth,
       bottomBoardThickness: bottomBoardThickness,
+      bottomLeaderWidth: useCustomBottomLeaders ? bottomLeaderWidth : bottomBoardWidth,
+      bottomLeaderThickness: useCustomBottomLeaders ? bottomLeaderThickness : bottomBoardThickness,
+      useCustomBottomLeaders,
       bearerWidth: bearerWidth,
       bearerHeight: bearerHeight,
       numberOfTopBoards: topBoards,
@@ -424,7 +520,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       topGapSize: Math.max(0, topGap),
       bottomGapSize: Math.max(0, bottomGap)
     }
-  }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, selectedTopBoardType, selectedTopBoardSize, selectedBottomBoardType, selectedBottomBoardSize, selectedBearerType, selectedBearerSize])
+  }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, selectedTopBoardType, selectedTopBoardSize, selectedBottomBoardType, selectedBottomBoardSize, selectedBearerType, selectedBearerSize, useCustomTopLeaders, selectedTopLeaderType, selectedTopLeaderSize, useCustomBottomLeaders, selectedBottomLeaderType, selectedBottomLeaderSize])
 
   // Real-time progressive quote calculation - updates as each element is added
   const liveQuote = useMemo(() => {
@@ -540,6 +636,14 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setSelectedBottomBoardSize('')
     setNumberOfTopBoards('')
     setNumberOfBottomBoards('')
+    // Reset leader board settings
+    setUseCustomTopLeaders(false)
+    setSelectedTopLeaderType('')
+    setSelectedTopLeaderSize('')
+    setUseCustomBottomLeaders(false)
+    setSelectedBottomLeaderType('')
+    setSelectedBottomLeaderSize('')
+    // Reset bearer settings
     setSelectedBearerType('')
     setSelectedBearerSize('')
     setNumberOfBearers('')
@@ -771,6 +875,50 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       ))}
                     </select>
                   </div>
+                  
+                  {/* Custom Leader Boards Option (Bottom) */}
+                  <div className="form-field checkbox-field">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={useCustomBottomLeaders}
+                        onChange={(e) => setUseCustomBottomLeaders(e.target.checked)}
+                      />
+                      <span>Custom Leader Boards (Edge)</span>
+                    </label>
+                  </div>
+                  
+                  {useCustomBottomLeaders && (
+                    <div className="leader-board-options">
+                      <div className="form-row two-col">
+                        <div className="form-field">
+                          <label>Leader Type (Bottom)</label>
+                          <select
+                            value={selectedBottomLeaderType}
+                            onChange={(e) => setSelectedBottomLeaderType(e.target.value)}
+                          >
+                            <option value="">Select type...</option>
+                            {timberData.timberTypes.map(type => (
+                              <option key={type.id} value={type.id}>{type.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="form-field">
+                          <label>Leader Size (Bottom)</label>
+                          <select
+                            value={selectedBottomLeaderSize}
+                            onChange={(e) => setSelectedBottomLeaderSize(e.target.value)}
+                            disabled={!selectedBottomLeaderType}
+                          >
+                            <option value="">Select size...</option>
+                            {availableBottomLeaderSizes.map(size => (
+                              <option key={size.id} value={size.id}>{size.dimensions}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="section-divider" />
 
@@ -814,6 +962,50 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       ))}
                     </select>
                   </div>
+                  
+                  {/* Custom Leader Boards Option (Top) */}
+                  <div className="form-field checkbox-field">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={useCustomTopLeaders}
+                        onChange={(e) => setUseCustomTopLeaders(e.target.checked)}
+                      />
+                      <span>Custom Leader Boards (Edge)</span>
+                    </label>
+                  </div>
+                  
+                  {useCustomTopLeaders && (
+                    <div className="leader-board-options">
+                      <div className="form-row two-col">
+                        <div className="form-field">
+                          <label>Leader Type (Top)</label>
+                          <select
+                            value={selectedTopLeaderType}
+                            onChange={(e) => setSelectedTopLeaderType(e.target.value)}
+                          >
+                            <option value="">Select type...</option>
+                            {timberData.timberTypes.map(type => (
+                              <option key={type.id} value={type.id}>{type.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="form-field">
+                          <label>Leader Size (Top)</label>
+                          <select
+                            value={selectedTopLeaderSize}
+                            onChange={(e) => setSelectedTopLeaderSize(e.target.value)}
+                            disabled={!selectedTopLeaderType}
+                          >
+                            <option value="">Select size...</option>
+                            {availableTopLeaderSizes.map(size => (
+                              <option key={size.id} value={size.id}>{size.dimensions}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="section-divider" />
 
