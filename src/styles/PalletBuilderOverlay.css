@@ -1883,7 +1883,7 @@ html.dark-mode .price-save-actions {
 
 /* Dark mode - Price header (SIZE / $/metre) */
 html.dark-mode .price-header {
-  background: #252538;
+  background: transparent;
   border-color: #3d3d5c;
 }
 
