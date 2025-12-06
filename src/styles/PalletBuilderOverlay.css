@@ -1966,21 +1966,23 @@ html.dark-mode .price-editor-content {
   background: #1e1e2e;
 }
 
-/* Dark mode - All locks to proper color */
-html.dark-mode .lock-icon {
+/* Dark mode - Lock colors */
+html.dark-mode .lock-button.locked {
   color: #6b7280;
 }
 
-html.dark-mode .lock-icon.unlocked {
-  color: #10b981;
+html.dark-mode .lock-button.locked .lock-icon {
+  color: #6b7280;
 }
 
-html.dark-mode .lock-button.unlocked {
-  color: #10b981;
+html.dark-mode .lock-button.unlocked,
+html.dark-mode .lock-button.unlocked .lock-icon {
+  color: #10b981 !important;
 }
 
-html.dark-mode .lock-button.unlocked:hover {
-  color: #34d399;
+html.dark-mode .lock-button.unlocked:hover,
+html.dark-mode .lock-button.unlocked:hover .lock-icon {
+  color: #34d399 !important;
 }
 
 /* Dark mode - Input placeholder text */

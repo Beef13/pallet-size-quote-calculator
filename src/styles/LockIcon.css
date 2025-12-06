@@ -100,3 +100,17 @@
   }
 }
 
+/* Dark Mode - Unlocked locks should be green */
+html.dark-mode .lock-button.unlocked {
+  color: #10b981 !important;
+}
+
+html.dark-mode .lock-button.unlocked:hover {
+  color: #34d399 !important;
+}
+
+html.dark-mode .lock-button.unlocked .lock-icon,
+html.dark-mode .lock-button.unlocked svg {
+  color: #10b981 !important;
+}
+
