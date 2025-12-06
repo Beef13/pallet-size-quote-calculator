@@ -1700,12 +1700,12 @@ html.dark-mode .group-title {
 }
 
 html.dark-mode .price-item {
-  background: #252538;
+  background: transparent;
   border-color: #3d3d5c;
 }
 
 html.dark-mode .price-item:hover {
-  background: #2d2d44;
+  background: transparent;
 }
 
 html.dark-mode .item-name {
@@ -1972,7 +1972,7 @@ html.dark-mode .lock-icon {
 }
 
 html.dark-mode .lock-icon.unlocked {
-  color: #60a5fa;
+  color: #10b981;
 }
 
 /* Dark mode - Input placeholder text */
