@@ -302,58 +302,64 @@ function PalletStructure({ previewData }) {
         </mesh>
       )}
 
-      {/* Dimension Lines - technical drawing style like reference image */}
+      {/* Dimension Lines - only show when relevant components are selected */}
+      
+      {/* Width dimension - shows when pallet width is set AND there are any boards or bearers */}
       {palletWidth > 0 && palletDepth > 0 && hasComponents && (
-        <>
-          {/* Width dimension - top back edge */}
-          <DimensionLine
-            start={[-palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
-            end={[palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
-            offset={1.8}
-            label={`${Math.round(previewData.palletWidth)}mm`}
-            direction="horizontal"
-          />
-          
-          {/* Length dimension - right side */}
-          <DimensionLine
-            start={[palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
-            end={[palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, palletDepth / 2]}
-            offset={1.8}
-            label={`${Math.round(previewData.palletLength)}mm`}
-            direction="depth"
-          />
-          
-          {/* Height dimension - left back corner (opposite end of width dimension) */}
-          <DimensionLine
-            start={[-palletWidth / 2, -bearerStandingHeight / 2 - bottomBoardThickness, -palletDepth / 2]}
-            end={[-palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
-            offset={-1.8}
-            label={`${Math.round((previewData.bearerWidth || 75) + (previewData.topBoardThickness || 22) + (previewData.bottomBoardThickness || 22))}mm`}
-            direction="vertical"
-          />
-          
-          {/* Gap dimension between first two top boards (if gap exists) */}
-          {previewData.numberOfTopBoards >= 2 && topGap > 0.001 && topBoardData.length >= 2 && (
-            <DimensionLine
-              start={[topBoardData[0].xPos + topBoardData[0].width / 2, bearerStandingHeight / 2 + topBoardData[0].thickness, palletDepth / 2]}
-              end={[topBoardData[1].xPos - topBoardData[1].width / 2, bearerStandingHeight / 2 + topBoardData[1].thickness, palletDepth / 2]}
-              offset={3.0}
-              label={`${Math.round(previewData.topGapSize)}mm top gap`}
-              direction="horizontal"
-            />
-          )}
-          
-          {/* Gap dimension between first two bottom boards (if gap exists) */}
-          {previewData.numberOfBottomBoards >= 2 && bottomGap > 0.001 && bottomBoardData.length >= 2 && (
-            <DimensionLine
-              start={[bottomBoardData[0].xPos + bottomBoardData[0].width / 2, -bearerStandingHeight / 2 - bottomBoardData[0].thickness, palletDepth / 2]}
-              end={[bottomBoardData[1].xPos - bottomBoardData[1].width / 2, -bearerStandingHeight / 2 - bottomBoardData[1].thickness, palletDepth / 2]}
-              offset={-2.5}
-              label={`${Math.round(previewData.bottomGapSize)}mm btm gap`}
-              direction="horizontal"
-            />
-          )}
-        </>
+        <DimensionLine
+          start={[-palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
+          end={[palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
+          offset={1.8}
+          label={`${Math.round(previewData.palletWidth)}mm`}
+          direction="horizontal"
+        />
+      )}
+      
+      {/* Length dimension - shows when pallet length is set AND there are any boards or bearers */}
+      {palletWidth > 0 && palletDepth > 0 && hasComponents && (
+        <DimensionLine
+          start={[palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
+          end={[palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, palletDepth / 2]}
+          offset={1.8}
+          label={`${Math.round(previewData.palletLength)}mm`}
+          direction="depth"
+        />
+      )}
+      
+      {/* Height dimension - ONLY shows when ALL components are selected (top boards, bearers, AND bottom boards) */}
+      {palletWidth > 0 && palletDepth > 0 && 
+       previewData.numberOfTopBoards > 0 && 
+       previewData.numberOfBearers > 0 && 
+       previewData.numberOfBottomBoards > 0 && (
+        <DimensionLine
+          start={[-palletWidth / 2, -bearerStandingHeight / 2 - bottomBoardThickness, -palletDepth / 2]}
+          end={[-palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
+          offset={-1.8}
+          label={`${Math.round((previewData.bearerWidth || 75) + (previewData.topBoardThickness || 22) + (previewData.bottomBoardThickness || 22))}mm`}
+          direction="vertical"
+        />
+      )}
+      
+      {/* Top gap dimension - shows only when 2+ top boards exist */}
+      {previewData.numberOfTopBoards >= 2 && topGap > 0.001 && topBoardData.length >= 2 && (
+        <DimensionLine
+          start={[topBoardData[0].xPos + topBoardData[0].width / 2, bearerStandingHeight / 2 + topBoardData[0].thickness, palletDepth / 2]}
+          end={[topBoardData[1].xPos - topBoardData[1].width / 2, bearerStandingHeight / 2 + topBoardData[1].thickness, palletDepth / 2]}
+          offset={3.0}
+          label={`${Math.round(previewData.topGapSize)}mm top gap`}
+          direction="horizontal"
+        />
+      )}
+      
+      {/* Bottom gap dimension - shows only when 2+ bottom boards exist */}
+      {previewData.numberOfBottomBoards >= 2 && bottomGap > 0.001 && bottomBoardData.length >= 2 && (
+        <DimensionLine
+          start={[bottomBoardData[0].xPos + bottomBoardData[0].width / 2, -bearerStandingHeight / 2 - bottomBoardData[0].thickness, palletDepth / 2]}
+          end={[bottomBoardData[1].xPos - bottomBoardData[1].width / 2, -bearerStandingHeight / 2 - bottomBoardData[1].thickness, palletDepth / 2]}
+          offset={-2.5}
+          label={`${Math.round(previewData.bottomGapSize)}mm btm gap`}
+          direction="horizontal"
+        />
       )}
     </group>
   )
