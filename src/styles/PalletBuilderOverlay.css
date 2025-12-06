@@ -9,6 +9,63 @@
   position: relative;
 }
 
+/* Custom Scrollbar Styling - Sleek and Non-overlapping */
+.card-content,
+.quote-form,
+.quote-results,
+.price-editor-scroll,
+.presets-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+/* Add right margin to prevent scrollbar overlap on content */
+.card-content {
+  padding-right: 16px;
+}
+
+.quote-form,
+.quote-results,
+.price-editor-scroll {
+  margin-right: 4px;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.card-content::-webkit-scrollbar,
+.quote-form::-webkit-scrollbar,
+.quote-results::-webkit-scrollbar,
+.price-editor-scroll::-webkit-scrollbar,
+.presets-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.card-content::-webkit-scrollbar-track,
+.quote-form::-webkit-scrollbar-track,
+.quote-results::-webkit-scrollbar-track,
+.price-editor-scroll::-webkit-scrollbar-track,
+.presets-list::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+  margin: 8px 0;
+}
+
+.card-content::-webkit-scrollbar-thumb,
+.quote-form::-webkit-scrollbar-thumb,
+.quote-results::-webkit-scrollbar-thumb,
+.price-editor-scroll::-webkit-scrollbar-thumb,
+.presets-list::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 3px;
+}
+
+.card-content::-webkit-scrollbar-thumb:hover,
+.quote-form::-webkit-scrollbar-thumb:hover,
+.quote-results::-webkit-scrollbar-thumb:hover,
+.price-editor-scroll::-webkit-scrollbar-thumb:hover,
+.presets-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.6);
+}
+
 /* Expand Panel Button (shown when collapsed) */
 .expand-panel-btn {
   position: fixed;
@@ -134,7 +191,7 @@
 .form-card {
   position: relative;
   width: 100%;
-  height: 900px;
+  height: 1000px;
   max-height: calc(100vh - 80px);
   background: white;
   border-radius: 36px;
