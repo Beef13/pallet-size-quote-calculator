@@ -1491,17 +1491,17 @@ html.dark-mode .card-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-html.dark-mode .tab-btn {
+html.dark-mode .card-tab {
   color: #9ca3af;
-  background: transparent;
+  background: #252538;
 }
 
-html.dark-mode .tab-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+html.dark-mode .card-tab:hover:not(.active) {
+  background: #3d3d5c;
   color: #e5e7eb;
 }
 
-html.dark-mode .tab-btn.active {
+html.dark-mode .card-tab.active {
   background: #1e1e2e;
   color: #60a5fa;
 }
@@ -1855,6 +1855,113 @@ html.dark-mode .quote-form:hover::-webkit-scrollbar-thumb,
 html.dark-mode .quote-results:hover::-webkit-scrollbar-thumb,
 html.dark-mode .price-editor-scroll:hover::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Dark mode - Price item text */
+html.dark-mode .price-item > span {
+  color: #e5e7eb;
+}
+
+/* Dark mode - Price save actions container */
+html.dark-mode .price-save-actions {
+  background: #1e1e2e;
+  border-color: #3d3d5c;
+}
+
+/* Dark mode - Price header (SIZE / $/metre) */
+html.dark-mode .price-header {
+  background: #252538;
+  border-color: #3d3d5c;
+}
+
+html.dark-mode .price-header-label {
+  color: #9ca3af;
+}
+
+html.dark-mode .price-header-currency {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Dark mode - Price group */
+html.dark-mode .price-group {
+  border-color: #3d3d5c;
+}
+
+html.dark-mode .group-name {
+  color: #e5e7eb;
+}
+
+html.dark-mode .group-category {
+  color: #9ca3af;
+}
+
+/* Dark mode - Buttons row */
+html.dark-mode .buttons-row {
+  border-color: #3d3d5c;
+}
+
+/* Dark mode - Form buttons */
+html.dark-mode .btn-export,
+html.dark-mode .btn-import {
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+html.dark-mode .btn-export:hover,
+html.dark-mode .btn-import:hover {
+  background: rgba(96, 165, 250, 0.2);
+}
+
+/* Dark mode - Export/Import row */
+html.dark-mode .export-import-row {
+  border-color: #3d3d5c;
+}
+
+/* Dark mode - Title divider */
+html.dark-mode .title-divider {
+  background: #3d3d5c;
+}
+
+/* Dark mode - Card title */
+html.dark-mode .card-title {
+  color: #e5e7eb;
+}
+
+/* Dark mode - Section divider label */
+html.dark-mode .section-label {
+  color: #9ca3af;
+}
+
+/* Dark mode - Max hint text */
+html.dark-mode .max-hint {
+  color: #f59e0b;
+}
+
+/* Dark mode - Price content */
+html.dark-mode .price-editor-content {
+  background: #1e1e2e;
+}
+
+/* Dark mode - All locks to proper color */
+html.dark-mode .lock-icon {
+  color: #6b7280;
+}
+
+html.dark-mode .lock-icon.unlocked {
+  color: #60a5fa;
+}
+
+/* Dark mode - Input placeholder text */
+html.dark-mode input::placeholder {
+  color: #6b7280;
+}
+
+html.dark-mode select option {
+  background: #2d2d44;
+  color: #e5e7eb;
 }
 
 /* Responsive */
