@@ -997,19 +997,19 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 40px;
+  gap: 24px;
   background: rgba(255, 255, 255, 0.95);
-  padding: 20px 32px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(10px);
 }
 
 .slider-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-width: 180px;
+  gap: 8px;
+  min-width: 160px;
 }
 
 .slider-group label {
@@ -1021,8 +1021,8 @@
 
 .slider-label {
   font-size: 13px;
-  font-weight: 700;
-  color: #374151;
+  font-weight: 600;
+  color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -1871,9 +1871,10 @@ html.dark-mode .dark-mode-toggle:hover {
 /* Dark mode dimension sliders */
 html.dark-mode .dimension-sliders {
   background: rgba(30, 30, 46, 0.95);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
-html.dark-mode .slider-group label {
+html.dark-mode .slider-label {
   color: #9ca3af;
 }
 
