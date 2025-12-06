@@ -1975,6 +1975,14 @@ html.dark-mode .lock-icon.unlocked {
   color: #10b981;
 }
 
+html.dark-mode .lock-button.unlocked {
+  color: #10b981;
+}
+
+html.dark-mode .lock-button.unlocked:hover {
+  color: #34d399;
+}
+
 /* Dark mode - Input placeholder text */
 html.dark-mode input::placeholder {
   color: #6b7280;
