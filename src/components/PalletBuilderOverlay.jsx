@@ -978,7 +978,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                         checked={useCustomBottomLeaders}
                         onChange={(e) => setUseCustomBottomLeaders(e.target.checked)}
                       />
-                      <span>Custom Leader Boards (Edge)</span>
+                      <span>Custom Leader Boards</span>
                     </label>
                   </div>
                   
@@ -1068,7 +1068,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                         checked={useCustomTopLeaders}
                         onChange={(e) => setUseCustomTopLeaders(e.target.checked)}
                       />
-                      <span>Custom Leader Boards (Edge)</span>
+                      <span>Custom Leader Boards</span>
                     </label>
                   </div>
                   
