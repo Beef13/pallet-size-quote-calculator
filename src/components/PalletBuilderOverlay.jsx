@@ -932,7 +932,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   </div>
                   <div className="form-row two-col">
                     <div className="form-field">
-                      <label>Board Type (Bottom)</label>
+                      <label>Timber</label>
                       <select
                         value={selectedBottomBoardType}
                         onChange={(e) => setSelectedBottomBoardType(e.target.value)}
@@ -1022,7 +1022,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   </div>
                   <div className="form-row two-col">
                     <div className="form-field">
-                      <label>Board Type (Top)</label>
+                      <label>Timber</label>
                       <select
                         value={selectedTopBoardType}
                         onChange={(e) => setSelectedTopBoardType(e.target.value)}
@@ -1111,7 +1111,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <span className="section-title">Bearers (Stringers)</span>
                   </div>
                   <div className="form-field">
-                    <label>Timber Type</label>
+                    <label>Timber</label>
                     <select
                       value={selectedBearerType}
                       onChange={(e) => setSelectedBearerType(e.target.value)}
