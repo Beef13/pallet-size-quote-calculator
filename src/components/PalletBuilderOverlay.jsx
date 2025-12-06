@@ -1309,7 +1309,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           const val = parseInt(e.target.value)
                           if (!val || val < 1) setPalletQuantity('1')
                         }}
-                        placeholder="1"
+                        placeholder="e.g, 1"
                         className="quantity-input"
                       />
                     </div>
@@ -1483,7 +1483,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   setPalletQuantity('1')
                 }
               }}
-              placeholder="1"
+              placeholder="e.g, 1"
               className="quantity-input"
             />
           </div>
