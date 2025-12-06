@@ -1435,6 +1435,428 @@
   color: #9ca3af;
 }
 
+/* Dark Mode Toggle Button */
+.dark-mode-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(107, 114, 128, 0.1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.dark-mode-toggle:hover {
+  background: rgba(107, 114, 128, 0.2);
+  color: #374151;
+}
+
+.dark-mode-toggle.active {
+  background: #374151;
+  color: #fbbf24;
+}
+
+.dark-mode-toggle.active:hover {
+  background: #4b5563;
+}
+
+/* ============================================
+   DARK MODE THEME
+   ============================================ */
+
+/* Dark mode background */
+html.dark-mode .builder-layout {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+}
+
+/* Dark mode form card */
+html.dark-mode .form-card {
+  background: #1e1e2e;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+html.dark-mode .card-content {
+  background: #1e1e2e;
+}
+
+html.dark-mode .card-header {
+  background: linear-gradient(135deg, #2d2d44, #252538);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+html.dark-mode .tab-btn {
+  color: #9ca3af;
+  background: transparent;
+}
+
+html.dark-mode .tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
+}
+
+html.dark-mode .tab-btn.active {
+  background: #1e1e2e;
+  color: #60a5fa;
+}
+
+html.dark-mode .close-panel-btn {
+  color: #9ca3af;
+}
+
+html.dark-mode .close-panel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e5e7eb;
+}
+
+/* Dark mode form elements */
+html.dark-mode .form-field label {
+  color: #9ca3af;
+}
+
+html.dark-mode .form-field select,
+html.dark-mode .form-field input[type="number"],
+html.dark-mode .form-field input[type="text"] {
+  background: #2d2d44;
+  border-color: #3d3d5c;
+  color: #e5e7eb;
+}
+
+html.dark-mode .form-field select:focus,
+html.dark-mode .form-field input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+html.dark-mode .form-field select:disabled,
+html.dark-mode .form-field input:disabled {
+  background: #1a1a2e;
+  color: #6b7280;
+  border-color: #2d2d44;
+}
+
+/* Dark mode section divider */
+html.dark-mode .section-divider {
+  background: #3d3d5c;
+}
+
+/* Dark mode buttons */
+html.dark-mode .btn-clear {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+html.dark-mode .btn-clear:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+html.dark-mode .btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+html.dark-mode .btn-save-preset {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+html.dark-mode .btn-save-preset:hover {
+  background: rgba(96, 165, 250, 0.25);
+}
+
+/* Dark mode checkbox */
+html.dark-mode .checkbox-label {
+  color: #9ca3af;
+}
+
+html.dark-mode .checkbox-label span {
+  color: #6b7280;
+}
+
+html.dark-mode .checkbox-label input[type="checkbox"] {
+  accent-color: #60a5fa;
+}
+
+/* Dark mode leader board options */
+html.dark-mode .leader-board-options {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+/* Dark mode quote results */
+html.dark-mode .quote-results {
+  background: #1e1e2e;
+}
+
+html.dark-mode .result-row {
+  background: #2d2d44;
+  border-color: #3d3d5c;
+}
+
+html.dark-mode .result-row span:first-child {
+  color: #9ca3af;
+}
+
+html.dark-mode .result-row span:last-child {
+  color: #e5e7eb;
+}
+
+html.dark-mode .result-row.highlight {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+html.dark-mode .result-row.highlight span:first-child {
+  color: #34d399;
+}
+
+html.dark-mode .result-row.highlight span:last-child {
+  color: #10b981;
+}
+
+html.dark-mode .result-row.leader-row {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+html.dark-mode .result-row.leader-row span:first-child {
+  color: #60a5fa;
+}
+
+html.dark-mode .subtotal-row {
+  background: #252538;
+  border-color: #3d3d5c;
+}
+
+html.dark-mode .subtotal-row span:first-child {
+  color: #9ca3af;
+}
+
+html.dark-mode .subtotal-row span:last-child {
+  color: #e5e7eb;
+}
+
+html.dark-mode .total-row {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+html.dark-mode .total-row span:first-child {
+  color: #34d399;
+}
+
+html.dark-mode .total-row span:last-child {
+  color: #10b981;
+}
+
+/* Dark mode price editor */
+html.dark-mode .price-editor-header {
+  background: #252538;
+  border-color: #3d3d5c;
+}
+
+html.dark-mode .price-editor-header span {
+  color: #9ca3af;
+}
+
+html.dark-mode .price-group-header {
+  background: #2d2d44;
+}
+
+html.dark-mode .price-group-header:hover {
+  background: #3d3d5c;
+}
+
+html.dark-mode .group-title {
+  color: #e5e7eb;
+}
+
+html.dark-mode .price-item {
+  background: #252538;
+  border-color: #3d3d5c;
+}
+
+html.dark-mode .price-item:hover {
+  background: #2d2d44;
+}
+
+html.dark-mode .item-name {
+  color: #e5e7eb;
+}
+
+html.dark-mode .item-size {
+  color: #6b7280;
+}
+
+html.dark-mode .price-input {
+  background: #2d2d44;
+  border-color: #3d3d5c;
+  color: #e5e7eb;
+}
+
+html.dark-mode .price-input:focus {
+  border-color: #60a5fa;
+}
+
+html.dark-mode .price-input.locked {
+  background: #1a1a2e;
+  color: #6b7280;
+}
+
+/* Dark mode live price header */
+html.dark-mode .live-price-header {
+  background: rgba(30, 30, 46, 0.95);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+html.dark-mode .quantity-input-group label {
+  color: #9ca3af;
+}
+
+html.dark-mode .quantity-input {
+  background: #2d2d44;
+  border-color: #3d3d5c;
+  color: #e5e7eb;
+}
+
+html.dark-mode .quantity-input:focus {
+  border-color: #60a5fa;
+}
+
+html.dark-mode .price-label {
+  color: #9ca3af;
+}
+
+html.dark-mode .price-value {
+  color: #10b981;
+}
+
+html.dark-mode .price-value.partial {
+  color: #fbbf24;
+}
+
+html.dark-mode .price-placeholder {
+  color: #6b7280;
+}
+
+html.dark-mode .dark-mode-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fbbf24;
+}
+
+html.dark-mode .dark-mode-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Dark mode dimension sliders */
+html.dark-mode .dimension-sliders {
+  background: rgba(30, 30, 46, 0.95);
+}
+
+html.dark-mode .slider-group label {
+  color: #9ca3af;
+}
+
+html.dark-mode .slider-value {
+  color: #e5e7eb;
+}
+
+html.dark-mode .slider-group input[type="range"] {
+  background: #3d3d5c;
+}
+
+html.dark-mode .slider-group input[type="range"]::-webkit-slider-thumb {
+  background: #60a5fa;
+}
+
+/* Dark mode expand panel button */
+html.dark-mode .expand-panel-btn {
+  background: #1e1e2e;
+  color: #e5e7eb;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+html.dark-mode .expand-panel-btn:hover {
+  background: #2d2d44;
+}
+
+/* Dark mode drag hint */
+html.dark-mode .drag-hint {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Dark mode preset dropdown */
+html.dark-mode .presets-list {
+  background: #2d2d44;
+  border-color: #3d3d5c;
+}
+
+html.dark-mode .preset-item {
+  border-color: #3d3d5c;
+}
+
+html.dark-mode .preset-item:hover {
+  background: #3d3d5c;
+}
+
+html.dark-mode .preset-name {
+  color: #e5e7eb;
+}
+
+/* Dark mode modal */
+html.dark-mode .modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+html.dark-mode .modal-content {
+  background: #1e1e2e;
+  border: 1px solid #3d3d5c;
+}
+
+html.dark-mode .modal-title {
+  color: #e5e7eb;
+}
+
+html.dark-mode .modal-content input {
+  background: #2d2d44;
+  border-color: #3d3d5c;
+  color: #e5e7eb;
+}
+
+html.dark-mode .modal-actions .btn-cancel {
+  color: #9ca3af;
+  border-color: #3d3d5c;
+}
+
+html.dark-mode .modal-actions .btn-cancel:hover {
+  background: #2d2d44;
+  color: #e5e7eb;
+}
+
+/* Dark mode scrollbar */
+html.dark-mode .card-content::-webkit-scrollbar-thumb,
+html.dark-mode .quote-form::-webkit-scrollbar-thumb,
+html.dark-mode .quote-results::-webkit-scrollbar-thumb,
+html.dark-mode .price-editor-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+html.dark-mode .card-content:hover::-webkit-scrollbar-thumb,
+html.dark-mode .quote-form:hover::-webkit-scrollbar-thumb,
+html.dark-mode .quote-results:hover::-webkit-scrollbar-thumb,
+html.dark-mode .price-editor-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .builder-layout {
