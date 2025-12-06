@@ -19,6 +19,15 @@
   scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
 }
 
+/* Add right margin to prevent scrollbar overlap on content */
+.card-content {
+  padding-right: 16px;
+}
+
+.quote-results,
+.price-editor-scroll {
+  margin-right: 4px;
+}
 
 /* Webkit browsers (Chrome, Safari, Edge) */
 .card-content::-webkit-scrollbar,
@@ -244,7 +253,6 @@
 /* Card Content Area */
 .card-content {
   padding: 24px 28px;
-  padding-right: 12px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -252,7 +260,6 @@
   background: white;
   border-radius: 0 0 24px 24px;
   min-height: 0; /* Needed for flex overflow to work */
-  scrollbar-gutter: stable;
 }
 
 .card-title {
