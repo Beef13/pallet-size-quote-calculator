@@ -986,7 +986,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <div className="leader-board-options">
                       <div className="form-row two-col">
                         <div className="form-field">
-                          <label>Leader Type (Bottom)</label>
+                          <label>Timber</label>
                           <select
                             value={selectedBottomLeaderType}
                             onChange={(e) => setSelectedBottomLeaderType(e.target.value)}
@@ -998,7 +998,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           </select>
                         </div>
                         <div className="form-field">
-                          <label>Leader Size (Bottom)</label>
+                          <label>Size</label>
                           <select
                             value={selectedBottomLeaderSize}
                             onChange={(e) => setSelectedBottomLeaderSize(e.target.value)}
@@ -1076,7 +1076,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <div className="leader-board-options">
                       <div className="form-row two-col">
                         <div className="form-field">
-                          <label>Leader Type (Top)</label>
+                          <label>Timber</label>
                           <select
                             value={selectedTopLeaderType}
                             onChange={(e) => setSelectedTopLeaderType(e.target.value)}
@@ -1088,7 +1088,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           </select>
                         </div>
                         <div className="form-field">
-                          <label>Leader Size (Top)</label>
+                          <label>Size</label>
                           <select
                             value={selectedTopLeaderSize}
                             onChange={(e) => setSelectedTopLeaderSize(e.target.value)}
