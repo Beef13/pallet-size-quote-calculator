@@ -1108,7 +1108,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
                   {/* Bearers Section */}
                   <div className="section-heading">
-                    <span className="section-title">Bearers (Stringers)</span>
+                    <span className="section-title">Bearers</span>
                   </div>
                   <div className="form-field">
                     <label>Timber</label>
