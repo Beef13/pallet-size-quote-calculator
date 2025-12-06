@@ -564,20 +564,20 @@
   color: #ca8a04;
 }
 
-/* Quantity Input Row */
+/* Quantity Input Row - Sleek blue style */
 .quantity-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #fef3c7;
+  background: rgba(59, 130, 246, 0.08);
   border-radius: 10px;
   margin-bottom: 12px;
-  border: 2px solid #fbbf24;
+  border: 2px solid rgba(59, 130, 246, 0.2);
 }
 
 .quantity-row label {
-  color: #92400e;
+  color: #2563eb;
   font-weight: 600;
   font-size: 14px;
 }
@@ -588,16 +588,16 @@
   font-size: 18px;
   font-weight: 700;
   text-align: center;
-  border: 2px solid #fbbf24;
+  border: 2px solid rgba(59, 130, 246, 0.3);
   border-radius: 8px;
   background: white;
-  color: #92400e;
+  color: #1d4ed8;
 }
 
 .quantity-input:focus {
   outline: none;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 /* Hide spinner arrows on quantity input */
@@ -1722,6 +1722,27 @@ html.dark-mode .quote-status.partial {
 
 html.dark-mode .quote-ready-dot.partial {
   color: #fbbf24;
+}
+
+/* Dark mode - Quantity row (sleek blue style) */
+html.dark-mode .quantity-row {
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(96, 165, 250, 0.25);
+}
+
+html.dark-mode .quantity-row label {
+  color: #60a5fa;
+}
+
+html.dark-mode .quantity-row .quantity-input {
+  background: rgba(30, 30, 46, 0.8);
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #93c5fd;
+}
+
+html.dark-mode .quantity-row .quantity-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
 /* Dark mode price editor */
