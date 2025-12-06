@@ -522,7 +522,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       totalPrice: runningTotal,
       palletWidth: width,
       palletLength: length,
-      boardWidth: boardSize?.width || 0,
+      topBoardWidth: topBoardSize?.width || 0,
+      bottomBoardWidth: bottomBoardSize?.width || 0,
       topGapSize,
       bottomGapSize,
       isComplete,
@@ -946,13 +947,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       )}
                       {liveQuote.topBoardsTotal > 0 && (
                         <div className="result-row">
-                          <span>Top Boards ({liveQuote.numberOfTopBoards}× {liveQuote.boardSize || '—'})</span>
+                          <span>Top Boards ({liveQuote.numberOfTopBoards}× {liveQuote.topBoardSize || '—'})</span>
                           <span>{formatCurrency(liveQuote.topBoardsTotal)}</span>
                         </div>
                       )}
                       {liveQuote.bottomBoardsTotal > 0 && (
                         <div className="result-row">
-                          <span>Bottom Boards ({liveQuote.numberOfBottomBoards}× {liveQuote.boardSize || '—'})</span>
+                          <span>Bottom Boards ({liveQuote.numberOfBottomBoards}× {liveQuote.bottomBoardSize || '—'})</span>
                           <span>{formatCurrency(liveQuote.bottomBoardsTotal)}</span>
                         </div>
                       )}
