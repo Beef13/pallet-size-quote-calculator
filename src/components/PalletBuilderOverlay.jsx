@@ -1154,6 +1154,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
                   {error && <div className="error-msg">{error}</div>}
 
+                  <div className="section-divider" />
+
                   <div className="form-actions">
                     <button type="button" onClick={handleClear} className="btn-clear">Clear All</button>
                     <button type="button" onClick={() => setShowSavePresetModal(true)} className="btn-save-preset">Save Preset</button>
