@@ -958,7 +958,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     </div>
                   </div>
                   <div className="form-field">
-                    <label>No. of Boards (Bottom) {maxBottomBoardsAllowed > 0 && maxBottomBoardsAllowed < 15 && <span className="max-hint">(max {maxBottomBoardsAllowed})</span>}</label>
+                    <label>Number of Boards {maxBottomBoardsAllowed > 0 && maxBottomBoardsAllowed < 15 && <span className="max-hint">(max {maxBottomBoardsAllowed})</span>}</label>
                     <select
                       value={displayedBottomBoards}
                       onChange={(e) => setNumberOfBottomBoards(e.target.value)}
@@ -1048,7 +1048,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     </div>
                   </div>
                   <div className="form-field">
-                    <label>No. of Boards (Top) {maxTopBoardsAllowed > 0 && maxTopBoardsAllowed < 15 && <span className="max-hint">(max {maxTopBoardsAllowed})</span>}</label>
+                    <label>Number of Boards {maxTopBoardsAllowed > 0 && maxTopBoardsAllowed < 15 && <span className="max-hint">(max {maxTopBoardsAllowed})</span>}</label>
                     <select
                       value={displayedTopBoards}
                       onChange={(e) => setNumberOfTopBoards(e.target.value)}
@@ -1139,7 +1139,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       </select>
                     </div>
                     <div className="form-field">
-                      <label>No. of Bearers {maxBearersAllowed > 0 && maxBearersAllowed < 15 && <span className="max-hint">(max {maxBearersAllowed})</span>}</label>
+                      <label>Number of Bearers {maxBearersAllowed > 0 && maxBearersAllowed < 15 && <span className="max-hint">(max {maxBearersAllowed})</span>}</label>
                       <select
                         value={displayedBearers}
                         onChange={(e) => setNumberOfBearers(e.target.value)}
