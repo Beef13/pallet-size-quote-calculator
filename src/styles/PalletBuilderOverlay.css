@@ -389,6 +389,28 @@
   border-radius: 1px;
 }
 
+/* Section Headings */
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  margin-top: 4px;
+}
+
+.section-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* Error Message */
 .error-msg {
   padding: 14px 16px;
@@ -1549,6 +1571,10 @@ html.dark-mode .form-field input:disabled {
 /* Dark mode section divider */
 html.dark-mode .section-divider {
   background: #3d3d5c;
+}
+
+html.dark-mode .section-title {
+  color: #e5e7eb;
 }
 
 /* Dark mode buttons */

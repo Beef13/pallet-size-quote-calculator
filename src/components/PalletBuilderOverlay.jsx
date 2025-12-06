@@ -866,7 +866,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               <div className="card-content">
               
                 <div className="quote-form">
-                  {/* Pallet Dimensions */}
+                  {/* Pallet Dimensions Section */}
+                  <div className="section-heading">
+                    <span className="section-icon">📐</span>
+                    <span className="section-title">Pallet Dimensions</span>
+                  </div>
                   <div className="form-row three-col">
                     <div className="form-field">
                       <label>Load Preset</label>
@@ -924,6 +928,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <div className="section-divider" />
 
                   {/* Bottom Boards Section */}
+                  <div className="section-heading">
+                    <span className="section-icon">⬇️</span>
+                    <span className="section-title">Bottom Boards</span>
+                  </div>
                   <div className="form-row two-col">
                     <div className="form-field">
                       <label>Board Type (Bottom)</label>
@@ -1011,6 +1019,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <div className="section-divider" />
 
                   {/* Top Boards Section */}
+                  <div className="section-heading">
+                    <span className="section-icon">⬆️</span>
+                    <span className="section-title">Top Boards</span>
+                  </div>
                   <div className="form-row two-col">
                     <div className="form-field">
                       <label>Board Type (Top)</label>
@@ -1097,9 +1109,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
                   <div className="section-divider" />
 
-                  {/* Bearer Timber Type - Full Width */}
+                  {/* Bearers Section */}
+                  <div className="section-heading">
+                    <span className="section-icon">🪵</span>
+                    <span className="section-title">Bearers (Stringers)</span>
+                  </div>
                   <div className="form-field">
-                    <label>Timber Type (Bearers)</label>
+                    <label>Timber Type</label>
                     <select
                       value={selectedBearerType}
                       onChange={(e) => setSelectedBearerType(e.target.value)}
