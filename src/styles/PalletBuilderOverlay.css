@@ -389,6 +389,7 @@
   border-radius: 1px;
   width: 100%;
   display: block;
+  flex-shrink: 0;
 }
 
 /* Section Headings */
@@ -1566,7 +1567,7 @@ html.dark-mode .form-field input:disabled {
 
 /* Dark mode section divider */
 html.dark-mode .section-divider {
-  background: #4b5563;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 html.dark-mode .section-title {
