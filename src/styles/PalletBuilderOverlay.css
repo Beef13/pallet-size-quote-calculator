@@ -19,15 +19,16 @@
   scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
 }
 
-/* Add right margin to prevent scrollbar overlap on content */
+/* Add right padding to prevent scrollbar overlap on content */
 .card-content {
-  padding-right: 26px;
+  padding-right: 20px;
+  margin-right: 10px;
 }
 
 .quote-form,
 .quote-results,
 .price-editor-scroll {
-  margin-right: 14px;
+  padding-right: 15px;
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) */
@@ -46,7 +47,7 @@
 .presets-list::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 3px;
-  margin: 8px 0;
+  margin: 8px 10px 8px 0;
 }
 
 .card-content::-webkit-scrollbar-thumb,
