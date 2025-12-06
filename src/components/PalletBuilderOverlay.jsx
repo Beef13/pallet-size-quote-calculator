@@ -868,7 +868,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 <div className="quote-form">
                   {/* Pallet Dimensions Section */}
                   <div className="section-heading">
-                    <span className="section-icon">📐</span>
                     <span className="section-title">Pallet Dimensions</span>
                   </div>
                   <div className="form-row three-col">
@@ -929,7 +928,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
                   {/* Bottom Boards Section */}
                   <div className="section-heading">
-                    <span className="section-icon">⬇️</span>
                     <span className="section-title">Bottom Boards</span>
                   </div>
                   <div className="form-row two-col">
@@ -1020,7 +1018,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
                   {/* Top Boards Section */}
                   <div className="section-heading">
-                    <span className="section-icon">⬆️</span>
                     <span className="section-title">Top Boards</span>
                   </div>
                   <div className="form-row two-col">
@@ -1111,7 +1108,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
                   {/* Bearers Section */}
                   <div className="section-heading">
-                    <span className="section-icon">🪵</span>
                     <span className="section-title">Bearers (Stringers)</span>
                   </div>
                   <div className="form-field">

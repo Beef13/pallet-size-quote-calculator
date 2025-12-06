@@ -393,14 +393,8 @@
 .section-heading {
   display: flex;
   align-items: center;
-  gap: 8px;
   margin-bottom: 12px;
   margin-top: 4px;
-}
-
-.section-icon {
-  font-size: 16px;
-  line-height: 1;
 }
 
 .section-title {
