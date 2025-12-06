@@ -1672,11 +1672,19 @@ html.dark-mode .price-editor-header span {
 }
 
 html.dark-mode .price-group-header {
-  background: #2d2d44;
+  background: transparent;
 }
 
 html.dark-mode .price-group-header:hover {
-  background: #3d3d5c;
+  background: transparent;
+}
+
+html.dark-mode .price-group-toggle {
+  background: transparent;
+}
+
+html.dark-mode .price-group-toggle:hover {
+  background: transparent;
 }
 
 html.dark-mode .group-title {
