@@ -1879,7 +1879,8 @@ html.dark-mode .slider-label {
 }
 
 html.dark-mode .slider-value {
-  color: #e5e7eb;
+  color: #111827;
+  background: #f3f4f6;
 }
 
 html.dark-mode .slider-group input[type="range"] {
