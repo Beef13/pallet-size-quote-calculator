@@ -2,45 +2,328 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Timber Pallet Quote Calculator</title>
-    
-    <!-- PWA Meta Tags -->
-    <meta name="description" content="Calculate quotes for timber pallets with 3D visualization" />
-    <meta name="theme-color" content="#4a90a4" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Pallet Calc" />
-    
-    <!-- Icons -->
-    <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
-    <link rel="apple-touch-icon" href="./icons/icon.svg" />
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="./manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Pallet Quote</title>
+    <meta name="description" content="Price a timber pallet in about a minute. Pallet Quote works out the boards, gaps and cost per metre, then draws it up with shop drawings your customer can sign off." />
+    <meta name="theme-color" content="#178a52" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon.svg" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-    
-    <!-- Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          // Determine the correct SW path based on environment
-          const swPath = window.location.pathname.includes('pallet-size-quote-calculator') 
-            ? '/pallet-size-quote-calculator/sw.js' 
-            : '/sw.js';
-          
-          navigator.serviceWorker.register(swPath)
-            .then((registration) => {
-              console.log('SW registered:', registration.scope);
-            })
-            .catch((error) => {
-              console.log('SW registration failed:', error);
-            });
-        });
-      }
-    </script>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="nav" id="top">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="Pallet Quote home">
+          <span class="brand-logo" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="7" width="18" height="3.5" rx="1"/><rect x="4" y="12" width="3.5" height="4" rx="0.8"/><rect x="10.25" y="12" width="3.5" height="4" rx="0.8"/><rect x="16.5" y="12" width="3.5" height="4" rx="0.8"/><rect x="3" y="17" width="18" height="2.5" rx="1"/></svg>
+          </span>
+          Pallet Quote
+        </a>
+        <nav class="nav-links" aria-label="Sections">
+          <a href="#how">How it works</a>
+          <a href="#try">Try it</a>
+          <a href="#questions">Questions</a>
+        </nav>
+        <a class="btn btn-primary btn-small" href="./app/">Open the calculator</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- Hero: the pallet builds itself and the price adds up as each part lands -->
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <h1>Price the pallet before the customer hangs up.</h1>
+            <p class="lede">Enter a size and pick your timber. Pallet Quote works out the boards, the gaps and the cost per metre, then draws it up for your customer to sign off. A full quote takes about a minute.</p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="./app/">Start a quote</a>
+              <a class="btn btn-ghost" href="#how">See how it works</a>
+            </div>
+            <p class="hero-note">Runs in your browser on a phone, tablet or computer. Nothing to install, and it keeps working without signal.</p>
+          </div>
+
+          <figure class="hero-stage" aria-label="A 1165 by 1165 millimetre pallet being priced as it is built">
+            <svg id="hero-pallet" class="hero-pallet" viewBox="0 0 640 470" role="img" aria-hidden="true"></svg>
+            <div class="ticket" id="ticket">
+              <div class="ticket-head">
+                <span>1165 × 1165 mm pallet</span>
+                <span class="ticket-qty">× 250</span>
+              </div>
+              <ol class="ticket-lines" id="ticket-lines">
+                <li data-step="0"><span>Bottom boards <em>3 × 100 × 19</em></span><b>$2.62</b></li>
+                <li data-step="1"><span>Bearers <em>3 × 100 × 38</em></span><b>$5.24</b></li>
+                <li data-step="2"><span>Top boards <em>7 × 100 × 17</em></span><b>$5.06</b></li>
+              </ol>
+              <div class="ticket-total">
+                <span>Total for 250 pallets</span>
+                <strong id="ticket-total">$3,230.00</strong>
+              </div>
+            </div>
+            <button class="replay" id="replay" type="button">Build it again</button>
+          </figure>
+        </div>
+      </section>
+
+      <!-- The problem -->
+      <section class="problem" aria-labelledby="problem-title">
+        <div class="wrap">
+          <h2 id="problem-title">You could build a pallet with your eyes shut. Quoting one is the slow part.</h2>
+          <div class="pains">
+            <article>
+              <h3>The spreadsheet</h3>
+              <p>Seven boards at 1.165 m, three bearers at 1.165 m, times the rate per metre, plus nails. Then the customer asks what it would cost at 1140.</p>
+            </article>
+            <article>
+              <h3>The sketch</h3>
+              <p>A drawing on the back of a docket that only you can read, sent to a customer who won't sign off what they can't picture.</p>
+            </article>
+            <article>
+              <h3>The callback</h3>
+              <p>“Let me work it out and get back to you.” By the time you ring back with a number, they've already asked someone else.</p>
+            </article>
+          </div>
+          <p class="turn">Pallet Quote does all three while you're still on the phone.</p>
+        </div>
+      </section>
+
+      <!-- How it works: four real screens -->
+      <section class="how" id="how" aria-labelledby="how-title">
+        <div class="wrap">
+          <h2 id="how-title" class="section-title">From a phone call to a signed-off quote</h2>
+
+          <div class="feature">
+            <div class="feature-copy">
+              <h3>Build it and watch it take shape</h3>
+              <p>Pick the timber and size for the bottom boards, bearers and top deck. The pallet appears in 3D as you go, to scale, with the gaps worked out and dimensioned.</p>
+              <ul class="ticks">
+                <li>It never lets you fit more boards than the width allows</li>
+                <li>Different leader boards on the outside edges, priced separately</li>
+                <li>Drag to turn it round and show the customer exactly what they're getting</li>
+              </ul>
+            </div>
+            <div class="shot shot-wide annotated">
+              <picture>
+                <source srcset="/src/landing/img/app-build-dark.webp" media="(prefers-color-scheme: dark)" />
+                <img src="/src/landing/img/app-build.webp" width="2000" height="1250" loading="lazy"
+                  alt="The Pallet Quote builder with top boards, leader boards and bearers chosen, a 3D pallet and a total for 250 pallets" />
+              </picture>
+              <span class="note" style="--x: 27.9%; --y: 29%; --dx: -1;">Running cost for each part</span>
+              <span class="note" style="--x: 88.5%; --y: 11%; --dx: -1;">Total for any quantity</span>
+              <span class="note" style="--x: 64%; --y: 52%; --dx: 1;">Live 3D, drawn to scale</span>
+            </div>
+          </div>
+
+          <div class="feature reverse">
+            <div class="feature-copy">
+              <h3>Priced per metre, the way you buy timber</h3>
+              <p>Every board and bearer is costed on its real length at your own rate per metre. Change the pallet size and the price follows. Change the quantity and the total updates on the spot.</p>
+              <ul class="ticks">
+                <li>Your rates, saved on your device</li>
+                <li>Prices are locked until you unlock them, so nobody changes one by accident</li>
+                <li>Each line shows the count, the size and the length it was priced on</li>
+              </ul>
+            </div>
+            <div class="shot-pair">
+              <div class="shot">
+                <img src="/src/landing/img/app-prices.webp" width="700" height="1387" loading="lazy"
+                  alt="The prices tab listing board sizes with a price per metre and a lock beside each" />
+              </div>
+              <div class="shot">
+                <img src="/src/landing/img/app-quote-panel.webp" width="700" height="1387" loading="lazy"
+                  alt="The quote tab with each part, its cost, the gaps between boards and the total for 250 pallets" />
+              </div>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-copy">
+              <h3>Drawings your customer can sign off</h3>
+              <p>Every quote comes with a proper shop drawing. Plan, front and side elevations at true scale, an isometric view, and an enlarged end detail with every thickness marked.</p>
+              <ul class="ticks">
+                <li>Lettered parts that match the specification table</li>
+                <li>Board widths, gaps, bearer spacing and overall height dimensioned</li>
+                <li>Third-angle projection with a title block, scale and notes</li>
+              </ul>
+            </div>
+            <figure class="drawing">
+              <img src="/src/landing/img/drawing-sheet.webp" width="1400" height="1312" loading="lazy"
+                alt="Shop drawing of a 1165 by 1165 pallet with plan, elevations, isometric view, end detail and title block" />
+              <span class="note" style="--x: 21%; --y: 53%; --dx: 1;">Red callout links to the detail</span>
+              <span class="note" style="--x: 14%; --y: 47%; --dx: 1;">Lettered parts</span>
+            </figure>
+          </div>
+
+          <div class="feature reverse">
+            <div class="feature-copy">
+              <h3>One PDF for the customer, one for you</h3>
+              <p>Send the customer a clean specification with the drawings and the total. Keep a cost breakdown for yourself with every metre and every cent. Both carry the same quote reference, so they always match up.</p>
+              <ul class="ticks">
+                <li>The customer copy shows what they're buying and what it costs, nothing more</li>
+                <li>Your copy records the rates you quoted on, for when timber prices move</li>
+                <li>Saved with a sensible file name, ready to email</li>
+              </ul>
+            </div>
+            <div class="sheets" aria-label="Example quote documents">
+              <figure class="sheet sheet-back">
+                <img src="/src/landing/img/pdf-breakdown.webp" width="1000" height="1414" loading="lazy" alt="Cost breakdown PDF with itemised costs, kept for your records" />
+                <figcaption>Your copy</figcaption>
+              </figure>
+              <figure class="sheet sheet-front">
+                <img src="/src/landing/img/pdf-customer.webp" width="1000" height="1414" loading="lazy" alt="Customer PDF with shop drawings, the specification and the total price" />
+                <figcaption>Customer copy</figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interactive mini calculator -->
+      <section class="try" id="try" aria-labelledby="try-title">
+        <div class="wrap try-grid">
+          <div class="try-copy">
+            <h2 id="try-title" class="section-title">Try it on a pallet you quoted last week</h2>
+            <p>Move the sliders and watch the deck and the price change. This is a cut-down version with three bottom boards and three 100 × 38 bearers. The full calculator does the rest.</p>
+            <form class="calc" id="calc" onsubmit="return false">
+              <div class="calc-row">
+                <label for="c-width">Width</label>
+                <input id="c-width" type="range" min="800" max="1400" step="5" value="1165" />
+                <output id="o-width" for="c-width">1165 mm</output>
+              </div>
+              <div class="calc-row">
+                <label for="c-length">Length</label>
+                <input id="c-length" type="range" min="800" max="1400" step="5" value="1165" />
+                <output id="o-length" for="c-length">1165 mm</output>
+              </div>
+              <div class="calc-row">
+                <label for="c-board">Top boards</label>
+                <select id="c-board"></select>
+                <span></span>
+              </div>
+              <div class="calc-row">
+                <label for="c-count">How many</label>
+                <input id="c-count" type="range" min="2" max="11" step="1" value="7" />
+                <output id="o-count" for="c-count">7</output>
+              </div>
+              <div class="calc-row">
+                <label for="c-qty">Pallets</label>
+                <input id="c-qty" type="range" min="1" max="1000" step="1" value="250" />
+                <output id="o-qty" for="c-qty">250</output>
+              </div>
+            </form>
+          </div>
+
+          <div class="try-result" aria-live="polite">
+            <svg id="plan" class="plan" viewBox="0 0 360 360" role="img" aria-label="Plan view of the top deck"></svg>
+            <dl class="result">
+              <div><dt>Gap between boards</dt><dd id="r-gap">78 mm</dd></div>
+              <div><dt>Per pallet</dt><dd id="r-each">$12.92</dd></div>
+              <div class="result-total"><dt id="r-total-label">Total for 250 pallets</dt><dd id="r-total">$3,230.00</dd></div>
+            </dl>
+            <a class="btn btn-primary" href="./app/">Do the full quote</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Smaller details -->
+      <section class="details" aria-labelledby="details-title">
+        <div class="wrap">
+          <h2 id="details-title" class="section-title">The small things that save the most time</h2>
+          <ul class="detail-list">
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
+              <h3>Saved presets</h3>
+              <p>Save the pallets you quote every week and load one with a click. Change the quantity and the quote is done.</p>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+              <h3>Locked prices</h3>
+              <p>Your rates stay put until you unlock them. Update them when the timber invoice changes, then lock them again.</p>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M3 15h18M7 9v6M17 9v6"/></svg>
+              <h3>Leader boards</h3>
+              <p>Wider or thicker boards on the outside edges, with the gaps recalculated and each size priced on its own line.</p>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0"/><path d="M3 3l18 18"/></svg>
+              <h3>Works without signal</h3>
+              <p>Once it's opened, it keeps working in the yard, the truck or the back paddock. Quote now, send it when you're back in range.</p>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+              <h3>Phone, tablet or desk</h3>
+              <p>The same calculator on whatever's in your hand, with the running total pinned to the top of the screen.</p>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h6"/><circle cx="18" cy="16" r="3"/></svg>
+              <h3>Typed or tapped</h3>
+              <p>Step the counts up and down, or type 500 pallets straight in. It never lets a number go outside what fits.</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Questions -->
+      <section class="faq" id="questions" aria-labelledby="faq-title">
+        <div class="wrap faq-grid">
+          <h2 id="faq-title" class="section-title">Questions</h2>
+          <div class="faq-list">
+            <details>
+              <summary>Do I need to install anything?</summary>
+              <p>No. Open it in the browser on your phone, tablet or computer. On a phone you can add it to your home screen and it opens like an app.</p>
+            </details>
+            <details>
+              <summary>Can I use my own timber prices?</summary>
+              <p>Yes. Every board and bearer size has its own price per metre, plus a price per nail. Unlock a price, change it and save. Your prices stay on your device and can be exported to a file and imported on another one.</p>
+            </details>
+            <details>
+              <summary>Which timber and sizes does it cover?</summary>
+              <p>It comes set up with green case pine and kiln dried boards and bearers in the common sizes, from 100 × 12 up to 150 × 25 for boards. Any width and length of pallet works.</p>
+            </details>
+            <details>
+              <summary>Will my customer understand the drawing?</summary>
+              <p>That's what it's for. The customer copy shows a plan, two elevations, a 3D view and an enlarged end detail, with each part lettered to match the list underneath. There's nothing to interpret.</p>
+            </details>
+            <details>
+              <summary>What does the customer see, and what stays with me?</summary>
+              <p>The customer PDF shows the drawings, the parts and sizes, the price per pallet and the total. Your rates and line-by-line costs only appear on the breakdown PDF, which is for your own records.</p>
+            </details>
+            <details>
+              <summary>Where is my data kept?</summary>
+              <p>Prices and saved presets are stored in the browser on your device. Nothing is sent anywhere. Use Export to keep a copy or move them to another device.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- Final call to action -->
+      <section class="final" aria-labelledby="final-title">
+        <div class="wrap final-inner">
+          <svg class="final-dim" viewBox="0 0 600 40" aria-hidden="true" preserveAspectRatio="none">
+            <path d="M2 4v32M598 4v32M2 20h596" />
+            <path d="M-3 25l10-10M593 25l10-10" />
+          </svg>
+          <h2 id="final-title">Your next quote takes a minute.</h2>
+          <p>Open the calculator, enter the size and choose the timber. The price, the drawing and the PDF are ready before you'd have found the spreadsheet.</p>
+          <a class="btn btn-primary btn-large" href="./app/">Start a quote</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-inner">
+        <span class="brand brand-small">
+          <span class="brand-logo" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="7" width="18" height="3.5" rx="1"/><rect x="4" y="12" width="3.5" height="4" rx="0.8"/><rect x="10.25" y="12" width="3.5" height="4" rx="0.8"/><rect x="16.5" y="12" width="3.5" height="4" rx="0.8"/><rect x="3" y="17" width="18" height="2.5" rx="1"/></svg>
+          </span>
+          Pallet Quote
+        </span>
+        <span>Quoting and shop drawings for timber pallet makers.</span>
+        <a href="./app/">Open the calculator</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/landing/landing.js"></script>
   </body>
 </html>
