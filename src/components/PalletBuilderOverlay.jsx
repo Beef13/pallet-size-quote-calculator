@@ -1210,7 +1210,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                                     />
                                     <span className="unit">/m</span>
                                   </span>
-                                  <LockIcon isLocked={isLocked} onClick={() => toggleLock(fieldId)} />
+                                  <LockIcon isLocked={isLocked} onClick={() => toggleLock(fieldId)} label={`${size.dimensions} price`} />
                                 </div>
                               )
                             })}
@@ -1249,7 +1249,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                         />
                         <span className="unit">each</span>
                       </span>
-                      <LockIcon isLocked={lockedFields.has('nails')} onClick={() => toggleLock('nails')} />
+                      <LockIcon isLocked={lockedFields.has('nails')} onClick={() => toggleLock('nails')} label="nail price" />
                     </div>
                   </div>
                 )}
