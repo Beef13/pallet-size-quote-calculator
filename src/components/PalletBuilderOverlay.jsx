@@ -173,13 +173,26 @@ function Money({ value }) {
   return <>{whole}<span className="cents">.{cents}</span></>
 }
 
-// Section heading that also shows what that part of the pallet costs
-function SectionHead({ title, cost }) {
+// A panel section that folds down to its heading and a one-line summary
+function Fold({ id, title, summary, cost, aside, open, onToggle, className = 'form-section', children }) {
   return (
-    <div className="section-head">
-      <h2>{title}</h2>
-      {cost > 0 && <span className="section-cost">{formatCurrency(cost)}</span>}
-    </div>
+    <section className={`${className} fold ${open ? 'open' : ''}`} aria-label={title} data-fold={id}>
+      <div className="section-head fold-head">
+        <h2>
+          <button type="button" className="fold-toggle" aria-expanded={open} aria-controls={`fold-${id}`} onClick={() => onToggle(id)}>
+            <span className="chevron" aria-hidden="true" />
+            {title}
+          </button>
+        </h2>
+        <div className="fold-aside">
+          {open && aside}
+          {cost > 0 && <span className="section-cost">{formatCurrency(cost)}</span>}
+        </div>
+      </div>
+      {open
+        ? <div className="fold-body" id={`fold-${id}`}>{children}</div>
+        : summary && <button type="button" className="fold-summary" tabIndex={-1} onClick={() => onToggle(id)}>{summary}</button>}
+    </section>
   )
 }
 
@@ -229,6 +242,17 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   
   // Saved presets state
   const [savedPresets, setSavedPresets] = useState([])
+
+  // Which panel sections are folded open. Remembered between visits; sections the user
+  // hasn't touched fall back to a sensible default (see isOpen below).
+  const [openSections, setOpenSections] = useState(() => {
+    try {
+      const saved = JSON.parse(readStorage('palletOpenSections') || '{}')
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {}
+    } catch (e) {
+      return {}
+    }
+  })
   const [showSavePresetModal, setShowSavePresetModal] = useState(false)
   const [newPresetName, setNewPresetName] = useState('')
   const [pricesSaved, setPricesSaved] = useState(true)
@@ -242,6 +266,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       return { ...DEFAULT_BUSINESS }
     }
   })
+  // Fold the business section away if the details were already filled in when the app opened
+  // (decided once, so it doesn't snap shut while the name is being typed)
+  const [businessOpenByDefault] = useState(() => !String(business.name || '').trim())
   const updateBusiness = (key, value) => {
     setBusiness(prev => {
       const next = { ...prev, [key]: value }
@@ -1091,6 +1118,39 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   const maxNote = (max) => (max > 0 && max < 15 ? <span className="field-note">up to {max}</span> : null)
 
+  // Sections start open, except: presets when there are none yet, and business details
+  // once they were already filled in when the app opened.
+  const sectionDefaults = { presets: savedPresets.length > 0, business: businessOpenByDefault }
+  const isOpen = (id) => openSections[id] ?? sectionDefaults[id] ?? true
+  const toggleSection = (id) => {
+    const next = { ...openSections, [id]: !isOpen(id) }
+    setOpenSections(next)
+    writeStorage('palletOpenSections', JSON.stringify(next))
+  }
+  const fold = (id) => ({ id, open: isOpen(id), onToggle: toggleSection })
+
+  // One-line summaries shown while a section is folded
+  const timberName = (typeId) => {
+    const type = timberData.timberTypes.find(t => t.id === typeId)
+    return type ? (type.shortName || type.name) : ''
+  }
+  const dims = (sizes, sizeId) => {
+    const size = sizes.find(sz => sz.id === sizeId)
+    return size ? size.dimensions.replace('x', ' × ') : ''
+  }
+  const timberSummary = ({ count, noun, type, size, sizes, leaders, leaderSize, leaderSizes }) => {
+    const sizeText = dims(sizes, size)
+    if (!type || !sizeText) return 'Not chosen yet'
+    const n = parseInt(count) || 0
+    const parts = [n > 0 ? `${n} ${n === 1 ? noun : noun + 's'}` : 'Count not set', `${sizeText} ${timberName(type)}`]
+    const leaderText = leaders ? dims(leaderSizes || [], leaderSize) : ''
+    if (leaderText) parts.push(`${leaderText} leaders`)
+    return parts.join(' · ')
+  }
+  const sizeSummary = palletWidth && palletLength ? `${palletWidth} × ${palletLength} mm` : 'No size entered yet'
+  const businessSummary = [business.name, business.phone || business.email].map(v => (v || '').trim()).filter(Boolean).join(' · ')
+    || 'Add your details for customer quotes'
+
   // One deck of boards (top or bottom) - the two sections share the same controls
   const renderDeck = (deck) => {
     const isTop = deck === 'top'
@@ -1108,8 +1168,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       setLeaderSize: setSelectedBottomLeaderSize, leaderSizes: availableBottomLeaderSizes
     }
     return (
-      <section className="form-section" aria-label={isTop ? 'Top boards' : 'Bottom boards'}>
-        <SectionHead title={isTop ? 'Top boards' : 'Bottom boards'} cost={sectionCosts[deck]} />
+      <Fold {...fold(deck)} title={isTop ? 'Top boards' : 'Bottom boards'} cost={sectionCosts[deck]}
+        summary={timberSummary({ count: p.count, noun: 'board', type: p.type, size: p.size, sizes: p.sizes, leaders: p.leaders, leaderSize: p.leaderSize, leaderSizes: p.leaderSizes })}>
         <div className="field-row">
           <label className="field">
             <span className="field-label">Timber</span>
@@ -1153,7 +1213,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             </label>
           </div>
         )}
-      </section>
+      </Fold>
     )
   }
 
@@ -1258,8 +1318,38 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         {activeTab === 'calculator' && (
           <>
             <div className="panel-body">
-              <section className="form-section" aria-label="Pallet size">
-                <SectionHead title="Pallet size" />
+              <Fold {...fold('presets')} title="Saved presets" className="form-section presets"
+                summary={savedPresets.length > 0 ? `${savedPresets.length} saved` : 'None saved yet'}
+                aside={
+                  <div className="text-actions">
+                    <button type="button" className="text-btn" onClick={exportPresets}>Export</button>
+                    <label className="text-btn">
+                      Import
+                      <input type="file" accept=".json,application/json" onChange={importPresets} hidden />
+                    </label>
+                  </div>
+                }>
+                {savedPresets.length > 0 ? (
+                  <ul className="preset-list">
+                    {savedPresets.map(preset => (
+                      <li key={preset.id}>
+                        <button type="button" className="preset-load" onClick={() => loadPreset(preset)} title="Load this preset">
+                          <span className="preset-name">{preset.name}</span>
+                          <span className="preset-size">{preset.palletWidth || '–'} × {preset.palletLength || '–'}</span>
+                        </button>
+                        <button type="button" className="icon-btn small" onClick={() => deletePreset(preset.id)}
+                          title={`Delete ${preset.name}`} aria-label={`Delete ${preset.name}`}>
+                          <Icon name="close" size={14} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="hint">Save a build you quote often and load it here in one click.</p>
+                )}
+              </Fold>
+
+              <Fold {...fold('size')} title="Pallet size" summary={sizeSummary}>
                 <label className="field">
                   <span className="field-label">Start from</span>
                   <select
@@ -1310,13 +1400,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   </label>
                 </div>
                 <p className="hint">Boards run the length of the pallet. Bearers run across the width.</p>
-              </section>
+              </Fold>
 
               {renderDeck('bottom')}
               {renderDeck('top')}
 
-              <section className="form-section" aria-label="Bearers">
-                <SectionHead title="Bearers" cost={sectionCosts.bearers} />
+              <Fold {...fold('bearers')} title="Bearers" cost={sectionCosts.bearers}
+                summary={timberSummary({ count: displayedBearers, noun: 'bearer', type: selectedBearerType, size: selectedBearerSize, sizes: availableBearerSizes })}>
                 <div className="field-row">
                   <label className="field">
                     <span className="field-label">Timber</span>
@@ -1337,7 +1427,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <span className="field-label" id="bearer-count-label">Bearers {maxNote(maxBearersAllowed)}</span>
                   <Stepper id="bearer-count-label" label="bearers" value={displayedBearers} onChange={setNumberOfBearers} max={maxBearersForUI} allowEmpty />
                 </div>
-              </section>
+              </Fold>
 
               {(error || layoutWarnings.length > 0) && (
                 <div className="notice" role="alert">
@@ -1346,36 +1436,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 </div>
               )}
 
-              <section className="form-section presets" aria-label="Saved presets">
-                <div className="section-head">
-                  <h2>Saved presets</h2>
-                  <div className="text-actions">
-                    <button type="button" className="text-btn" onClick={exportPresets}>Export</button>
-                    <label className="text-btn">
-                      Import
-                      <input type="file" accept=".json,application/json" onChange={importPresets} hidden />
-                    </label>
-                  </div>
-                </div>
-                {savedPresets.length > 0 ? (
-                  <ul className="preset-list">
-                    {savedPresets.map(preset => (
-                      <li key={preset.id}>
-                        <button type="button" className="preset-load" onClick={() => loadPreset(preset)} title="Load this preset">
-                          <span className="preset-name">{preset.name}</span>
-                          <span className="preset-size">{preset.palletWidth || '–'} × {preset.palletLength || '–'}</span>
-                        </button>
-                        <button type="button" className="icon-btn small" onClick={() => deletePreset(preset.id)}
-                          title={`Delete ${preset.name}`} aria-label={`Delete ${preset.name}`}>
-                          <Icon name="close" size={14} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="hint">Save a build you quote often and load it here in one click.</p>
-                )}
-              </section>
             </div>
 
             <footer className="panel-footer">
@@ -1683,11 +1743,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               </section>
 
               {/* Business details for the customer PDF */}
-              <section className="settings-group" aria-labelledby="business-title">
-                <div className="section-head">
-                  <h2 id="business-title">Your business</h2>
-                  <span className="save-state">Saved automatically</span>
-                </div>
+              <Fold {...fold('business')} title="Your business" className="settings-group" summary={businessSummary}
+                aside={<span className="save-state">Saved automatically</span>}>
                 <label className="field">
                   <span className="field-label">Business name</span>
                   <input type="text" value={business.name} onChange={(e) => updateBusiness('name', e.target.value)} placeholder="Shown at the top of customer quotes" data-field="biz-name" />
@@ -1720,7 +1777,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <span className="field-label">Address</span>
                   <input type="text" value={business.address} onChange={(e) => updateBusiness('address', e.target.value)} data-field="biz-address" />
                 </label>
-              </section>
+              </Fold>
 
               <div className="section-head timber-head">
                 <h2>Timber and nails</h2>

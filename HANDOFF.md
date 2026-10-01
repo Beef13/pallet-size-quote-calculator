@@ -93,6 +93,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 | `palletQuotes` | Quote history (see below) |
 | `palletQuoteSeq-{year}` | Highest quote number used each year, so numbers aren't reused after a delete |
 | `palletDarkMode` | Theme |
+| `palletOpenSections` | Which folding panel sections are open (`{ id: true/false }`) |
 
 **Quotes:**
 - Numbers look like `Q{year}-{0001}`.
@@ -107,6 +108,8 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 - Breakdown PDF: itemised costs, labour, markup and margin, GST, and gross profit. Its footer says it's internal.
 
 **Backup:** export and import a v2.0 JSON file containing prices, presets, business details and quotes. On import, quotes are merged by number, and business details are only filled in if they're empty.
+
+**Folding sections:** the Build tab sections (Saved presets, Pallet size, Bottom boards, Top boards, Bearers) and "Your business" on the Prices tab use the `Fold` component. Each folds to its heading plus a one-line summary, and the choice is remembered. Defaults: everything open, except presets when none are saved and business details once they're filled in. Saved presets sit at the top of the Build tab.
 
 **Price lock:** timber and nail prices are locked against accidental edits, each with its own padlock. Labour, markup and GST share one padlock in their section head (lock id `pricing`). Everything starts locked on each visit.
 
