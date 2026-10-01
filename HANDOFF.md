@@ -108,7 +108,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 **Backup:** export and import a v2.0 JSON file containing prices, presets, business details and quotes. On import, quotes are merged by number, and business details are only filled in if they're empty.
 
-**Price lock:** timber prices are locked against accidental edits. Labour, markup and GST aren't lockable yet.
+**Price lock:** timber and nail prices are locked against accidental edits, each with its own padlock. Labour, markup and GST share one padlock in their section head (lock id `pricing`). Everything starts locked on each visit.
 
 ## 6. Design rules the owner has set
 
@@ -136,7 +136,6 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 4. Data lives on one device. Ask whether several people or devices quote before considering sync or accounts. The brief says to stay local-first unless there's evidence a change is needed.
 5. Small items:
    - The nail price defaults to $0.
-   - Labour, markup and GST settings aren't lockable.
    - The legacy components could be removed.
    - The JS bundle is large (about 1.1 MB, mostly three.js); split it if load time matters.
 

@@ -308,6 +308,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       type.bearerSizes.forEach(size => allFieldIds.push(`${type.id}-bearer-${size.id}`))
     })
     allFieldIds.push('nails')
+    // Labour, markup and GST share one lock
+    allFieldIds.push('pricing')
     setLockedFields(new Set(allFieldIds))
   }, [])
 
@@ -960,6 +962,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     if (ratesFromQuote) useTodaysRates()
     onQuoteCalculated(null)
   }
+
+  // One lock covers labour, markup and GST; a saved quote's rates can't be edited either
+  const pricingLocked = lockedFields.has('pricing') || !!ratesFromQuote
 
   const toggleLock = (fieldId) => {
     const newLockedFields = new Set(lockedFields)
@@ -1627,6 +1632,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               <section className="settings-group" aria-labelledby="pricing-title">
                 <div className="section-head">
                   <h2 id="pricing-title">Labour, markup and GST</h2>
+                  <LockIcon isLocked={lockedFields.has('pricing')} onClick={() => toggleLock('pricing')} label="labour, markup and GST" />
                 </div>
                 <div className="field-row">
                   <label className="field">
@@ -1634,7 +1640,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <span className="input-unit pre">
                       <span className="unit-pre">$</span>
                       <input type="number" min="0" step="0.01" inputMode="decimal" data-field="labour"
-                        value={prices.pricing?.labourPerPallet ?? 0} disabled={!!ratesFromQuote}
+                        value={prices.pricing?.labourPerPallet ?? 0} disabled={pricingLocked}
                         onChange={(e) => handlePricingChange('labourPerPallet', e.target.value)} />
                     </span>
                   </label>
@@ -1642,7 +1648,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <span className="field-label">Markup on cost</span>
                     <span className="input-unit">
                       <input type="number" min="0" step="0.5" inputMode="decimal" data-field="markup"
-                        value={prices.pricing?.markupPercent ?? 0} disabled={!!ratesFromQuote}
+                        value={prices.pricing?.markupPercent ?? 0} disabled={pricingLocked}
                         onChange={(e) => handlePricingChange('markupPercent', e.target.value)} />
                       <span className="unit">%</span>
                     </span>
@@ -1662,13 +1668,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <span className="field-label">GST rate</span>
                     <span className="input-unit">
                       <input type="number" min="0" step="0.5" inputMode="decimal" data-field="gst"
-                        value={prices.pricing?.gstRate ?? 10} disabled={!!ratesFromQuote}
+                        value={prices.pricing?.gstRate ?? 10} disabled={pricingLocked}
                         onChange={(e) => handlePricingChange('gstRate', e.target.value)} />
                       <span className="unit">%</span>
                     </span>
                   </label>
                   <label className="switch switch-field">
-                    <input type="checkbox" checked={prices.pricing?.showGst !== false} disabled={!!ratesFromQuote}
+                    <input type="checkbox" checked={prices.pricing?.showGst !== false} disabled={pricingLocked}
                       onChange={(e) => handlePricingChange('showGst', e.target.checked)} data-field="show-gst" />
                     <span className="switch-track" aria-hidden="true"><span className="switch-thumb" /></span>
                     <span>Add GST to quotes</span>

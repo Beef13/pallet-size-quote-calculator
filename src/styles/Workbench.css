@@ -2092,3 +2092,13 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
 .prices > .hint {
   padding: 6px 0 8px;
 }
+
+/* Locked or read-only switch */
+.switch:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.settings-group .section-head {
+  align-items: center;
+}
