@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { flushSync } from 'react-dom'
 import timberData from '../data/timber-prices.json'
 import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, formatCurrency, formatDimension } from '../utils/calculations'
 import Pallet3DLive from './Pallet3DLive'
@@ -663,6 +664,30 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   if (!liveQuote.topFits) layoutWarnings.push("Top boards don't fit across the pallet width - reduce the number of boards or use narrower leader boards.")
   if (!liveQuote.bottomFits) layoutWarnings.push("Bottom boards don't fit across the pallet width - reduce the number of boards or use narrower leader boards.")
 
+  // PDF export: 'customer' (spec + total) or 'breakdown' (internal costs).
+  // Renders the chosen layout, names the file, then opens the print dialog
+  // where "Save as PDF" can be chosen.
+  const [printVariant, setPrintVariant] = useState('customer')
+  const [quoteRef, setQuoteRef] = useState('')
+  const exportPdf = (variant) => {
+    const now = new Date()
+    const pad = (n) => String(n).padStart(2, '0')
+    const ref = `Q${String(now.getFullYear()).slice(2)}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`
+    flushSync(() => {
+      setPrintVariant(variant)
+      setQuoteRef(ref)
+    })
+    const size = liveQuote.palletWidth && liveQuote.palletLength ? ` ${liveQuote.palletWidth}x${liveQuote.palletLength}` : ''
+    const previousTitle = document.title
+    document.title = `${variant === 'customer' ? 'Pallet quote' : 'Pallet cost breakdown'}${size} ${ref}`
+    const restore = () => {
+      document.title = previousTitle
+      window.removeEventListener('afterprint', restore)
+    }
+    window.addEventListener('afterprint', restore)
+    window.print()
+  }
+
   const handleClear = () => {
     setPalletWidth('')
     setPalletLength('')
@@ -1126,7 +1151,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                         ? `${liveQuote.palletWidth} × ${liveQuote.palletLength} mm pallet`
                         : 'Pallet'}</h2>
                       <p className="hint">
-                        {liveQuote.isComplete ? 'Ready to print.' : 'Still missing some parts, so this is a running total.'}
+                        {liveQuote.isComplete ? 'Ready to export as a customer PDF or a cost breakdown.' : 'Still missing some parts, so this is a running total.'}
                       </p>
                     </div>
                   </div>
@@ -1183,8 +1208,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             </div>
             {liveQuote.hasAnyPrice && (
               <footer className="panel-footer">
-                <button type="button" onClick={handleClear} className="btn btn-quiet">Start a new quote</button>
-                <button type="button" onClick={() => window.print()} className="btn btn-primary">Print quote</button>
+                <button type="button" onClick={handleClear} className="btn btn-quiet">New quote</button>
+                <button type="button" onClick={() => exportPdf('breakdown')} className="btn btn-secondary"
+                  title="Full cost breakdown for your own records">Breakdown PDF</button>
+                <button type="button" onClick={() => exportPdf('customer')} className="btn btn-primary"
+                  title="Drawings, specification and total price to send to the customer">Customer PDF</button>
               </footer>
             )}
           </>
@@ -1336,7 +1364,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       </main>
 
       {/* Printable Quote - only visible when printing */}
-      <PrintableQuote quoteData={liveQuote} quantity={quantity} />
+      <PrintableQuote quoteData={liveQuote} quantity={quantity} variant={printVariant} quoteRef={quoteRef} />
     </div>
   )
 }

@@ -6,7 +6,9 @@ import ShopDrawing from './ShopDrawing'
 const money = (v) => formatCurrency(v)
 const metres = (mm) => `${((Number(mm) || 0) / 1000).toFixed(3)} m`
 
-function PrintableQuote({ quoteData, quantity = 1 }) {
+// variant: 'customer' - drawings, specification and total price only
+//          'breakdown' - full cost breakdown for the business's own records
+function PrintableQuote({ quoteData, quantity = 1, variant = 'breakdown', quoteRef = '' }) {
   if (!quoteData) return null
 
   const {
@@ -70,89 +72,148 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
   if (bottomLeaderCount > 0) rows.push(['bottomLeader', 'Bottom leader boards', bottomLeaderTimberType, bottomLeaderSize, bottomLeaderCount, boardLength, pricePerBottomLeader, bottomLeadersTotal])
   const parts = rows.map(([kind, , material], i) => ({ kind, material, ref: String.fromCharCode(65 + i) }))
 
-  return (
-    <div className="printable-quote">
-      {/* Header */}
-      <div className="print-header">
-        <h1>Pallet quote</h1>
-        <div className="print-meta">
-          <span>Date: {today}</span>
-          <span>Qty: {quantity}</span>
-        </div>
-      </div>
+  const isCustomer = variant === 'customer'
+  const sizeLabel = (size) => (size || '').replace('x', ' × ')
 
-      {/* Shop drawing */}
-      {hasDimensions && (
-        <div className="diagram-section">
-          <ShopDrawing q={quoteData} quantity={quantity} today={today} parts={parts} />
+  const header = (
+    <div className="print-header">
+      <h1>{isCustomer ? 'Pallet specification & quote' : 'Cost breakdown'}</h1>
+      <div className="print-meta">
+        {quoteRef && <span>Ref: {quoteRef}</span>}
+        <span>Date: {today}</span>
+        <span>Qty: {quantity}</span>
+      </div>
+    </div>
+  )
+
+  const drawing = hasDimensions && (
+    <div className="diagram-section">
+      <ShopDrawing q={quoteData} quantity={quantity} today={today} parts={parts} />
+    </div>
+  )
+
+  return (
+    <div className={`printable-quote ${isCustomer ? 'customer' : 'breakdown'}`}>
+      {header}
+      {drawing}
+
+      {isCustomer ? (
+        <div className="quote-section">
+          {/* Specification: what the customer gets, no internal costs */}
+          <table className="quote-table spec-table">
+            <thead>
+              <tr>
+                <th className="ref-col">Ref</th>
+                <th>Component</th>
+                <th>Material</th>
+                <th>Section (mm)</th>
+                <th>Length</th>
+                <th>Qty per pallet</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(([kind, item, material, size, qty, length], i) => (
+                <tr key={kind}>
+                  <td className="ref-col"><span className="ref-tag">{parts[i].ref}</span></td>
+                  <td>{item}</td>
+                  <td>{material}</td>
+                  <td>{sizeLabel(size).replace('mm', '')}</td>
+                  <td>{Math.round(length)} mm</td>
+                  <td>{qty}</td>
+                </tr>
+              ))}
+              {totalNails > 0 && (
+                <tr>
+                  <td className="ref-col"></td>
+                  <td>Nails</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>{totalNails}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          <div className="totals-section">
+            <div className="total-line">
+              <span className="total-label">Price per pallet</span>
+              <span className="total-value">{money(totalPrice)}</span>
+            </div>
+            <div className="total-line">
+              <span className="total-label">Quantity</span>
+              <span className="total-value">{quantity}</span>
+            </div>
+            <div className="total-line grand-total">
+              <span className="total-label">Total</span>
+              <span className="total-value">{money(grandTotal)}</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="quote-section">
+          <table className="quote-table">
+            <thead>
+              <tr>
+                <th className="ref-col">Ref</th>
+                <th>Item</th>
+                <th>Material</th>
+                <th>Size</th>
+                <th>Qty</th>
+                <th>Length</th>
+                <th>$/m</th>
+                <th className="amount-col">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(([kind, item, material, size, qty, length, rate, amount], i) => (
+                <tr key={kind}>
+                  <td className="ref-col"><span className="ref-tag">{parts[i].ref}</span></td>
+                  <td>{item}</td>
+                  <td>{material}</td>
+                  <td>{size}</td>
+                  <td>{qty}</td>
+                  <td>{metres(length)}</td>
+                  <td>{(Number(rate) || 0).toFixed(2)}</td>
+                  <td className="amount-col">{money(amount)}</td>
+                </tr>
+              ))}
+              {totalNails > 0 && (
+                <tr>
+                  <td className="ref-col"></td>
+                  <td>Nails</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>{totalNails}</td>
+                  <td>—</td>
+                  <td>{(Number(pricePerNail) || 0).toFixed(2)} ea</td>
+                  <td className="amount-col">{money(nailsTotal)}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          <div className="totals-section">
+            <div className="total-line">
+              <span className="total-label">Per pallet</span>
+              <span className="total-value">{money(totalPrice)}</span>
+            </div>
+            {quantity > 1 && (
+              <div className="total-line qty-line">
+                <span className="total-label">× {quantity} pallets</span>
+                <span className="total-value"></span>
+              </div>
+            )}
+            <div className="total-line grand-total">
+              <span className="total-label">Total</span>
+              <span className="total-value">{money(grandTotal)}</span>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Quote Summary */}
-      <div className="quote-section">
-        <table className="quote-table">
-          <thead>
-            <tr>
-              <th className="ref-col">Ref</th>
-              <th>Item</th>
-              <th>Material</th>
-              <th>Size</th>
-              <th>Qty</th>
-              <th>Length</th>
-              <th>$/m</th>
-              <th className="amount-col">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(([kind, item, material, size, qty, length, rate, amount], i) => (
-              <tr key={kind}>
-                <td className="ref-col"><span className="ref-tag">{parts[i].ref}</span></td>
-                <td>{item}</td>
-                <td>{material}</td>
-                <td>{size}</td>
-                <td>{qty}</td>
-                <td>{metres(length)}</td>
-                <td>{(Number(rate) || 0).toFixed(2)}</td>
-                <td className="amount-col">{money(amount)}</td>
-              </tr>
-            ))}
-            {totalNails > 0 && (
-              <tr>
-                <td className="ref-col"></td>
-                <td>Nails</td>
-                <td>—</td>
-                <td>—</td>
-                <td>{totalNails}</td>
-                <td>—</td>
-                <td>{(Number(pricePerNail) || 0).toFixed(2)} ea</td>
-                <td className="amount-col">{money(nailsTotal)}</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {/* Totals - aligned right, no borders */}
-        <div className="totals-section">
-          <div className="total-line">
-            <span className="total-label">Per Pallet</span>
-            <span className="total-value">{money(totalPrice)}</span>
-          </div>
-          {quantity > 1 && (
-            <div className="total-line qty-line">
-              <span className="total-label">× {quantity} pallets</span>
-              <span className="total-value"></span>
-            </div>
-          )}
-          <div className="total-line grand-total">
-            <span className="total-label">Total</span>
-            <span className="total-value">{money(grandTotal)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
       <div className="print-footer">
-        Quote valid for 30 days
+        {isCustomer ? 'Quote valid for 30 days.' : 'Internal record – not for customers. Quote valid for 30 days.'}
       </div>
     </div>
   )
