@@ -70,6 +70,32 @@
   }
 
   /* Diagram Section */
+  /* Shop drawing: printed at exactly 160 mm wide (1 sheet unit = 0.16 mm) */
+  .shop-drawing {
+    display: block;
+    width: 160mm;
+    height: auto;
+    margin: 0 auto 6mm;
+  }
+
+  .quote-table .ref-col {
+    width: 9mm;
+    text-align: center;
+  }
+
+  .ref-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 5mm;
+    height: 5mm;
+    border: 0.25mm solid #000;
+    border-radius: 50%;
+    font-size: 7.5pt;
+    font-weight: 600;
+    line-height: 1;
+  }
+
   .diagram-section {
     margin-bottom: 15px;
   }
@@ -149,12 +175,12 @@
     text-align: right;
   }
 
-  .quote-table td:nth-child(4),
-  .quote-table th:nth-child(4),
   .quote-table td:nth-child(5),
   .quote-table th:nth-child(5),
   .quote-table td:nth-child(6),
-  .quote-table th:nth-child(6) {
+  .quote-table th:nth-child(6),
+  .quote-table td:nth-child(7),
+  .quote-table th:nth-child(7) {
     text-align: center;
   }
 
