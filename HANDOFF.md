@@ -127,6 +127,12 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
    - waste allowance %
    - minimum order charge
    - finding customers from past quotes
+   - **crate builder/quoter** (parked — owner asked to save for later, not build yet): same
+     enquiry-to-quote flow as pallets but for crates (L × W × H + base/sides/lid/battens,
+     screws). Reuse timber prices, labour/markup/GST, history, presets, PDFs; new work is
+     crate geometry/costing, a box 3D view, and crate shop drawings. Open questions:
+     slatted vs plywood-panel construction, quotable parts, internal vs external dimensions,
+     and whether crates need the full drawing + PDF package from day one.
 4. Data lives on one device. Ask whether several people or devices quote before considering sync or accounts. The brief says to stay local-first unless there's evidence a change is needed.
 5. Small items:
    - The nail price defaults to $0.

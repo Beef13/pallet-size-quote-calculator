@@ -125,7 +125,8 @@ export function maxDeckBoards(palletWidth, boardWidth, leaderWidth = null, cap =
 export function timberCost(pricePerMetre, lengthMm, quantity) {
   const price = Number(pricePerMetre) || 0
   const metres = (Number(lengthMm) || 0) / 1000
-  return Math.round(price * metres * quantity * 100) / 100
+  const count = Number(quantity) || 0
+  return Math.round(price * metres * count * 100) / 100
 }
 
 /**
