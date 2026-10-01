@@ -5,6 +5,21 @@
 }
 
 @media print {
+  /* Take the on-screen app out of the page flow so it can't add blank pages */
+  html, body, #root, .app, .builder-layout {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  .form-panel,
+  .pallet-panel,
+  .expand-panel-btn,
+  .modal-overlay {
+    display: none !important;
+  }
+
   /* Hide everything except printable quote */
   body * {
     visibility: hidden;
@@ -140,7 +155,9 @@
   .quote-table td:nth-child(4),
   .quote-table th:nth-child(4),
   .quote-table td:nth-child(5),
-  .quote-table th:nth-child(5) {
+  .quote-table th:nth-child(5),
+  .quote-table td:nth-child(6),
+  .quote-table th:nth-child(6) {
     text-align: center;
   }
 

@@ -1,49 +1,43 @@
 // Service Worker for Timber Pallet Quote Calculator PWA
-const CACHE_NAME = 'pallet-calc-v1';
+// Bump the version whenever the caching logic changes so old caches are cleared.
+const CACHE_NAME = 'pallet-calc-v2';
 
-// Install event - cache files
-self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
-  // Activate immediately
+// Install event - activate immediately
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames
+          .filter((cacheName) => cacheName !== CACHE_NAME)
+          .map((cacheName) => caches.delete(cacheName))
+      )
+    ).then(() => self.clients.claim())
   );
-  // Take control of all pages immediately
-  self.clients.claim();
 });
 
-// Fetch event - network first, cache fallback
+// Fetch event - network first, cache fallback (same-origin GET requests only)
 self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  if (new URL(request.url).origin !== self.location.origin) return;
+
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then((response) => {
-        // Clone and cache successful responses
-        if (response && response.status === 200) {
+        // Cache successful, complete responses
+        if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, responseToCache));
         }
         return response;
       })
-      .catch(() => {
-        // If network fails, try cache
-        return caches.match(event.request);
-      })
+      .catch(() =>
+        caches.match(request).then((cached) => cached || Response.error())
+      )
   );
 });

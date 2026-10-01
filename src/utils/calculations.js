@@ -79,6 +79,56 @@ export function validateInputs(palletWidth, boardWidth, numberOfBoards) {
 }
 
 /**
+ * Width taken up by a deck of boards. When custom leader (edge) boards are
+ * used and there are at least 2 boards, the two outside boards are leaders.
+ * @param {number} numberOfBoards
+ * @param {number} boardWidth - width of the inner boards (mm)
+ * @param {number|null} leaderWidth - width of the leader boards (mm) or null for none
+ */
+export function deckBoardsWidth(numberOfBoards, boardWidth, leaderWidth = null) {
+  if (numberOfBoards <= 0) return 0
+  if (leaderWidth && numberOfBoards >= 2) {
+    return 2 * leaderWidth + (numberOfBoards - 2) * boardWidth
+  }
+  return numberOfBoards * boardWidth
+}
+
+/**
+ * Gap between boards (boards flush with both pallet edges).
+ * Can be negative when the boards don't fit - callers should check.
+ */
+export function deckGapSize(palletWidth, numberOfBoards, boardWidth, leaderWidth = null) {
+  if (numberOfBoards <= 1) return 0
+  return (palletWidth - deckBoardsWidth(numberOfBoards, boardWidth, leaderWidth)) / (numberOfBoards - 1)
+}
+
+/**
+ * Maximum number of boards (capped) that fit across the pallet without overlapping.
+ */
+export function maxDeckBoards(palletWidth, boardWidth, leaderWidth = null, cap = 15) {
+  if (!boardWidth || !palletWidth) return cap
+  let max = 0
+  for (let n = 1; n <= cap; n++) {
+    if (deckBoardsWidth(n, boardWidth, leaderWidth) <= palletWidth) max = n
+    else break
+  }
+  return Math.max(1, max)
+}
+
+/**
+ * Price of timber sold per lineal metre.
+ * @param {number} pricePerMetre
+ * @param {number} lengthMm - length of each piece in mm
+ * @param {number} quantity
+ * @returns {number} rounded to cents
+ */
+export function timberCost(pricePerMetre, lengthMm, quantity) {
+  const price = Number(pricePerMetre) || 0
+  const metres = (Number(lengthMm) || 0) / 1000
+  return Math.round(price * metres * quantity * 100) / 100
+}
+
+/**
  * Format currency value
  * @param {number} value - Numeric value to format
  * @returns {string} Formatted currency string

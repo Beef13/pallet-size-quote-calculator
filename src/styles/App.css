@@ -22,3 +22,19 @@ html, body {
   height: 100%;
   position: relative;
 }
+
+/* Small screens: the layout stacks, so the page itself needs to scroll */
+@media (max-width: 900px) {
+  html, body {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #root,
+  .app {
+    height: auto;
+    min-height: 100%;
+  }
+}

@@ -1,7 +1,46 @@
-import React, { useRef, useMemo } from 'react'
-import { Canvas } from '@react-three/fiber'
+import React, { useRef, useMemo, useEffect, Suspense } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, Text, Line, Billboard } from '@react-three/drei'
+// Bundled locally so labels work offline (drei's default font is fetched from Google)
+import labelFont from '../assets/fonts/roboto-latin-400-normal.woff'
 import '../styles/Pallet3DLive.css'
+
+// If the labels ever fail to render, hide them instead of breaking the whole app
+class LabelErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { failed: false }
+  }
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+  componentDidCatch(error) {
+    console.warn('3D dimension labels disabled:', error)
+  }
+  render() {
+    return this.state.failed ? null : this.props.children
+  }
+}
+
+// Keep the whole pallet in view when its size changes (keeps the user's viewing angle)
+function CameraFit({ width, length, height }) {
+  const { camera, controls } = useThree()
+  const size = Math.max(width, length, height, 4)
+  useEffect(() => {
+    const distance = size * 2.8
+    const dir = camera.position.clone()
+    if (dir.lengthSq() < 1e-6) dir.set(14, 10, 14)
+    dir.normalize().multiplyScalar(distance)
+    camera.position.copy(dir)
+    camera.lookAt(0, 0, 0)
+    camera.updateProjectionMatrix()
+    if (controls) {
+      controls.target.set(0, 0, 0)
+      controls.update()
+    }
+  }, [size, camera, controls])
+  return null
+}
 
 // Dimension Line Component - technical drawing style like reference image
 function DimensionLine({ start, end, offset = 0.5, label, color = '#555555', direction = 'horizontal' }) {
@@ -92,6 +131,7 @@ function DimensionLine({ start, end, offset = 0.5, label, color = '#555555', dir
       {/* Label - always faces viewer */}
       <Billboard position={textPos} follow={true} lockX={false} lockY={false} lockZ={false}>
         <Text
+          font={labelFont}
           fontSize={0.4}
           color="#333333"
           anchorX="center"
@@ -303,6 +343,9 @@ function PalletStructure({ previewData }) {
       )}
 
       {/* Dimension Lines - only show when relevant components are selected */}
+      {/* Suspense keeps the pallet visible while the label font loads */}
+      <LabelErrorBoundary>
+      <Suspense fallback={null}>
       
       {/* Width dimension - shows when pallet width is set AND there are any boards or bearers */}
       {palletWidth > 0 && palletDepth > 0 && hasComponents && (
@@ -361,6 +404,8 @@ function PalletStructure({ previewData }) {
           direction="horizontal"
         />
       )}
+      </Suspense>
+      </LabelErrorBoundary>
     </group>
   )
 }
@@ -396,15 +441,22 @@ function Pallet3DLive({ previewData }) {
         
         {/* Pallet */}
         <PalletStructure previewData={previewData} />
+
+        <CameraFit
+          width={(previewData.palletWidth || 0) * 0.01}
+          length={(previewData.palletLength || 0) * 0.01}
+          height={((previewData.bearerWidth || 75) + (previewData.topBoardThickness || 22) + (previewData.bottomBoardThickness || 22)) * 0.01}
+        />
         
         {/* Controls */}
         <OrbitControls
+          makeDefault
           enablePan={true}
           enableZoom={true}
           enableRotate={true}
           autoRotate={false}
           minDistance={5}
-          maxDistance={50}
+          maxDistance={150}
           target={[0, 0, 0]}
         />
       </Canvas>

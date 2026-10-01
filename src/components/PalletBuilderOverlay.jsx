@@ -1,10 +1,68 @@
 import { useState, useEffect, useMemo } from 'react'
 import timberData from '../data/timber-prices.json'
-import { calculateGapSize, calculateTotalPrice, validateInputs, formatCurrency, formatDimension } from '../utils/calculations'
+import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, formatCurrency, formatDimension } from '../utils/calculations'
 import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
 import PrintableQuote from './PrintableQuote'
 import '../styles/PalletBuilderOverlay.css'
+
+// Look up a board or bearer size in the bundled timber data
+function findSize(typeId, sizeId, kind = 'board') {
+  if (!typeId || !sizeId) return null
+  const type = timberData.timberTypes.find(t => t.id === typeId)
+  const list = kind === 'bearer' ? type?.bearerSizes : type?.boardSizes
+  return list?.find(s => s.id === sizeId) || null
+}
+
+function sizesForType(typeId, kind = 'board') {
+  const type = timberData.timberTypes.find(t => t.id === typeId)
+  if (!type) return []
+  return kind === 'bearer' ? type.bearerSizes : type.boardSizes
+}
+
+// Merge saved/imported price values onto the current timber data structure,
+// so old or partial price files can never remove timber types or sizes.
+function mergePrices(saved) {
+  const merged = JSON.parse(JSON.stringify(timberData))
+  if (!saved || typeof saved !== 'object') return merged
+  merged.timberTypes.forEach(type => {
+    const savedType = saved.timberTypes?.find(t => t.id === type.id)
+    if (!savedType) return
+    type.boardSizes.forEach(size => {
+      const savedSize = savedType.boardSizes?.find(s => s.id === size.id)
+      if (savedSize && savedSize.pricePerBoard !== undefined && savedSize.pricePerBoard !== '') {
+        size.pricePerBoard = Number(savedSize.pricePerBoard) || 0
+      }
+    })
+    type.bearerSizes.forEach(size => {
+      const savedSize = savedType.bearerSizes?.find(s => s.id === size.id)
+      if (savedSize && savedSize.pricePerBearer !== undefined && savedSize.pricePerBearer !== '') {
+        size.pricePerBearer = Number(savedSize.pricePerBearer) || 0
+      }
+    })
+  })
+  if (saved.nailPricePerNail !== undefined && saved.nailPricePerNail !== '') {
+    merged.nailPricePerNail = Number(saved.nailPricePerNail) || 0
+  }
+  return merged
+}
+
+function readStorage(key) {
+  try {
+    return localStorage.getItem(key)
+  } catch (e) {
+    return null
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, value)
+    return true
+  } catch (e) {
+    return false
+  }
+}
 
 // Edit Icon SVG component
 function EditIcon() {
@@ -22,8 +80,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('palletDarkMode')
-    return saved ? JSON.parse(saved) : false
+    return readStorage('palletDarkMode') === 'true'
   })
   
   // Tab state
@@ -61,58 +118,39 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [savedPresets, setSavedPresets] = useState([])
   const [showSavePresetModal, setShowSavePresetModal] = useState(false)
   const [newPresetName, setNewPresetName] = useState('')
+  const [pricesSaved, setPricesSaved] = useState(true)
+  const [saveFlash, setSaveFlash] = useState(false)
 
-  // Available sizes
-  const [availableTopBoardSizes, setAvailableTopBoardSizes] = useState([])
-  const [availableBottomBoardSizes, setAvailableBottomBoardSizes] = useState([])
-  const [availableTopLeaderSizes, setAvailableTopLeaderSizes] = useState([])
-  const [availableBottomLeaderSizes, setAvailableBottomLeaderSizes] = useState([])
-  const [availableBearerSizes, setAvailableBearerSizes] = useState([])
+  // Available sizes - derived from the selected timber type
+  const availableTopBoardSizes = useMemo(() => sizesForType(selectedTopBoardType), [selectedTopBoardType])
+  const availableBottomBoardSizes = useMemo(() => sizesForType(selectedBottomBoardType), [selectedBottomBoardType])
+  const availableTopLeaderSizes = useMemo(() => sizesForType(selectedTopLeaderType), [selectedTopLeaderType])
+  const availableBottomLeaderSizes = useMemo(() => sizesForType(selectedBottomLeaderType), [selectedBottomLeaderType])
+  const availableBearerSizes = useMemo(() => sizesForType(selectedBearerType, 'bearer'), [selectedBearerType])
+
+  // Changing a timber type clears its size (done in the handler, not an effect,
+  // so loading a preset can set type and size together)
+  const changeTopBoardType = (v) => { setSelectedTopBoardType(v); setSelectedTopBoardSize('') }
+  const changeBottomBoardType = (v) => { setSelectedBottomBoardType(v); setSelectedBottomBoardSize('') }
+  const changeTopLeaderType = (v) => { setSelectedTopLeaderType(v); setSelectedTopLeaderSize('') }
+  const changeBottomLeaderType = (v) => { setSelectedBottomLeaderType(v); setSelectedBottomLeaderSize('') }
+  const changeBearerType = (v) => { setSelectedBearerType(v); setSelectedBearerSize('') }
 
   // Save and apply dark mode
   useEffect(() => {
-    localStorage.setItem('palletDarkMode', JSON.stringify(isDarkMode))
+    writeStorage('palletDarkMode', JSON.stringify(isDarkMode))
     document.documentElement.classList.toggle('dark-mode', isDarkMode)
   }, [isDarkMode])
 
   // Load prices - merge saved prices with current timber data structure
   useEffect(() => {
-    const savedPrices = localStorage.getItem('timberPrices')
-    
-    // Always start with the current timber data structure
-    let currentPrices = JSON.parse(JSON.stringify(timberData))
-    
-    // If we have saved prices, try to merge the price values
-    if (savedPrices) {
-      try {
-        const saved = JSON.parse(savedPrices)
-        // Only merge if the saved data has the same timber type IDs
-        currentPrices.timberTypes.forEach(type => {
-          const savedType = saved.timberTypes?.find(t => t.id === type.id)
-          if (savedType) {
-            type.boardSizes.forEach(size => {
-              const savedSize = savedType.boardSizes?.find(s => s.id === size.id)
-              if (savedSize?.pricePerBoard !== undefined) {
-                size.pricePerBoard = savedSize.pricePerBoard
-              }
-            })
-            type.bearerSizes.forEach(size => {
-              const savedSize = savedType.bearerSizes?.find(s => s.id === size.id)
-              if (savedSize?.pricePerBearer !== undefined) {
-                size.pricePerBearer = savedSize.pricePerBearer
-              }
-            })
-          }
-        })
-        if (saved.nailPricePerNail !== undefined) {
-          currentPrices.nailPricePerNail = saved.nailPricePerNail
-        }
-      } catch (e) {
-        console.log('Could not merge saved prices, using defaults')
-      }
+    let saved = null
+    try {
+      saved = JSON.parse(readStorage('timberPrices') || 'null')
+    } catch (e) {
+      console.log('Could not read saved prices, using defaults')
     }
-    
-    setPrices(currentPrices)
+    setPrices(mergePrices(saved))
     
     const allFieldIds = []
     timberData.timberTypes.forEach(type => {
@@ -125,10 +163,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   // Load saved presets from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('palletPresets')
+    const saved = readStorage('palletPresets')
     if (saved) {
       try {
-        setSavedPresets(JSON.parse(saved))
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) setSavedPresets(parsed)
       } catch (e) {
         console.log('Could not load saved presets')
       }
@@ -161,9 +200,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       numberOfBearers
     }
     
-    const updatedPresets = [...savedPresets, preset]
+    // Saving with an existing name replaces that preset
+    const updatedPresets = [...savedPresets.filter(p => p.name !== preset.name), preset]
     setSavedPresets(updatedPresets)
-    localStorage.setItem('palletPresets', JSON.stringify(updatedPresets))
+    writeStorage('palletPresets', JSON.stringify(updatedPresets))
     setNewPresetName('')
     setShowSavePresetModal(false)
   }
@@ -190,13 +230,14 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setSelectedBearerType(preset.selectedBearerType || '')
     setSelectedBearerSize(preset.selectedBearerSize || '')
     setNumberOfBearers(preset.numberOfBearers || '')
+    setError('')
   }
 
   // Delete a saved preset
   const deletePreset = (presetId) => {
     const updatedPresets = savedPresets.filter(p => p.id !== presetId)
     setSavedPresets(updatedPresets)
-    localStorage.setItem('palletPresets', JSON.stringify(updatedPresets))
+    writeStorage('palletPresets', JSON.stringify(updatedPresets))
   }
 
   // Export presets to JSON file
@@ -227,19 +268,27 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result)
+        const messages = []
         if (data.presets && Array.isArray(data.presets)) {
           // Merge imported presets with existing (avoid duplicates by name)
           const existingNames = new Set(savedPresets.map(p => p.name))
-          const newPresets = data.presets.filter(p => !existingNames.has(p.name))
-          const mergedPresets = [...savedPresets, ...newPresets.map(p => ({ ...p, id: Date.now().toString() + Math.random() }))]
+          const newPresets = data.presets.filter(p => p && p.name && !existingNames.has(p.name))
+          const mergedPresets = [...savedPresets, ...newPresets.map((p, i) => ({ ...p, id: `${Date.now()}-${i}` }))]
           setSavedPresets(mergedPresets)
-          localStorage.setItem('palletPresets', JSON.stringify(mergedPresets))
+          writeStorage('palletPresets', JSON.stringify(mergedPresets))
+          const skipped = data.presets.length - newPresets.length
+          messages.push(`Imported ${newPresets.length} preset${newPresets.length === 1 ? '' : 's'}` +
+            (skipped > 0 ? ` (${skipped} skipped - same name already exists)` : ''))
         }
         if (data.prices) {
-          setPrices(data.prices)
-          localStorage.setItem('timberPrices', JSON.stringify(data.prices))
+          // Only take price values - never replace the timber list itself
+          const merged = mergePrices(data.prices)
+          setPrices(merged)
+          writeStorage('timberPrices', JSON.stringify(merged))
+          setPricesSaved(true)
+          messages.push('Prices updated')
         }
-        alert(`Imported ${data.presets?.length || 0} presets successfully!`)
+        alert(messages.length ? messages.join('\n') : 'Nothing to import in that file.')
       } catch (err) {
         alert('Error importing file. Please check the file format.')
       }
@@ -248,131 +297,54 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     event.target.value = '' // Reset file input
   }
 
-  useEffect(() => {
-    if (selectedTopBoardType) {
-      const type = timberData.timberTypes.find(t => t.id === selectedTopBoardType)
-      setAvailableTopBoardSizes(type ? type.boardSizes : [])
-      setSelectedTopBoardSize('')
-    } else {
-      setAvailableTopBoardSizes([])
-    }
-  }, [selectedTopBoardType])
+  // Resolved sizes for the current selections (dimensions from the bundled data)
+  const topBoardDims = findSize(selectedTopBoardType, selectedTopBoardSize)
+  const bottomBoardDims = findSize(selectedBottomBoardType, selectedBottomBoardSize)
+  const topLeaderDims = useCustomTopLeaders ? findSize(selectedTopLeaderType, selectedTopLeaderSize) : null
+  const bottomLeaderDims = useCustomBottomLeaders ? findSize(selectedBottomLeaderType, selectedBottomLeaderSize) : null
+  const bearerDims = findSize(selectedBearerType, selectedBearerSize, 'bearer')
 
-  useEffect(() => {
-    if (selectedBottomBoardType) {
-      const type = timberData.timberTypes.find(t => t.id === selectedBottomBoardType)
-      setAvailableBottomBoardSizes(type ? type.boardSizes : [])
-      setSelectedBottomBoardSize('')
-    } else {
-      setAvailableBottomBoardSizes([])
-    }
-  }, [selectedBottomBoardType])
+  const currentTopBoardWidth = topBoardDims?.width || 0
+  const currentBottomBoardWidth = bottomBoardDims?.width || 0
+  const currentBearerThickness = bearerDims?.thickness || 0
 
-  // Load top leader sizes when type changes
-  useEffect(() => {
-    if (selectedTopLeaderType) {
-      const type = timberData.timberTypes.find(t => t.id === selectedTopLeaderType)
-      setAvailableTopLeaderSizes(type ? type.boardSizes : [])
-      setSelectedTopLeaderSize('')
-    } else {
-      setAvailableTopLeaderSizes([])
-    }
-  }, [selectedTopLeaderType])
-
-  // Load bottom leader sizes when type changes
-  useEffect(() => {
-    if (selectedBottomLeaderType) {
-      const type = timberData.timberTypes.find(t => t.id === selectedBottomLeaderType)
-      setAvailableBottomLeaderSizes(type ? type.boardSizes : [])
-      setSelectedBottomLeaderSize('')
-    } else {
-      setAvailableBottomLeaderSizes([])
-    }
-  }, [selectedBottomLeaderType])
-
-  useEffect(() => {
-    if (selectedBearerType) {
-      const type = timberData.timberTypes.find(t => t.id === selectedBearerType)
-      setAvailableBearerSizes(type ? type.bearerSizes : [])
-      setSelectedBearerSize('')
-    } else {
-      setAvailableBearerSizes([])
-    }
-  }, [selectedBearerType])
-
-  // Get current top board width for calculations
-  const currentTopBoardWidth = useMemo(() => {
-    if (!selectedTopBoardType || !selectedTopBoardSize) return 0
-    const type = timberData.timberTypes.find(t => t.id === selectedTopBoardType)
-    const size = type?.boardSizes.find(s => s.id === selectedTopBoardSize)
-    return size?.width || 0
-  }, [selectedTopBoardType, selectedTopBoardSize])
-
-  // Get current bottom board width for calculations
-  const currentBottomBoardWidth = useMemo(() => {
-    if (!selectedBottomBoardType || !selectedBottomBoardSize) return 0
-    const type = timberData.timberTypes.find(t => t.id === selectedBottomBoardType)
-    const size = type?.boardSizes.find(s => s.id === selectedBottomBoardSize)
-    return size?.width || 0
-  }, [selectedBottomBoardType, selectedBottomBoardSize])
-
-  // Get current bearer thickness for calculations
-  const currentBearerThickness = useMemo(() => {
-    if (!selectedBearerType || !selectedBearerSize) return 0
-    const type = timberData.timberTypes.find(t => t.id === selectedBearerType)
-    const size = type?.bearerSizes.find(s => s.id === selectedBearerSize)
-    return size?.thickness || 0
-  }, [selectedBearerType, selectedBearerSize])
-
-  // Calculate max boards that can fit without overlapping
+  // Calculate max boards that can fit without overlapping (leader boards included)
   // Returns -1 when we shouldn't apply any limit (partial input or unreasonably small width)
-  const maxTopBoardsAllowed = useMemo(() => {
-    const width = parseFloat(palletWidth) || 0
-    if (!currentTopBoardWidth) {
-      return 15 // No board size selected, allow all
-    }
+  const maxBoardsFor = (widthValue, boardWidth, leaderWidth) => {
+    const width = parseFloat(widthValue) || 0
+    const widest = Math.max(boardWidth || 0, leaderWidth || 0)
+    if (!widest) return 15 // No board size selected, allow all
     // Require minimum 2 boards worth of width to be considered "complete"
-    const minReasonableWidth = currentTopBoardWidth * 2
-    if (!width || width < minReasonableWidth) {
-      return -1 // Invalid/partial width - don't limit
-    }
-    const maxBoards = Math.floor(width / currentTopBoardWidth)
-    return Math.min(15, maxBoards) // Cap at 15
-  }, [palletWidth, currentTopBoardWidth])
+    // (prevents adjustments while the width is still being typed)
+    if (!width || width < widest * 2) return -1
+    return maxDeckBoards(width, boardWidth || leaderWidth, leaderWidth || null, 15)
+  }
 
-  const maxBottomBoardsAllowed = useMemo(() => {
-    const width = parseFloat(palletWidth) || 0
-    if (!currentBottomBoardWidth) {
-      return 15 // No board size selected, allow all
-    }
-    const minReasonableWidth = currentBottomBoardWidth * 2
-    if (!width || width < minReasonableWidth) {
-      return -1 // Invalid/partial width - don't limit
-    }
-    const maxBoards = Math.floor(width / currentBottomBoardWidth)
-    return Math.min(15, maxBoards) // Cap at 15
-  }, [palletWidth, currentBottomBoardWidth])
+  const maxTopBoardsAllowed = useMemo(
+    () => maxBoardsFor(palletWidth, currentTopBoardWidth, topLeaderDims?.width),
+    [palletWidth, currentTopBoardWidth, topLeaderDims?.width]
+  )
+  const maxBottomBoardsAllowed = useMemo(
+    () => maxBoardsFor(palletWidth, currentBottomBoardWidth, bottomLeaderDims?.width),
+    [palletWidth, currentBottomBoardWidth, bottomLeaderDims?.width]
+  )
 
   // For UI display - show 15 when not limiting
   const maxTopBoardsForUI = maxTopBoardsAllowed === -1 ? 15 : maxTopBoardsAllowed
   const maxBottomBoardsForUI = maxBottomBoardsAllowed === -1 ? 15 : maxBottomBoardsAllowed
 
-  // Calculate max bearers that can fit without overlapping
-  // Returns -1 when we shouldn't apply any limit (partial input or unreasonably small length)
+  // Calculate max bearers that can fit along the length without overlapping
   const maxBearersAllowed = useMemo(() => {
     const length = parseFloat(palletLength) || 0
     if (!currentBearerThickness) {
       return 15 // No bearer size selected, allow all
     }
-    // Require minimum 2 bearers worth of length to be considered "complete"
-    // This prevents adjustments during intermediate typing
     const minReasonableLength = currentBearerThickness * 2
     if (!length || length < minReasonableLength) {
       return -1 // Invalid/partial length - don't limit
     }
-    
     const maxBearers = Math.floor(length / currentBearerThickness)
-    return Math.min(15, maxBearers) // Cap at 15
+    return Math.max(1, Math.min(15, maxBearers)) // Cap at 15
   }, [palletLength, currentBearerThickness])
 
   // For UI display - show 15 when not limiting
@@ -409,7 +381,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   }, [maxBearersAllowed, numberOfBearers])
 
   // Compute the actual displayed value for selects (capped to max)
-  const displayedTopBoards = numberOfTopBoards && maxTopBoardsAllowed > 0 
+  const displayedTopBoards = numberOfTopBoards && maxTopBoardsAllowed > 0
     ? String(Math.min(parseInt(numberOfTopBoards) || 1, maxTopBoardsAllowed))
     : numberOfTopBoards
   const displayedBottomBoards = numberOfBottomBoards && maxBottomBoardsAllowed > 0
@@ -428,113 +400,52 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     const bottomBoards = parseInt(displayedBottomBoards) || 0
     const bearers = parseInt(displayedBearers) || 0
 
-    // Top board dimensions
-    let topBoardWidth = 100
-    let topBoardThickness = 22
-    if (selectedTopBoardType && selectedTopBoardSize) {
-      const type = timberData.timberTypes.find(t => t.id === selectedTopBoardType)
-      const size = type?.boardSizes.find(s => s.id === selectedTopBoardSize)
-      if (size) {
-        topBoardWidth = size.width
-        topBoardThickness = size.thickness
-      }
-    }
+    // Board dimensions (defaults used until a size is picked)
+    const topBoardWidth = topBoardDims?.width || 100
+    const topBoardThickness = topBoardDims?.thickness || 22
+    const bottomBoardWidth = bottomBoardDims?.width || 100
+    const bottomBoardThickness = bottomBoardDims?.thickness || 22
 
-    // Top leader board dimensions (edge boards)
-    let topLeaderWidth = topBoardWidth
-    let topLeaderThickness = topBoardThickness
-    if (useCustomTopLeaders && selectedTopLeaderType && selectedTopLeaderSize) {
-      const type = timberData.timberTypes.find(t => t.id === selectedTopLeaderType)
-      const size = type?.boardSizes.find(s => s.id === selectedTopLeaderSize)
-      if (size) {
-        topLeaderWidth = size.width
-        topLeaderThickness = size.thickness
-      }
-    }
-
-    // Bottom board dimensions
-    let bottomBoardWidth = 100
-    let bottomBoardThickness = 22
-    if (selectedBottomBoardType && selectedBottomBoardSize) {
-      const type = timberData.timberTypes.find(t => t.id === selectedBottomBoardType)
-      const size = type?.boardSizes.find(s => s.id === selectedBottomBoardSize)
-      if (size) {
-        bottomBoardWidth = size.width
-        bottomBoardThickness = size.thickness
-      }
-    }
-
-    // Bottom leader board dimensions (edge boards)
-    let bottomLeaderWidth = bottomBoardWidth
-    let bottomLeaderThickness = bottomBoardThickness
-    if (useCustomBottomLeaders && selectedBottomLeaderType && selectedBottomLeaderSize) {
-      const type = timberData.timberTypes.find(t => t.id === selectedBottomLeaderType)
-      const size = type?.boardSizes.find(s => s.id === selectedBottomLeaderSize)
-      if (size) {
-        bottomLeaderWidth = size.width
-        bottomLeaderThickness = size.thickness
-      }
-    }
+    // Leader (edge) boards fall back to the normal board size
+    const topLeaderWidth = topLeaderDims?.width || topBoardWidth
+    const topLeaderThickness = topLeaderDims?.thickness || topBoardThickness
+    const bottomLeaderWidth = bottomLeaderDims?.width || bottomBoardWidth
+    const bottomLeaderThickness = bottomLeaderDims?.thickness || bottomBoardThickness
 
     // Bearer dimensions
-    let bearerWidth = 75
-    let bearerHeight = 38
-    if (selectedBearerType && selectedBearerSize) {
-      const type = timberData.timberTypes.find(t => t.id === selectedBearerType)
-      const size = type?.bearerSizes.find(s => s.id === selectedBearerSize)
-      if (size) {
-        bearerWidth = size.width
-        bearerHeight = size.thickness
-      }
-    }
+    const bearerWidth = bearerDims?.width || 75
+    const bearerHeight = bearerDims?.thickness || 38
 
-    // Calculate gap accounting for custom leaders
-    // Top gap: if custom leaders, edge boards are different width
-    let topGap = 0
-    if (topBoards > 1) {
-      if (useCustomTopLeaders && topBoards > 2) {
-        // 2 leader boards + (topBoards-2) inner boards
-        const totalBoardsWidth = (2 * topLeaderWidth) + ((topBoards - 2) * topBoardWidth)
-        topGap = (width - totalBoardsWidth) / (topBoards - 1)
-      } else {
-        topGap = calculateGapSize(width, topBoardWidth, topBoards)
-      }
-    }
-
-    let bottomGap = 0
-    if (bottomBoards > 1) {
-      if (useCustomBottomLeaders && bottomBoards > 2) {
-        const totalBoardsWidth = (2 * bottomLeaderWidth) + ((bottomBoards - 2) * bottomBoardWidth)
-        bottomGap = (width - totalBoardsWidth) / (bottomBoards - 1)
-      } else {
-        bottomGap = calculateGapSize(width, bottomBoardWidth, bottomBoards)
-      }
-    }
+    // Same gap maths as the quote, so the 3D view always matches it
+    const topGap = deckGapSize(width, topBoards, topBoardWidth, useCustomTopLeaders ? topLeaderWidth : null)
+    const bottomGap = deckGapSize(width, bottomBoards, bottomBoardWidth, useCustomBottomLeaders ? bottomLeaderWidth : null)
 
     return {
       palletWidth: width,
       palletLength: length,
-      topBoardWidth: topBoardWidth,
-      topBoardThickness: topBoardThickness,
+      topBoardWidth,
+      topBoardThickness,
       topLeaderWidth: useCustomTopLeaders ? topLeaderWidth : topBoardWidth,
       topLeaderThickness: useCustomTopLeaders ? topLeaderThickness : topBoardThickness,
       useCustomTopLeaders,
-      bottomBoardWidth: bottomBoardWidth,
-      bottomBoardThickness: bottomBoardThickness,
+      bottomBoardWidth,
+      bottomBoardThickness,
       bottomLeaderWidth: useCustomBottomLeaders ? bottomLeaderWidth : bottomBoardWidth,
       bottomLeaderThickness: useCustomBottomLeaders ? bottomLeaderThickness : bottomBoardThickness,
       useCustomBottomLeaders,
-      bearerWidth: bearerWidth,
-      bearerHeight: bearerHeight,
+      bearerWidth,
+      bearerHeight,
       numberOfTopBoards: topBoards,
       numberOfBottomBoards: bottomBoards,
       numberOfBearers: bearers,
       topGapSize: Math.max(0, topGap),
       bottomGapSize: Math.max(0, bottomGap)
     }
-  }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, selectedTopBoardType, selectedTopBoardSize, selectedBottomBoardType, selectedBottomBoardSize, selectedBearerType, selectedBearerSize, useCustomTopLeaders, selectedTopLeaderType, selectedTopLeaderSize, useCustomBottomLeaders, selectedBottomLeaderType, selectedBottomLeaderSize])
+  }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, topBoardDims, bottomBoardDims, topLeaderDims, bottomLeaderDims, bearerDims, useCustomTopLeaders, useCustomBottomLeaders])
 
-  // Real-time progressive quote calculation - updates as each element is added
+  // Real-time progressive quote calculation - updates as each element is added.
+  // Timber prices are per lineal metre: top/bottom boards run the pallet LENGTH,
+  // bearers run the pallet WIDTH (matches the 3D model).
   const liveQuote = useMemo(() => {
     const width = parseFloat(palletWidth) || 0
     const length = parseFloat(palletLength) || 0
@@ -543,129 +454,71 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     const bottomBoards = parseInt(displayedBottomBoards) || 0
     const bearers = parseInt(displayedBearers) || 0
 
-    // Get timber types and sizes for top boards
-    const topBoardTimberType = prices.timberTypes.find(t => t.id === selectedTopBoardType)
-    const topBoardSize = topBoardTimberType?.boardSizes.find(s => s.id === selectedTopBoardSize)
-    
-    // Get timber types and sizes for top leader boards (edge boards)
-    const topLeaderTimberType = prices.timberTypes.find(t => t.id === selectedTopLeaderType)
-    const topLeaderSize = topLeaderTimberType?.boardSizes.find(s => s.id === selectedTopLeaderSize)
-    
-    // Get timber types and sizes for bottom boards
-    const bottomBoardTimberType = prices.timberTypes.find(t => t.id === selectedBottomBoardType)
-    const bottomBoardSize = bottomBoardTimberType?.boardSizes.find(s => s.id === selectedBottomBoardSize)
-    
-    // Get timber types and sizes for bottom leader boards (edge boards)
-    const bottomLeaderTimberType = prices.timberTypes.find(t => t.id === selectedBottomLeaderType)
-    const bottomLeaderSize = bottomLeaderTimberType?.boardSizes.find(s => s.id === selectedBottomLeaderSize)
-    
-    // Get timber types and sizes for bearers
-    const bearerTimberType = prices.timberTypes.find(t => t.id === selectedBearerType)
-    const bearerSize = bearerTimberType?.bearerSizes.find(s => s.id === selectedBearerSize)
+    const findPriced = (typeId, sizeId, kind = 'board') => {
+      const type = prices.timberTypes.find(t => t.id === typeId)
+      const list = kind === 'bearer' ? type?.bearerSizes : type?.boardSizes
+      return { type, size: list?.find(s => s.id === sizeId) }
+    }
 
-    // Progressive price calculation
-    let runningTotal = 0
-    let topBoardsTotal = 0
-    let topLeadersTotal = 0
-    let bottomBoardsTotal = 0
-    let bottomLeadersTotal = 0
-    let bearersTotal = 0
-    let nailsTotal = 0
+    const { type: topBoardTimberType, size: topBoardSize } = findPriced(selectedTopBoardType, selectedTopBoardSize)
+    const { type: topLeaderTimberType, size: topLeaderSize } = findPriced(selectedTopLeaderType, selectedTopLeaderSize)
+    const { type: bottomBoardTimberType, size: bottomBoardSize } = findPriced(selectedBottomBoardType, selectedBottomBoardSize)
+    const { type: bottomLeaderTimberType, size: bottomLeaderSize } = findPriced(selectedBottomLeaderType, selectedBottomLeaderSize)
+    const { type: bearerTimberType, size: bearerSize } = findPriced(selectedBearerType, selectedBearerSize, 'bearer')
+
+    const boardLength = length // mm - each top/bottom board
+    const bearerLength = width // mm - each bearer
+
+    // Work out one deck (top or bottom) of boards
+    const deck = (count, useLeaders, boardSize, leaderSize) => {
+      const result = { inner: count, leaders: 0, innerTotal: 0, leadersTotal: 0, gap: 0 }
+      if (count <= 0) return result
+      if (useLeaders && leaderSize && count >= 2) {
+        result.leaders = 2
+        result.inner = count - 2
+        result.leadersTotal = timberCost(leaderSize.pricePerBoard, boardLength, 2)
+        if (boardSize && result.inner > 0) {
+          result.innerTotal = timberCost(boardSize.pricePerBoard, boardLength, result.inner)
+        }
+        if (width > 0 && (boardSize || result.inner === 0)) {
+          result.gap = deckGapSize(width, count, boardSize?.width || 0, leaderSize.width)
+        }
+      } else if (boardSize) {
+        result.innerTotal = timberCost(boardSize.pricePerBoard, boardLength, count)
+        if (width > 0) result.gap = deckGapSize(width, count, boardSize.width)
+      }
+      return result
+    }
+
+    const top = deck(topBoards, useCustomTopLeaders, topBoardSize, topLeaderSize)
+    const bottom = deck(bottomBoards, useCustomBottomLeaders, bottomBoardSize, bottomLeaderSize)
+
+    const bearersTotal = (bearerSize && bearers > 0) ? timberCost(bearerSize.pricePerBearer, bearerLength, bearers) : 0
+
+    // Nails: 2 per board per bearer, top and bottom
+    const nailPrice = Number(prices.nailPricePerNail) || 0
     let totalNails = 0
-    let topGapSize = 0
-    let bottomGapSize = 0
-    
-    // Track board counts for display
-    let topInnerBoards = topBoards
-    let topLeaderCount = 0
-    let bottomInnerBoards = bottomBoards
-    let bottomLeaderCount = 0
+    if (topBoards > 0 && bearers > 0) totalNails += topBoards * bearers * 2
+    if (bottomBoards > 0 && bearers > 0) totalNails += bottomBoards * bearers * 2
+    const nailsTotal = totalNails > 0 ? parseFloat(calculateTotalPrice(nailPrice, totalNails)) : 0
 
-    // Calculate top boards price (accounting for custom leaders)
-    if (topBoards > 0) {
-      if (useCustomTopLeaders && topLeaderSize && topBoards >= 2) {
-        // 2 leader boards + remaining inner boards
-        topLeaderCount = 2
-        topInnerBoards = topBoards - 2
-        topLeadersTotal = parseFloat(calculateTotalPrice(topLeaderSize.pricePerBoard, 2))
-        runningTotal += topLeadersTotal
-        
-        if (topBoardSize && topInnerBoards > 0) {
-          topBoardsTotal = parseFloat(calculateTotalPrice(topBoardSize.pricePerBoard, topInnerBoards))
-          runningTotal += topBoardsTotal
-        }
-        
-        // Calculate gap with mixed board widths
-        if (width > 0 && topBoards > 1) {
-          const totalBoardsWidth = (2 * topLeaderSize.width) + (topInnerBoards * (topBoardSize?.width || 0))
-          topGapSize = (width - totalBoardsWidth) / (topBoards - 1)
-        }
-      } else if (topBoardSize) {
-        topBoardsTotal = parseFloat(calculateTotalPrice(topBoardSize.pricePerBoard, topBoards))
-        runningTotal += topBoardsTotal
-        if (width > 0) {
-          topGapSize = calculateGapSize(width, topBoardSize.width, topBoards)
-        }
-      }
-    }
+    const runningTotal = Math.round(
+      (top.leadersTotal + top.innerTotal + bottom.leadersTotal + bottom.innerTotal + bearersTotal + nailsTotal) * 100
+    ) / 100
 
-    // Calculate bottom boards price (accounting for custom leaders)
-    if (bottomBoards > 0) {
-      if (useCustomBottomLeaders && bottomLeaderSize && bottomBoards >= 2) {
-        // 2 leader boards + remaining inner boards
-        bottomLeaderCount = 2
-        bottomInnerBoards = bottomBoards - 2
-        bottomLeadersTotal = parseFloat(calculateTotalPrice(bottomLeaderSize.pricePerBoard, 2))
-        runningTotal += bottomLeadersTotal
-        
-        if (bottomBoardSize && bottomInnerBoards > 0) {
-          bottomBoardsTotal = parseFloat(calculateTotalPrice(bottomBoardSize.pricePerBoard, bottomInnerBoards))
-          runningTotal += bottomBoardsTotal
-        }
-        
-        // Calculate gap with mixed board widths
-        if (width > 0 && bottomBoards > 1) {
-          const totalBoardsWidth = (2 * bottomLeaderSize.width) + (bottomInnerBoards * (bottomBoardSize?.width || 0))
-          bottomGapSize = (width - totalBoardsWidth) / (bottomBoards - 1)
-        }
-      } else if (bottomBoardSize) {
-        bottomBoardsTotal = parseFloat(calculateTotalPrice(bottomBoardSize.pricePerBoard, bottomBoards))
-        runningTotal += bottomBoardsTotal
-        if (width > 0) {
-          bottomGapSize = calculateGapSize(width, bottomBoardSize.width, bottomBoards)
-        }
-      }
-    }
-
-    // Calculate bearers price if we have bearer info
-    if (bearerSize && bearers > 0) {
-      bearersTotal = parseFloat(calculateTotalPrice(bearerSize.pricePerBearer, bearers))
-      runningTotal += bearersTotal
-    }
-
-    // Calculate nails if we have both boards and bearers
-    const nailPrice = prices.nailPricePerNail || 0.02
-    if (topBoards > 0 && bearers > 0) {
-      totalNails += topBoards * bearers * 2
-    }
-    if (bottomBoards > 0 && bearers > 0) {
-      totalNails += bottomBoards * bearers * 2
-    }
-    if (totalNails > 0) {
-      nailsTotal = parseFloat(calculateTotalPrice(nailPrice, totalNails))
-      runningTotal += nailsTotal
-    }
-
-    // Check if quote is complete (all required fields filled)
     // When using custom leaders, also need leader type/size selected
     const topLeadersValid = !useCustomTopLeaders || (topLeaderTimberType && topLeaderSize)
     const bottomLeadersValid = !useCustomBottomLeaders || (bottomLeaderTimberType && bottomLeaderSize)
-    
-    const isComplete = width > 0 && length > 0 && topBoards > 0 && bottomBoards > 0 && 
-                       bearers > 0 && topBoardTimberType && bottomBoardTimberType && bearerTimberType && 
-                       topBoardSize && bottomBoardSize && bearerSize && topLeadersValid && bottomLeadersValid
 
-    // Return progressive quote data
+    // Boards must physically fit across the pallet
+    const topFits = top.gap >= 0
+    const bottomFits = bottom.gap >= 0
+
+    const isComplete = !!(width > 0 && length > 0 && topBoards > 0 && bottomBoards > 0 &&
+                       bearers > 0 && topBoardTimberType && bottomBoardTimberType && bearerTimberType &&
+                       topBoardSize && bottomBoardSize && bearerSize && topLeadersValid && bottomLeadersValid &&
+                       topFits && bottomFits)
+
     return {
       topBoardTimberType: topBoardTimberType?.name || '',
       bottomBoardTimberType: bottomBoardTimberType?.name || '',
@@ -677,28 +530,35 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       useCustomTopLeaders,
       topLeaderTimberType: topLeaderTimberType?.name || '',
       topLeaderSize: topLeaderSize?.dimensions || '',
-      topLeaderCount,
-      topInnerBoards,
+      topLeaderWidth: topLeaderSize?.width || 0,
+      topLeaderThickness: topLeaderSize?.thickness || 0,
+      topLeaderCount: top.leaders,
+      topInnerBoards: top.inner,
       useCustomBottomLeaders,
       bottomLeaderTimberType: bottomLeaderTimberType?.name || '',
       bottomLeaderSize: bottomLeaderSize?.dimensions || '',
-      bottomLeaderCount,
-      bottomInnerBoards,
+      bottomLeaderWidth: bottomLeaderSize?.width || 0,
+      bottomLeaderThickness: bottomLeaderSize?.thickness || 0,
+      bottomLeaderCount: bottom.leaders,
+      bottomInnerBoards: bottom.inner,
       // Board counts
       numberOfTopBoards: topBoards,
       numberOfBearers: bearers,
       numberOfBottomBoards: bottomBoards,
-      // Prices per unit
-      pricePerTopBoard: topBoardSize?.pricePerBoard || 0,
-      pricePerBottomBoard: bottomBoardSize?.pricePerBoard || 0,
-      pricePerTopLeader: topLeaderSize?.pricePerBoard || 0,
-      pricePerBottomLeader: bottomLeaderSize?.pricePerBoard || 0,
-      pricePerBearer: bearerSize?.pricePerBearer || 0,
+      // Lengths of each piece (mm)
+      boardLength,
+      bearerLength,
+      // Prices per metre
+      pricePerTopBoard: Number(topBoardSize?.pricePerBoard) || 0,
+      pricePerBottomBoard: Number(bottomBoardSize?.pricePerBoard) || 0,
+      pricePerTopLeader: Number(topLeaderSize?.pricePerBoard) || 0,
+      pricePerBottomLeader: Number(bottomLeaderSize?.pricePerBoard) || 0,
+      pricePerBearer: Number(bearerSize?.pricePerBearer) || 0,
       // Totals
-      topBoardsTotal,
-      topLeadersTotal,
-      bottomBoardsTotal,
-      bottomLeadersTotal,
+      topBoardsTotal: top.innerTotal,
+      topLeadersTotal: top.leadersTotal,
+      bottomBoardsTotal: bottom.innerTotal,
+      bottomLeadersTotal: bottom.leadersTotal,
       bearersTotal,
       totalNails,
       pricePerNail: nailPrice,
@@ -707,13 +567,24 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       palletWidth: width,
       palletLength: length,
       topBoardWidth: topBoardSize?.width || 0,
+      topBoardThickness: topBoardSize?.thickness || 0,
       bottomBoardWidth: bottomBoardSize?.width || 0,
-      topGapSize,
-      bottomGapSize,
+      bottomBoardThickness: bottomBoardSize?.thickness || 0,
+      bearerWidth: bearerSize?.width || 0,
+      bearerThickness: bearerSize?.thickness || 0,
+      topGapSize: top.gap,
+      bottomGapSize: bottom.gap,
+      topFits,
+      bottomFits,
       isComplete,
-      hasAnyPrice: runningTotal > 0
+      hasAnyPrice: runningTotal > 0 || totalNails > 0
     }
   }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, selectedTopBoardType, selectedTopBoardSize, selectedBottomBoardType, selectedBottomBoardSize, selectedBearerType, selectedBearerSize, prices, useCustomTopLeaders, selectedTopLeaderType, selectedTopLeaderSize, useCustomBottomLeaders, selectedBottomLeaderType, selectedBottomLeaderSize])
+
+  // Warnings shown under the form
+  const layoutWarnings = []
+  if (!liveQuote.topFits) layoutWarnings.push("Top boards don't fit across the pallet width - reduce the number of boards or use narrower leader boards.")
+  if (!liveQuote.bottomFits) layoutWarnings.push("Bottom boards don't fit across the pallet width - reduce the number of boards or use narrower leader boards.")
 
   const handleClear = () => {
     setPalletWidth('')
@@ -795,24 +666,53 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setExpandedGroups(newExpanded)
   }
 
+  // Keep an empty field empty while the user is typing (treated as $0 in the maths)
+  const parsePriceInput = (value) => {
+    if (value === '') return ''
+    const n = parseFloat(value)
+    return Number.isFinite(n) && n >= 0 ? n : 0
+  }
+
   const handlePriceChange = (typeId, sizeId, newPrice, itemType) => {
-    const updatedPrices = { ...prices }
-    const typeIndex = updatedPrices.timberTypes.findIndex(t => t.id === typeId)
-    
-    if (itemType === 'board') {
-      const sizeIndex = updatedPrices.timberTypes[typeIndex].boardSizes.findIndex(s => s.id === sizeId)
-      updatedPrices.timberTypes[typeIndex].boardSizes[sizeIndex].pricePerBoard = parseFloat(newPrice) || 0
-    } else {
-      const sizeIndex = updatedPrices.timberTypes[typeIndex].bearerSizes.findIndex(s => s.id === sizeId)
-      updatedPrices.timberTypes[typeIndex].bearerSizes[sizeIndex].pricePerBearer = parseFloat(newPrice) || 0
-    }
-    
-    setPrices(updatedPrices)
+    const value = parsePriceInput(newPrice)
+    const key = itemType === 'board' ? 'pricePerBoard' : 'pricePerBearer'
+    const listKey = itemType === 'board' ? 'boardSizes' : 'bearerSizes'
+    setPrices(prev => ({
+      ...prev,
+      timberTypes: prev.timberTypes.map(type => type.id !== typeId ? type : {
+        ...type,
+        [listKey]: type[listKey].map(size => size.id !== sizeId ? size : { ...size, [key]: value })
+      })
+    }))
+    setPricesSaved(false)
+  }
+
+  const handleNailPriceChange = (newPrice) => {
+    const value = parsePriceInput(newPrice)
+    setPrices(prev => ({ ...prev, nailPricePerNail: value }))
+    setPricesSaved(false)
   }
 
   const handleSavePrices = () => {
-    localStorage.setItem('timberPrices', JSON.stringify(prices))
+    const cleaned = mergePrices(prices)
+    setPrices(cleaned)
+    if (writeStorage('timberPrices', JSON.stringify(cleaned))) {
+      setPricesSaved(true)
+      setSaveFlash(true)
+      setTimeout(() => setSaveFlash(false), 2000)
+    } else {
+      alert('Could not save prices on this device (storage is unavailable).')
+    }
   }
+
+  // Pallet quantity - whole numbers only
+  const handleQuantityChange = (val) => {
+    if (val === '' || /^\d+$/.test(val)) setPalletQuantity(val)
+  }
+  const handleQuantityBlur = () => {
+    if (palletQuantity === '' || parseInt(palletQuantity) < 1) setPalletQuantity('1')
+  }
+  const quantity = Math.max(1, parseInt(palletQuantity) || 1)
 
   return (
     <div className={`builder-layout ${isPanelCollapsed ? 'panel-collapsed' : ''}`}>
@@ -935,7 +835,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       <label>Timber</label>
                       <select
                         value={selectedBottomBoardType}
-                        onChange={(e) => setSelectedBottomBoardType(e.target.value)}
+                        onChange={(e) => changeBottomBoardType(e.target.value)}
                       >
                         <option value="">Select type...</option>
                         {timberData.timberTypes.map(type => (
@@ -989,7 +889,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           <label>Timber</label>
                           <select
                             value={selectedBottomLeaderType}
-                            onChange={(e) => setSelectedBottomLeaderType(e.target.value)}
+                            onChange={(e) => changeBottomLeaderType(e.target.value)}
                           >
                             <option value="">Select type...</option>
                             {timberData.timberTypes.map(type => (
@@ -1025,7 +925,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       <label>Timber</label>
                       <select
                         value={selectedTopBoardType}
-                        onChange={(e) => setSelectedTopBoardType(e.target.value)}
+                        onChange={(e) => changeTopBoardType(e.target.value)}
                       >
                         <option value="">Select type...</option>
                         {timberData.timberTypes.map(type => (
@@ -1079,7 +979,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           <label>Timber</label>
                           <select
                             value={selectedTopLeaderType}
-                            onChange={(e) => setSelectedTopLeaderType(e.target.value)}
+                            onChange={(e) => changeTopLeaderType(e.target.value)}
                           >
                             <option value="">Select type...</option>
                             {timberData.timberTypes.map(type => (
@@ -1114,7 +1014,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <label>Timber</label>
                     <select
                       value={selectedBearerType}
-                      onChange={(e) => setSelectedBearerType(e.target.value)}
+                      onChange={(e) => changeBearerType(e.target.value)}
                     >
                       <option value="">Select timber type...</option>
                       {timberData.timberTypes.map(type => (
@@ -1153,6 +1053,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   </div>
 
                   {error && <div className="error-msg">{error}</div>}
+                  {layoutWarnings.map(w => <div key={w} className="error-msg">{w}</div>)}
 
                   <div className="section-divider" />
 
@@ -1240,54 +1141,64 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                         </div>
                       )}
                       {/* Top Leader Boards (if custom leaders enabled) */}
-                      {liveQuote.topLeadersTotal > 0 && (
+                      {liveQuote.topLeaderCount > 0 && (
                         <div className="result-row leader-row">
-                          <span>Top Leaders ({liveQuote.topLeaderCount}× {liveQuote.topLeaderSize || '—'})</span>
+                          <span>Top Leaders ({liveQuote.topLeaderCount}× {liveQuote.topLeaderSize || '—'} @ {formatDimension(liveQuote.boardLength)})</span>
                           <span>{formatCurrency(liveQuote.topLeadersTotal)}</span>
                         </div>
                       )}
                       {/* Top Inner Boards */}
-                      {liveQuote.topBoardsTotal > 0 && (
+                      {liveQuote.topBoardSize && liveQuote.topInnerBoards > 0 && (
                         <div className="result-row">
-                          <span>Top Boards ({liveQuote.useCustomTopLeaders ? liveQuote.topInnerBoards : liveQuote.numberOfTopBoards}× {liveQuote.topBoardSize || '—'})</span>
+                          <span>Top Boards ({liveQuote.topInnerBoards}× {liveQuote.topBoardSize} @ {formatDimension(liveQuote.boardLength)})</span>
                           <span>{formatCurrency(liveQuote.topBoardsTotal)}</span>
                         </div>
                       )}
                       {/* Bottom Leader Boards (if custom leaders enabled) */}
-                      {liveQuote.bottomLeadersTotal > 0 && (
+                      {liveQuote.bottomLeaderCount > 0 && (
                         <div className="result-row leader-row">
-                          <span>Bottom Leaders ({liveQuote.bottomLeaderCount}× {liveQuote.bottomLeaderSize || '—'})</span>
+                          <span>Bottom Leaders ({liveQuote.bottomLeaderCount}× {liveQuote.bottomLeaderSize || '—'} @ {formatDimension(liveQuote.boardLength)})</span>
                           <span>{formatCurrency(liveQuote.bottomLeadersTotal)}</span>
                         </div>
                       )}
                       {/* Bottom Inner Boards */}
-                      {liveQuote.bottomBoardsTotal > 0 && (
+                      {liveQuote.bottomBoardSize && liveQuote.bottomInnerBoards > 0 && (
                         <div className="result-row">
-                          <span>Bottom Boards ({liveQuote.useCustomBottomLeaders ? liveQuote.bottomInnerBoards : liveQuote.numberOfBottomBoards}× {liveQuote.bottomBoardSize || '—'})</span>
+                          <span>Bottom Boards ({liveQuote.bottomInnerBoards}× {liveQuote.bottomBoardSize} @ {formatDimension(liveQuote.boardLength)})</span>
                           <span>{formatCurrency(liveQuote.bottomBoardsTotal)}</span>
                         </div>
                       )}
-                      {liveQuote.bearersTotal > 0 && (
+                      {liveQuote.bearerSize && liveQuote.numberOfBearers > 0 && (
                         <div className="result-row">
-                          <span>Bearers ({liveQuote.numberOfBearers}× {liveQuote.bearerSize || '—'})</span>
+                          <span>Bearers ({liveQuote.numberOfBearers}× {liveQuote.bearerSize} @ {formatDimension(liveQuote.bearerLength)})</span>
                           <span>{formatCurrency(liveQuote.bearersTotal)}</span>
                         </div>
                       )}
-                      {liveQuote.nailsTotal > 0 && (
+                      {liveQuote.totalNails > 0 && (
                         <div className="result-row">
                           <span>Nails ({liveQuote.totalNails})</span>
                           <span>{formatCurrency(liveQuote.nailsTotal)}</span>
                         </div>
                       )}
                       
+                      {(liveQuote.topGapSize > 0 || liveQuote.bottomGapSize > 0) && (
+                        <div className="section-divider" />
+                      )}
                       {liveQuote.topGapSize > 0 && (
-                        <>
-                          <div className="section-divider" />
-                          <div className="result-row highlight">
-                            <span>Top Gap</span>
-                            <span>{formatDimension(liveQuote.topGapSize)}</span>
-                          </div>
-                        </>
+                        <div className="result-row highlight">
+                          <span>Top Gap</span>
+                          <span>{formatDimension(liveQuote.topGapSize)}</span>
+                        </div>
+                      )}
+                      {liveQuote.bottomGapSize > 0 && (
+                        <div className="result-row highlight">
+                          <span>Bottom Gap</span>
+                          <span>{formatDimension(liveQuote.bottomGapSize)}</span>
+                        </div>
+                      )}
+                      {layoutWarnings.map(w => <div key={w} className="error-msg">{w}</div>)}
+                      {liveQuote.palletLength <= 0 && (
+                        <div className="error-msg">Enter the pallet length - timber is priced per metre.</div>
                       )}
                     </div>
 
@@ -1301,20 +1212,19 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       <input
                         type="number"
                         min="1"
+                        step="1"
+                        inputMode="numeric"
                         value={palletQuantity}
-                        onChange={(e) => setPalletQuantity(e.target.value)}
-                        onBlur={(e) => {
-                          const val = parseInt(e.target.value)
-                          if (!val || val < 1) setPalletQuantity('1')
-                        }}
+                        onChange={(e) => handleQuantityChange(e.target.value)}
+                        onBlur={handleQuantityBlur}
                         placeholder="e.g, 1"
                         className="quantity-input"
                       />
                     </div>
 
                     <div className={`total-row ${!liveQuote.isComplete ? 'partial' : ''}`}>
-                      <span>Total ({parseInt(palletQuantity) || 1} Pallet{(parseInt(palletQuantity) || 1) > 1 ? 's' : ''})</span>
-                      <span>{formatCurrency(liveQuote.totalPrice * (parseInt(palletQuantity) || 1))}</span>
+                      <span>Total ({quantity} Pallet{quantity > 1 ? 's' : ''})</span>
+                      <span>{formatCurrency(liveQuote.totalPrice * quantity)}</span>
                     </div>
 
                     <div className="form-actions">
@@ -1434,12 +1344,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                         <div className="price-input-wrap">
                           <input
                             type="number"
-                            value={prices.nailPricePerNail || 0.02}
-                            onChange={(e) => {
-                              const updated = { ...prices }
-                              updated.nailPricePerNail = parseFloat(e.target.value) || 0
-                              setPrices(updated)
-                            }}
+                            value={prices.nailPricePerNail ?? 0}
+                            onChange={(e) => handleNailPriceChange(e.target.value)}
+                            min="0"
                             disabled={lockedFields.has('nails')}
                             step="0.01"
                           />
@@ -1452,7 +1359,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               </div>
               
               <div className="price-save-actions">
-                <button onClick={handleSavePrices} className="btn-calculate">Save Prices</button>
+                <button onClick={handleSavePrices} className="btn-calculate">
+                  {saveFlash ? 'Saved ✓' : pricesSaved ? 'Save Prices' : 'Save Prices •'}
+                </button>
               </div>
               </div>
             </>
@@ -1470,17 +1379,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               type="number"
               min="1"
               value={palletQuantity}
-              onChange={(e) => {
-                const val = e.target.value
-                if (val === '' || /^\d+$/.test(val)) {
-                  setPalletQuantity(val)
-                }
-              }}
-              onBlur={() => {
-                if (palletQuantity === '' || parseInt(palletQuantity) < 1) {
-                  setPalletQuantity('1')
-                }
-              }}
+              step="1"
+              inputMode="numeric"
+              onChange={(e) => handleQuantityChange(e.target.value)}
+              onBlur={handleQuantityBlur}
               placeholder="e.g, 1"
               className="quantity-input"
             />
@@ -1490,7 +1392,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               <>
                 <span className="price-label">{liveQuote.isComplete ? 'Total' : 'Running'}</span>
                 <span className={`price-value ${!liveQuote.isComplete ? 'partial' : ''}`}>
-                  ${((liveQuote.totalPrice || 0) * (parseInt(palletQuantity) || 1)).toFixed(2)}
+                  ${((liveQuote.totalPrice || 0) * quantity).toFixed(2)}
                 </span>
               </>
             ) : (
@@ -1549,7 +1451,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       </div>
 
       {/* Printable Quote - only visible when printing */}
-      <PrintableQuote quoteData={liveQuote} quantity={parseInt(palletQuantity) || 1} />
+      <PrintableQuote quoteData={liveQuote} quantity={quantity} />
     </div>
   )
 }
