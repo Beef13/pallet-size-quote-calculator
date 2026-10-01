@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useEffect, Suspense } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
-import { Vector3 } from 'three'
+import { Vector3, Quaternion } from 'three'
 import { OrbitControls, Text, Line, Billboard, ContactShadows } from '@react-three/drei'
 // Bundled locally so labels work offline (drei's default font is fetched from Google)
 import labelFont from '../assets/fonts/outfit-latin-500-normal.woff'
@@ -36,44 +36,81 @@ const AXIS_LABEL_GAP = 9 // px from the end of the line to its letter
 // Runs inside the canvas: turns the corner axes to match the camera on every frame
 function AxisTracker({ targetRef }) {
   const scratch = useMemo(() => new Vector3(), [])
-  const last = useRef('')
+  const inverse = useMemo(() => new Quaternion(), [])
+  const parts = useRef(null)   // cached SVG nodes, looked up once
+  const last = useRef(null)    // camera rotation at the last update
+  const order = useRef('')     // current back-to-front drawing order
+
   useFrame(({ camera }) => {
     const svg = targetRef.current
     if (!svg) return
-    // Skip the DOM work unless the camera has actually turned
-    const q = camera.quaternion
-    const stamp = `${q.x.toFixed(4)},${q.y.toFixed(4)},${q.z.toFixed(4)},${q.w.toFixed(4)}`
-    if (stamp === last.current) return
-    last.current = stamp
+    if (!parts.current || parts.current.svg !== svg) {
+      parts.current = {
+        svg,
+        axes: AXES.map(({ key, dir }) => ({
+          key,
+          dir,
+          group: svg.querySelector(`[data-axis="${key}"]`),
+          line: svg.querySelector(`[data-axis-line="${key}"]`),
+          text: svg.querySelector(`[data-axis-label="${key}"]`),
+          depth: 0
+        }))
+      }
+      last.current = null
+    }
 
-    const inverse = q.clone().invert()
-    const placed = AXES.map(({ key, dir }) => {
+    // Nothing to do unless the camera has turned at all (exact compare, so slow drags are never skipped)
+    const q = camera.quaternion
+    const prev = last.current
+    if (prev && prev.x === q.x && prev.y === q.y && prev.z === q.z && prev.w === q.w) return
+    last.current = { x: q.x, y: q.y, z: q.z, w: q.w }
+
+    inverse.copy(q).invert()
+    const { axes } = parts.current
+    for (const axis of axes) {
+      if (!axis.line || !axis.text) continue
       // Axis direction as seen from the camera: x right, y up, z towards the viewer
-      scratch.set(dir[0], dir[1], dir[2]).applyQuaternion(inverse)
-      return { key, x: scratch.x, y: -scratch.y, depth: scratch.z }
-    })
-    placed.forEach(({ key, x, y }) => {
-      const line = svg.querySelector(`[data-axis-line="${key}"]`)
-      const text = svg.querySelector(`[data-axis-label="${key}"]`)
-      if (!line || !text) return
+      scratch.set(axis.dir[0], axis.dir[1], axis.dir[2]).applyQuaternion(inverse)
+      const x = scratch.x
+      const y = -scratch.y
+      axis.depth = scratch.z
       const ex = x * AXIS_LENGTH
       const ey = y * AXIS_LENGTH
-      line.setAttribute('x2', ex.toFixed(2))
-      line.setAttribute('y2', ey.toFixed(2))
-      // Push the letter out along the axis; straight up when the axis points at the viewer
+      axis.line.setAttribute('x2', ex)
+      axis.line.setAttribute('y2', ey)
+      // Push the letter out along the axis. As the axis turns to point at the viewer its
+      // on-screen direction becomes unstable, so ease the letter towards "straight up" instead.
       const flat = Math.hypot(x, y)
-      const ux = flat > 0.05 ? x / flat : 0
-      const uy = flat > 0.05 ? y / flat : -1
-      text.setAttribute('x', (ex + ux * AXIS_LABEL_GAP).toFixed(2))
-      text.setAttribute('y', (ey + uy * AXIS_LABEL_GAP).toFixed(2))
-    })
-    // Draw the nearest axis last so it sits on top
-    placed
-      .sort((a, b) => a.depth - b.depth)
-      .forEach(({ key }) => {
-        const group = svg.querySelector(`[data-axis="${key}"]`)
-        if (group) svg.appendChild(group)
+      const t = Math.min(1, flat / 0.45)
+      const blend = t * t * (3 - 2 * t)
+      let ox = flat > 1e-6 ? (x / flat) * blend : 0
+      let oy = flat > 1e-6 ? (y / flat) * blend - (1 - blend) : -1
+      const len = Math.hypot(ox, oy) || 1
+      ox /= len
+      oy /= len
+      axis.text.setAttribute('transform', `translate(${ex + ox * AXIS_LABEL_GAP} ${ey + oy * AXIS_LABEL_GAP})`)
+    }
+
+    // Draw the nearest axis last so it sits on top. Only touch the DOM when the order
+    // really changes, with a small margin so two axes at similar depth don't swap back and forth.
+    const current = order.current ? order.current.split('') : axes.map(a => a.key)
+    const depthOf = Object.fromEntries(axes.map(a => [a.key, a.depth]))
+    const next = [...current]
+    for (let pass = 0; pass < next.length; pass++) {
+      for (let i = 0; i < next.length - 1; i++) {
+        if (depthOf[next[i]] > depthOf[next[i + 1]] + 0.04) {
+          const tmp = next[i]; next[i] = next[i + 1]; next[i + 1] = tmp
+        }
+      }
+    }
+    const nextOrder = next.join('')
+    if (nextOrder !== order.current) {
+      order.current = nextOrder
+      next.forEach(key => {
+        const axis = axes.find(a => a.key === key)
+        if (axis?.group) svg.appendChild(axis.group)
       })
+    }
   })
   return null
 }

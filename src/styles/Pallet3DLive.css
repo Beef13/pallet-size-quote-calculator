@@ -41,6 +41,12 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
+  /* Let the letters move by fractions of a pixel instead of snapping to whole pixels */
+  text-rendering: geometricPrecision;
+}
+
+.axis-indicator line {
+  shape-rendering: geometricPrecision;
 }
 
 .axis-indicator .axis-x line { stroke: var(--axis-x); }
