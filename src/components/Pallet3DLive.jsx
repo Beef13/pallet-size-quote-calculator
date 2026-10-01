@@ -46,7 +46,7 @@ function CameraFit({ width, length, height }) {
 }
 
 // Dimension Line Component - technical drawing style like reference image
-function DimensionLine({ start, end, offset = 0.5, label, color = '#3d4852', textColor = '#1e2833', outlineColor = '#c6cccb', direction = 'horizontal' }) {
+function DimensionLine({ start, end, offset = 0.5, label, color = '#3d4852', textColor = '#1e2833', outlineColor = '#e4e6e7', direction = 'horizontal' }) {
   const lineWidth = 1
   const arrowSize = 0.12
   
@@ -139,7 +139,7 @@ function DimensionLine({ start, end, offset = 0.5, label, color = '#3d4852', tex
           color={textColor}
           anchorX="center"
           anchorY="middle"
-          outlineWidth={0.03}
+          outlineWidth={0.012}
           outlineColor={outlineColor}
         >
           {label}
@@ -181,8 +181,8 @@ function Nail({ position }) {
 function PalletStructure({ previewData, dark = false }) {
   // Dimension line colours follow the light/dark theme
   const dim = dark
-    ? { color: '#8b959c', textColor: '#e3e6e1', outlineColor: '#252b30' }
-    : { color: '#4a545d', textColor: '#1e2833', outlineColor: '#c6cccb' }
+    ? { color: '#8b959c', textColor: '#e3e6e1', outlineColor: '#1d2226' }
+    : { color: '#8a939b', textColor: '#3a434b', outlineColor: '#e4e6e7' }
 
   const groupRef = useRef()
   

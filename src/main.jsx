@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import '@fontsource-variable/archivo/wdth.css'
-import '@fontsource-variable/big-shoulders-stencil'
 import App from './App.jsx'
 import './index.css'
 

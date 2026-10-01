@@ -1,47 +1,45 @@
 /* ------------------------------------------------------------------
    Pallet quote - workbench layout
-   A docked panel on the left, the 3D pallet on a concrete "yard"
-   on the right. One accent colour (stamp-ink blue). The only display
-   type is the stencilled price, like a marking on a pallet.
+   A docked panel on the left, the 3D pallet on a soft grey stage
+   on the right. One typeface (Archivo), one accent colour.
    ------------------------------------------------------------------ */
 
 :root {
-  --yard: #c6cccb;
-  --yard-floor: #b3babb;
-  --paper: #f6f6f3;
+  --yard: #e4e6e7;
+  --yard-floor: #d3d7da;
+  --paper: #ffffff;
   --field: #ffffff;
-  --ink: #1e2833;
-  --ink-2: #56616b;
-  --ink-3: #848d94;
-  --rule: #dfe1dc;
-  --rule-strong: #c4c9c4;
-  --accent: #2d5281;
-  --accent-hover: #234269;
+  --ink: #15191e;
+  --ink-2: #5d6670;
+  --ink-3: #959da5;
+  --rule: #eceef0;
+  --rule-strong: #d9dde1;
+  --accent: #1f4f8a;
+  --accent-hover: #183f6e;
   --accent-ink: #ffffff;
-  --accent-soft: #e4eaf2;
+  --accent-soft: #eef3f9;
   --warn: #9a3a1c;
   --warn-soft: #f6e9e2;
   --ready: #3d6a3a;
 
   --font-ui: 'Archivo Variable', 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-stencil: 'Big Shoulders Stencil Variable', 'Archivo Variable', sans-serif;
 
   --panel-width: 440px;
-  --radius: 6px;
+  --radius: 8px;
   --control-h: 40px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 html.dark-mode {
-  --yard: #252b30;
-  --yard-floor: #1c2125;
-  --paper: #15191d;
+  --yard: #1d2226;
+  --yard-floor: #171b1e;
+  --paper: #121518;
   --field: #1c2126;
   --ink: #e3e6e1;
   --ink-2: #a3acb2;
   --ink-3: #6f787f;
-  --rule: #2a3137;
-  --rule-strong: #3a434a;
+  --rule: #22282d;
+  --rule-strong: #323a40;
   --accent: #93b4df;
   --accent-hover: #b0c9ea;
   --accent-ink: #0f1a28;
@@ -113,11 +111,10 @@ body,
 }
 
 .brand-mark {
-  font-family: var(--font-stencil);
-  font-weight: 800;
-  font-size: 26px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: 1;
-  letter-spacing: 0.01em;
   color: var(--ink);
 }
 
@@ -293,9 +290,8 @@ body,
 .field-row.nested {
   padding: 14px;
   margin-top: -2px;
-  border-left: 2px solid var(--accent);
   background: var(--accent-soft);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: 8px;
 }
 
 .field-label {
@@ -613,11 +609,10 @@ html.dark-mode .workbench select {
   gap: 6px;
   margin-top: 18px;
   padding: 12px 14px;
-  border-left: 2px solid var(--warn);
   background: var(--warn-soft);
   color: var(--warn);
   font-size: 13.5px;
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: 8px;
 }
 
 /* ---------- Presets ---------- */
@@ -731,7 +726,7 @@ html.dark-mode .workbench select {
   list-style: none;
   margin: 20px 0 0;
   padding: 0;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule-strong);
 }
 
 .line-items li {
@@ -799,14 +794,15 @@ html.dark-mode .workbench select {
 
 .totals-row.grand {
   min-height: 60px;
-  border-bottom: 2px solid var(--ink);
+  border-bottom: 0;
   color: var(--ink);
   font-weight: 650;
 }
 
 .totals-row.grand > span:last-child {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 
 .totals-row.grand.partial > span:last-child {
@@ -982,7 +978,7 @@ html.dark-mode .workbench select {
   cursor: pointer;
 }
 
-/* The price, stamped like a pallet marking */
+/* Floating price card */
 .stamp {
   position: absolute;
   top: 24px;
@@ -990,15 +986,15 @@ html.dark-mode .workbench select {
   z-index: 5;
   display: grid;
   grid-template-columns: auto;
-  min-width: 220px;
-  padding: 12px 16px 12px;
-  border: 2px solid var(--ink);
-  outline: 1px solid var(--ink);
-  outline-offset: 3px;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  min-width: 240px;
+  padding: 18px 20px 16px;
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(20, 30, 40, 0.06), 0 12px 32px -12px rgba(20, 30, 40, 0.18);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
   color: var(--ink);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
 }
 
 .stamp-label {
@@ -1008,12 +1004,11 @@ html.dark-mode .workbench select {
 }
 
 .stamp-value {
-  font-family: var(--font-stencil);
-  font-weight: 800;
-  font-size: 56px;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  margin: 4px 0 10px;
+  font-weight: 300;
+  font-size: 44px;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 6px 0 14px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1026,8 +1021,8 @@ html.dark-mode .workbench select {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--rule-strong);
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
   font-size: 13px;
   color: var(--ink-2);
 }
@@ -1085,12 +1080,14 @@ html.dark-mode .workbench select {
 
 .range input[type="range"]::-webkit-slider-runnable-track {
   height: 2px;
-  background: var(--ink-2);
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
 }
 
 .range input[type="range"]::-moz-range-track {
   height: 2px;
-  background: var(--ink-2);
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
 }
 
 .range input[type="range"]::-webkit-slider-thumb {
@@ -1099,16 +1096,17 @@ html.dark-mode .workbench select {
   height: 16px;
   margin-top: -7px;
   border-radius: 50%;
-  border: 2px solid var(--ink);
-  background: var(--paper);
+  border: 0;
+  background: var(--ink);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--paper) 70%, transparent);
 }
 
 .range input[type="range"]::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid var(--ink);
-  background: var(--paper);
+  border: 0;
+  background: var(--ink);
 }
 
 .stage-empty {
@@ -1186,13 +1184,13 @@ html.dark-mode .workbench select {
   }
 
   .header-total strong {
-    font-family: var(--font-stencil);
-    font-weight: 800;
-    font-size: 26px;
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: -0.02em;
   }
 
   .brand-mark {
-    font-size: 22px;
+    font-size: 16px;
   }
 
   .tabs {
