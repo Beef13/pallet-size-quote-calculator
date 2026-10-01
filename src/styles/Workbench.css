@@ -424,7 +424,7 @@ html.dark-mode .workbench select {
 
 .stepper {
   display: inline-grid;
-  grid-template-columns: 36px 52px 36px;
+  grid-template-columns: auto auto auto;
   height: var(--control-h);
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
@@ -1036,7 +1036,7 @@ html.dark-mode .workbench select {
 
 .stamp-qty .stepper {
   --control-h: 32px;
-  grid-template-columns: 30px 56px 30px;
+  grid-template-columns: auto auto auto;
 }
 
 .stamp-qty .stepper-value {
@@ -1320,9 +1320,10 @@ html.dark-mode .tab.active {
   right: 14px;
 }
 
-/* Stepper: pill with round buttons */
+/* Stepper: pill with round buttons; the middle field grows with its digits */
 .stepper {
-  grid-template-columns: 34px 46px 34px;
+  grid-template-columns: auto auto auto;
+  column-gap: 2px;
   align-items: center;
   height: var(--control-h);
   padding: 0 4px;
@@ -1362,8 +1363,39 @@ html.dark-mode .stepper-btn {
 }
 
 .workbench input.stepper-value {
+  height: 34px;
+  min-width: 0;
+  padding: 0 4px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   background: transparent;
-  height: 100%;
+  font-size: 16px;
+  line-height: 1;
+  text-align: center;
+  text-overflow: clip;
+  cursor: text;
+}
+
+.workbench input.stepper-value:hover:not(:focus) {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--paper) 60%, transparent);
+}
+
+.workbench input.stepper-value:focus-visible {
+  border-color: var(--accent);
+  background: var(--paper);
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 0;
+}
+
+.workbench input.stepper-value::placeholder {
+  color: var(--ink-3);
+}
+
+.stamp-qty .workbench input.stepper-value,
+.stamp-qty input.stepper-value {
+  height: 30px;
+  font-size: 15px;
 }
 
 /* Switch */
@@ -1572,7 +1604,7 @@ html.dark-mode .totals .stepper {
 .stamp-qty .stepper {
   background: transparent;
   padding: 0;
-  grid-template-columns: 30px 44px 30px;
+  grid-template-columns: auto auto auto;
 }
 
 .stamp-qty .stepper-btn {
@@ -1824,5 +1856,12 @@ html.dark-mode .totals .stepper {
   .range {
     width: 100%;
     box-sizing: border-box;
+  }
+}
+
+/* Phones: one field per row so dropdown text is never cut off */
+@media (max-width: 520px) {
+  .field-row {
+    grid-template-columns: 1fr;
   }
 }

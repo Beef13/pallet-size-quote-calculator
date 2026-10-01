@@ -82,25 +82,49 @@ function Icon({ name, size = 18 }) {
   )
 }
 
-// Number stepper used for board, bearer and pallet counts
-function Stepper({ value, onChange, min = 1, max = 15, label, id, editable = false }) {
-  // An empty editable field counts as the minimum (e.g. 1 pallet)
-  const n = parseInt(value) || (editable ? min : 0)
-  const set = (v) => onChange(String(Math.max(min, Math.min(max, v))))
+// Number stepper used for board, bearer and pallet counts.
+// The number can be typed as well as stepped; it is kept within min..max
+// when the field loses focus (or Enter is pressed). With allowEmpty, a
+// blank field means "not chosen yet" (board and bearer counts).
+function Stepper({ value, onChange, min = 1, max = 15, label, id, allowEmpty = false }) {
+  const raw = value == null ? '' : String(value)
+  const n = parseInt(raw) || 0
+  const clamp = (v) => String(Math.max(min, Math.min(max, v)))
+  const step = (delta) => onChange(clamp(n ? n + delta : min))
+  const commit = () => {
+    if (raw === '') {
+      if (!allowEmpty) onChange(String(min))
+      return
+    }
+    if (n < min || n > max || String(n) !== raw) onChange(clamp(n || min))
+  }
+  // Size the field to its digits so large numbers are never cropped
+  const digits = Math.max(2, raw.length, String(max).length > 3 ? 3 : 2)
   return (
     <div className="stepper" role="group" aria-labelledby={id}>
-      <button type="button" className="stepper-btn" onClick={() => set(n ? n - 1 : min)}
+      <button type="button" className="stepper-btn" onClick={() => step(-1)}
         disabled={n !== 0 && n <= min} aria-label={`Fewer ${label}`}>
         <Icon name="minus" size={16} />
       </button>
-      {editable ? (
-        <input className="stepper-value" type="text" inputMode="numeric" value={value} aria-label={label}
-          onChange={(e) => { if (/^\d*$/.test(e.target.value)) onChange(e.target.value) }}
-          onBlur={() => { if (!parseInt(value) || parseInt(value) < min) onChange(String(min)) }} />
-      ) : (
-        <output className="stepper-value" aria-live="polite">{n || '–'}</output>
-      )}
-      <button type="button" className="stepper-btn" onClick={() => set(n ? n + 1 : min)}
+      <input
+        className="stepper-value"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={raw}
+        placeholder="–"
+        aria-label={`Number of ${label}`}
+        style={{ width: `calc(${digits}ch + 20px)` }}
+        onChange={(e) => { if (/^\d{0,4}$/.test(e.target.value)) onChange(e.target.value) }}
+        onBlur={commit}
+        onFocus={(e) => e.target.select()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { commit(); e.target.blur() }
+          if (e.key === 'ArrowUp') { e.preventDefault(); step(1) }
+          if (e.key === 'ArrowDown') { e.preventDefault(); step(-1) }
+        }}
+      />
+      <button type="button" className="stepper-btn" onClick={() => step(1)}
         disabled={n >= max} aria-label={`More ${label}`}>
         <Icon name="plus" size={16} />
       </button>
@@ -774,7 +798,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   }
 
   const timberOptions = timberData.timberTypes.map(type => (
-    <option key={type.id} value={type.id}>{type.name}</option>
+    <option key={type.id} value={type.id} title={type.name}>{type.shortName || type.name}</option>
   ))
 
   const sizeOptions = (sizes) => sizes.map(size => (
@@ -820,7 +844,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         </div>
         <div className="field field-inline">
           <span className="field-label" id={`${deck}-count-label`}>Boards {maxNote(p.max)}</span>
-          <Stepper id={`${deck}-count-label`} label={`${deck} boards`} value={p.count} onChange={p.setCount} max={p.maxUI} />
+          <Stepper id={`${deck}-count-label`} label={`${deck} boards`} value={p.count} onChange={p.setCount} max={p.maxUI} allowEmpty />
         </div>
         <label className="switch">
           <input type="checkbox" checked={p.leaders} onChange={(e) => p.setLeaders(e.target.checked)} data-field={`${deck}-leaders`} />
@@ -1017,7 +1041,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 </div>
                 <div className="field field-inline">
                   <span className="field-label" id="bearer-count-label">Bearers {maxNote(maxBearersAllowed)}</span>
-                  <Stepper id="bearer-count-label" label="bearers" value={displayedBearers} onChange={setNumberOfBearers} max={maxBearersForUI} />
+                  <Stepper id="bearer-count-label" label="bearers" value={displayedBearers} onChange={setNumberOfBearers} max={maxBearersForUI} allowEmpty />
                 </div>
               </section>
 
@@ -1140,7 +1164,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     </div>
                     <div className="totals-row">
                       <span id="quote-qty-label">Pallets</span>
-                      <Stepper id="quote-qty-label" label="pallets" value={palletQuantity} min={1} max={9999} editable
+                      <Stepper id="quote-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
                         onChange={(v) => setPalletQuantity(v)} />
                     </div>
                     <div className={`totals-row grand ${liveQuote.isComplete ? '' : 'partial'}`}>
@@ -1280,7 +1304,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           <span className="stamp-value"><Money value={(liveQuote.totalPrice || 0) * quantity} /></span>
           <div className="stamp-qty">
             <span id="stage-qty-label">Pallets</span>
-            <Stepper id="stage-qty-label" label="pallets" value={palletQuantity} min={1} max={9999} editable
+            <Stepper id="stage-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
               onChange={(v) => setPalletQuantity(v)} />
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React from 'react'
 import '../styles/PrintableQuote.css'
+import { formatCurrency } from '../utils/calculations'
 
 // Positions (left edge) and sizes of each board across the pallet width,
 // boards flush with both edges, leaders on the outside when used.
@@ -24,7 +25,7 @@ function bearerLayout(count, thickness, length) {
   return Array.from({ length: count }, (_, i) => i * (thickness + gap))
 }
 
-const money = (v) => `$${(Number(v) || 0).toFixed(2)}`
+const money = (v) => formatCurrency(v)
 const metres = (mm) => `${((Number(mm) || 0) / 1000).toFixed(3)} m`
 
 function PrintableQuote({ quoteData, quantity = 1 }) {

@@ -134,7 +134,9 @@ export function timberCost(pricePerMetre, lengthMm, quantity) {
  * @returns {string} Formatted currency string
  */
 export function formatCurrency(value) {
-  return `$${parseFloat(value).toFixed(2)}`;
+  const n = Number(value) || 0;
+  // Thousands separators, always two decimals: $12,345.60
+  return `$${n.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**

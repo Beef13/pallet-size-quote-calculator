@@ -83,6 +83,7 @@
     {
       "id": "kiln-dried",
       "name": "Kiln Dried Material (KD)",
+      "shortName": "Kiln Dried (KD)",
       "boardSizes": [
         {
           "id": "90x19",
