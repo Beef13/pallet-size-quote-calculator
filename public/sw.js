@@ -1,6 +1,6 @@
 // Service Worker for Timber Pallet Quote Calculator PWA
 // Bump the version whenever the caching logic changes so old caches are cleared.
-const CACHE_NAME = 'pallet-calc-v2';
+const CACHE_NAME = 'pallet-calc-v3';
 
 // Install event - activate immediately
 self.addEventListener('install', () => {
@@ -39,5 +39,20 @@ self.addEventListener('fetch', (event) => {
       .catch(() =>
         caches.match(request).then((cached) => cached || Response.error())
       )
+  );
+});
+
+// The page sends the files it loaded on first visit; cache them for offline use
+self.addEventListener('message', (event) => {
+  const data = event.data || {};
+  if (data.type !== 'cache-urls' || !Array.isArray(data.urls)) return;
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(
+        data.urls
+          .filter((url) => new URL(url).origin === self.location.origin)
+          .map((url) => cache.add(url).catch(() => null))
+      )
+    )
   );
 });

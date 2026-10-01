@@ -36,7 +36,8 @@
     top: 0;
     width: 100%;
     background: white;
-    padding: 10mm 15mm;
+    /* Side padding keeps the drawing at exactly 160 mm wide (A4 minus margins) */
+    padding: 0 15mm;
     box-sizing: border-box;
     font-family: 'Outfit Variable', Arial, Helvetica, sans-serif;
     font-size: 10pt;
@@ -73,12 +74,48 @@
   }
 
   /* Diagram Section */
+  /* Business details and customer line on the customer PDF */
+  .print-business {
+    display: flex;
+    justify-content: space-between;
+    gap: 10mm;
+    margin-bottom: 3mm;
+    font-size: 8.5pt;
+    color: #333;
+  }
+
+  .print-business > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6mm;
+  }
+
+  .print-business strong {
+    font-size: 12pt;
+    color: #000;
+  }
+
+  .print-business-right {
+    text-align: right;
+  }
+
+  .print-customer {
+    display: flex;
+    gap: 10mm;
+    margin: -1mm 0 4mm;
+    font-size: 9.5pt;
+  }
+
+  .print-customer b {
+    font-weight: 600;
+  }
+
   /* Shop drawing: printed at exactly 160 mm wide (1 sheet unit = 0.16 mm) */
   .shop-drawing {
     display: block;
     width: 160mm;
     height: auto;
-    margin: 0 auto 6mm;
+    margin: 0 auto 4mm;
   }
 
   .quote-table .ref-col {
@@ -161,7 +198,7 @@
   .quote-table th,
   .quote-table td {
     font-variant-numeric: tabular-nums;
-    padding: 5px 6px;
+    padding: 3.5px 6px;
     text-align: left;
     border-bottom: 1px solid #ddd;
   }
@@ -212,7 +249,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 30px;
-    padding: 4px 6px;
+    padding: 2.5px 6px;
     font-size: 9pt;
   }
 
@@ -254,8 +291,8 @@
     text-align: center;
     font-size: 8pt;
     color: #666;
-    padding-top: 10px;
-    margin-top: 15px;
+    padding-top: 6px;
+    margin-top: 8px;
     border-top: 1px solid #ccc;
   }
 
@@ -401,5 +438,31 @@
     padding-top: 10px;
     margin-top: 15px;
     border-top: 1px solid #ccc;
+  }
+}
+
+@media print {
+  /* Breakdown: cost build-up and totals side by side so it stays on one page */
+  .printable-quote.breakdown .totals-section {
+    display: grid;
+    grid-template-rows: repeat(5, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    column-gap: 12mm;
+    align-items: center;
+  }
+
+  .printable-quote.breakdown .total-line {
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .printable-quote.breakdown .total-label {
+    text-align: left;
+    min-width: 0;
+  }
+
+  .printable-quote.breakdown .total-line.grand-total {
+    grid-row: span 1;
   }
 }

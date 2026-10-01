@@ -21,10 +21,41 @@ function sizesForType(typeId, kind = 'board') {
   return kind === 'bearer' ? type.bearerSizes : type.boardSizes
 }
 
+// Pricing settings that sit on top of the timber cost.
+// Labour is per pallet, markup is a percentage added to cost
+// (sell = cost x (1 + markup%)), GST is added to the quoted total.
+const DEFAULT_PRICING = {
+  labourPerPallet: 0,
+  markupPercent: 0,
+  gstRate: 10,
+  showGst: true
+}
+
+const DEFAULT_BUSINESS = {
+  name: '',
+  abn: '',
+  phone: '',
+  email: '',
+  address: '',
+  validDays: 30
+}
+
+function mergePricing(saved) {
+  const p = { ...DEFAULT_PRICING }
+  if (saved && typeof saved === 'object') {
+    for (const key of ['labourPerPallet', 'markupPercent', 'gstRate']) {
+      if (saved[key] !== undefined && saved[key] !== '') p[key] = Math.max(0, Number(saved[key]) || 0)
+    }
+    if (typeof saved.showGst === 'boolean') p.showGst = saved.showGst
+  }
+  return p
+}
+
 // Merge saved/imported price values onto the current timber data structure,
 // so old or partial price files can never remove timber types or sizes.
 function mergePrices(saved) {
   const merged = JSON.parse(JSON.stringify(timberData))
+  merged.pricing = mergePricing(saved?.pricing)
   if (!saved || typeof saved !== 'object') return merged
   merged.timberTypes.forEach(type => {
     const savedType = saved.timberTypes?.find(t => t.id === type.id)
@@ -64,6 +95,9 @@ function writeStorage(key, value) {
     return false
   }
 }
+
+const STATUS_LABELS = { draft: 'Draft', sent: 'Sent', accepted: 'Accepted', lost: 'Lost' }
+const r1 = (n) => Math.round((Number(n) || 0) * 10) / 10
 
 // Small line icons (stroke follows text colour)
 function Icon({ name, size = 18 }) {
@@ -186,6 +220,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [numberOfBearers, setNumberOfBearers] = useState('')
   const [error, setError] = useState('')
   const [palletQuantity, setPalletQuantity] = useState('1')
+  const quantity = Math.max(1, parseInt(palletQuantity) || 1)
   
   // Price editor state
   const [prices, setPrices] = useState({ timberTypes: [] })
@@ -198,6 +233,43 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [newPresetName, setNewPresetName] = useState('')
   const [pricesSaved, setPricesSaved] = useState(true)
   const [saveFlash, setSaveFlash] = useState(false)
+
+  // Business details shown on the customer PDF (saved on this device)
+  const [business, setBusiness] = useState(() => {
+    try {
+      return { ...DEFAULT_BUSINESS, ...(JSON.parse(readStorage('palletBusiness') || 'null') || {}) }
+    } catch (e) {
+      return { ...DEFAULT_BUSINESS }
+    }
+  })
+  const updateBusiness = (key, value) => {
+    setBusiness(prev => {
+      const next = { ...prev, [key]: value }
+      writeStorage('palletBusiness', JSON.stringify(next))
+      return next
+    })
+  }
+
+  // Who the current quote is for
+  const [customerName, setCustomerName] = useState('')
+  const [customerRef, setCustomerRef] = useState('')
+
+  // Quote history: each saved quote keeps its design, quantity, customer and
+  // the exact rates it was priced on, under a sequential quote number.
+  const [quotes, setQuotes] = useState(() => {
+    try {
+      const saved = JSON.parse(readStorage('palletQuotes') || '[]')
+      return Array.isArray(saved) ? saved : []
+    } catch (e) {
+      return []
+    }
+  })
+  const [currentQuoteId, setCurrentQuoteId] = useState(null)
+  // When an old quote is opened, its saved rates are used instead of today's
+  const [ratesFromQuote, setRatesFromQuote] = useState(null)
+  const [historyNotice, setHistoryNotice] = useState('')
+  const [historySearch, setHistorySearch] = useState('')
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
   // Available sizes - derived from the selected timber type
   const availableTopBoardSizes = useMemo(() => sizesForType(selectedTopBoardType), [selectedTopBoardType])
@@ -251,6 +323,27 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       }
     }
   }, [])
+
+  // Everything that describes the pallet design (used by presets and quotes)
+  const designSnapshot = () => ({
+    palletWidth,
+    palletLength,
+    selectedTopBoardType,
+    selectedTopBoardSize,
+    selectedBottomBoardType,
+    selectedBottomBoardSize,
+    numberOfTopBoards,
+    numberOfBottomBoards,
+    useCustomTopLeaders,
+    selectedTopLeaderType,
+    selectedTopLeaderSize,
+    useCustomBottomLeaders,
+    selectedBottomLeaderType,
+    selectedBottomLeaderSize,
+    selectedBearerType,
+    selectedBearerSize,
+    numberOfBearers
+  })
 
   // Save preset to localStorage
   const savePreset = () => {
@@ -320,17 +413,22 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   // Export presets to JSON file
   const exportPresets = () => {
+    // Always export today's saved prices, even while an old quote is open
+    let savedPrices = prices
+    try { savedPrices = mergePrices(JSON.parse(readStorage('timberPrices') || 'null')) } catch (e) { /* keep current */ }
     const dataToExport = {
-      version: '1.0',
+      version: '2.0',
       exportDate: new Date().toISOString(),
       presets: savedPresets,
-      prices: prices
+      prices: savedPrices,
+      business,
+      quotes
     }
     const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `pallet-presets-${new Date().toISOString().split('T')[0]}.json`
+    a.download = `pallet-quote-backup-${new Date().toISOString().split('T')[0]}.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -357,6 +455,19 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           const skipped = data.presets.length - newPresets.length
           messages.push(`Imported ${newPresets.length} preset${newPresets.length === 1 ? '' : 's'}` +
             (skipped > 0 ? ` (${skipped} skipped - same name already exists)` : ''))
+        }
+        if (Array.isArray(data.quotes)) {
+          // Add quotes that aren't already here (matched by quote number)
+          const have = new Set(quotes.map(q => q.number))
+          const incoming = data.quotes.filter(q => q && q.number && !have.has(q.number))
+          if (incoming.length) persistQuotes([...quotes, ...incoming].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')))
+          messages.push(`Imported ${incoming.length} quote${incoming.length === 1 ? '' : 's'}`)
+        }
+        if (data.business && typeof data.business === 'object' && !business.name) {
+          const next = { ...DEFAULT_BUSINESS, ...data.business }
+          setBusiness(next)
+          writeStorage('palletBusiness', JSON.stringify(next))
+          messages.push('Business details imported')
         }
         if (data.prices) {
           // Only take price values - never replace the timber list itself
@@ -580,9 +691,18 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     if (bottomBoards > 0 && bearers > 0) totalNails += bottomBoards * bearers * 2
     const nailsTotal = totalNails > 0 ? parseFloat(calculateTotalPrice(nailPrice, totalNails)) : 0
 
-    const runningTotal = Math.round(
-      (top.leadersTotal + top.innerTotal + bottom.leadersTotal + bottom.innerTotal + bearersTotal + nailsTotal) * 100
-    ) / 100
+    const round2 = (v) => Math.round(v * 100) / 100
+    const materialsTotal = round2(top.leadersTotal + top.innerTotal + bottom.leadersTotal + bottom.innerTotal + bearersTotal + nailsTotal)
+
+    // Cost stack: materials + labour = cost; cost + markup = sell price (per pallet)
+    const pricing = prices.pricing || DEFAULT_PRICING
+    const hasMaterials = materialsTotal > 0 || totalNails > 0
+    const labourPerPallet = hasMaterials ? round2(Number(pricing.labourPerPallet) || 0) : 0
+    const costPerPallet = round2(materialsTotal + labourPerPallet)
+    const markupPercent = Number(pricing.markupPercent) || 0
+    const markupPerPallet = round2(costPerPallet * markupPercent / 100)
+    const runningTotal = round2(costPerPallet + markupPerPallet)
+    const marginPercent = runningTotal > 0 ? (markupPerPallet / runningTotal) * 100 : 0
 
     // When using custom leaders, also need leader type/size selected
     const topLeadersValid = !useCustomTopLeaders || (topLeaderTimberType && topLeaderSize)
@@ -641,7 +761,16 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       totalNails,
       pricePerNail: nailPrice,
       nailsTotal,
+      // Price per pallet (ex GST) and how it is built up
+      materialsTotal,
+      labourPerPallet,
+      costPerPallet,
+      markupPercent,
+      markupPerPallet,
+      marginPercent,
       totalPrice: runningTotal,
+      gstRate: Number(pricing.gstRate) || 0,
+      showGst: pricing.showGst !== false,
       palletWidth: width,
       palletLength: length,
       topBoardWidth: topBoardSize?.width || 0,
@@ -655,7 +784,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       topFits,
       bottomFits,
       isComplete,
-      hasAnyPrice: runningTotal > 0 || totalNails > 0
+      hasAnyPrice: hasMaterials
     }
   }, [palletWidth, palletLength, displayedTopBoards, displayedBottomBoards, displayedBearers, selectedTopBoardType, selectedTopBoardSize, selectedBottomBoardType, selectedBottomBoardSize, selectedBearerType, selectedBearerSize, prices, useCustomTopLeaders, selectedTopLeaderType, selectedTopLeaderSize, useCustomBottomLeaders, selectedBottomLeaderType, selectedBottomLeaderSize])
 
@@ -664,15 +793,129 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   if (!liveQuote.topFits) layoutWarnings.push("Top boards don't fit across the pallet width - reduce the number of boards or use narrower leader boards.")
   if (!liveQuote.bottomFits) layoutWarnings.push("Bottom boards don't fit across the pallet width - reduce the number of boards or use narrower leader boards.")
 
+  // ---------- Quote history ----------
+
+  const persistQuotes = (list) => {
+    setQuotes(list)
+    writeStorage('palletQuotes', JSON.stringify(list))
+  }
+
+  // Sequential numbers per year: Q2026-0001, Q2026-0002 ...
+  const nextQuoteNumber = (existing) => {
+    const year = new Date().getFullYear()
+    const prefix = `Q${year}-`
+    const highest = existing
+      .map(q => (q.number || '').startsWith(prefix) ? parseInt(q.number.slice(prefix.length)) || 0 : 0)
+      .reduce((a, b) => Math.max(a, b), 0)
+    const stored = parseInt(readStorage(`palletQuoteSeq-${year}`)) || 0
+    const seq = Math.max(highest, stored) + 1
+    writeStorage(`palletQuoteSeq-${year}`, String(seq))
+    return `${prefix}${String(seq).padStart(4, '0')}`
+  }
+
+  const cleanPrices = () => mergePrices(prices)
+  const signatureOf = (design, qty, name, ref, priceList) =>
+    JSON.stringify([design, String(qty), name.trim(), ref.trim(), priceList])
+  const currentQuote = quotes.find(q => q.id === currentQuoteId) || null
+  const currentSignature = signatureOf(designSnapshot(), quantity, customerName, customerRef, cleanPrices())
+  const isQuoteDirty = !currentQuote || currentQuote.signature !== currentSignature
+
+  // Save the current quote. Drafts are updated in place; a quote that has
+  // already been sent keeps its record and the changes get a new number.
+  const saveQuote = ({ markSent = false } = {}) => {
+    if (!liveQuote.hasAnyPrice) return null
+    const now = new Date().toISOString()
+    const record = {
+      design: designSnapshot(),
+      quantity,
+      customerName: customerName.trim(),
+      customerRef: customerRef.trim(),
+      prices: cleanPrices(),
+      summary: {
+        size: liveQuote.palletWidth && liveQuote.palletLength ? `${liveQuote.palletWidth} × ${liveQuote.palletLength}` : '',
+        pricePerPallet: liveQuote.totalPrice,
+        totalExGst: Math.round(liveQuote.totalPrice * quantity * 100) / 100,
+        complete: liveQuote.isComplete
+      },
+      signature: currentSignature,
+      updatedAt: now
+    }
+
+    let list = [...quotes]
+    let saved
+    if (currentQuote && !isQuoteDirty) {
+      saved = currentQuote
+    } else if (currentQuote && currentQuote.status === 'draft') {
+      saved = { ...currentQuote, ...record }
+      list = list.map(q => q.id === saved.id ? saved : q)
+    } else {
+      saved = { id: `${Date.now()}`, number: nextQuoteNumber(list), status: 'draft', createdAt: now, ...record }
+      if (currentQuote) {
+        setHistoryNotice(`${currentQuote.number} was already ${currentQuote.status}, so these changes were saved as ${saved.number}.`)
+      }
+      list = [saved, ...list]
+    }
+    if (markSent && saved.status === 'draft') {
+      saved = { ...saved, status: 'sent', sentAt: now }
+      list = list.map(q => q.id === saved.id ? saved : q)
+    }
+    persistQuotes(list)
+    setCurrentQuoteId(saved.id)
+    return saved
+  }
+
+  const useTodaysRates = () => {
+    let saved = null
+    try { saved = JSON.parse(readStorage('timberPrices') || 'null') } catch (e) { saved = null }
+    setPrices(mergePrices(saved))
+    setRatesFromQuote(null)
+  }
+
+  const applyQuote = (q) => {
+    loadPreset(q.design || {})
+    setPalletQuantity(String(q.quantity || 1))
+    setCustomerName(q.customerName || '')
+    setCustomerRef(q.customerRef || '')
+  }
+
+  // Reopen a quote exactly as it was priced
+  const openQuote = (q) => {
+    applyQuote(q)
+    setPrices(mergePrices(q.prices))
+    setRatesFromQuote(q.number)
+    setCurrentQuoteId(q.id)
+    setHistoryNotice('')
+    setActiveTab('quote')
+  }
+
+  // Start a new quote from an old one, priced at today's rates
+  const duplicateQuote = (q) => {
+    applyQuote(q)
+    useTodaysRates()
+    setCurrentQuoteId(null)
+    setHistoryNotice(`Copied from ${q.number} at today's rates. It gets its own number when you save or export it.`)
+    setActiveTab('quote')
+  }
+
+  const setQuoteStatus = (id, status) => {
+    persistQuotes(quotes.map(q => q.id === id ? { ...q, status, updatedAt: new Date().toISOString() } : q))
+  }
+
+  const deleteQuote = (id) => {
+    persistQuotes(quotes.filter(q => q.id !== id))
+    if (id === currentQuoteId) setCurrentQuoteId(null)
+    setConfirmDeleteId(null)
+  }
+
   // PDF export: 'customer' (spec + total) or 'breakdown' (internal costs).
-  // Renders the chosen layout, names the file, then opens the print dialog
+  // Saves the quote first (so it has a number and its rates are kept),
+  // renders the chosen layout, names the file, then opens the print dialog
   // where "Save as PDF" can be chosen.
   const [printVariant, setPrintVariant] = useState('customer')
   const [quoteRef, setQuoteRef] = useState('')
   const exportPdf = (variant) => {
-    const now = new Date()
-    const pad = (n) => String(n).padStart(2, '0')
-    const ref = `Q${String(now.getFullYear()).slice(2)}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`
+    const saved = saveQuote({ markSent: variant === 'customer' })
+    const ref = saved?.number || ''
     flushSync(() => {
       setPrintVariant(variant)
       setQuoteRef(ref)
@@ -710,6 +953,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setNumberOfBearers('')
     setError('')
     setPalletQuantity('1')
+    setCustomerName('')
+    setCustomerRef('')
+    setCurrentQuoteId(null)
+    setHistoryNotice('')
+    if (ratesFromQuote) useTodaysRates()
     onQuoteCalculated(null)
   }
 
@@ -795,6 +1043,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setPricesSaved(false)
   }
 
+  // Labour, markup and GST settings (saved with the prices)
+  const handlePricingChange = (key, value) => {
+    const v = key === 'showGst' ? !!value : parsePriceInput(value)
+    setPrices(prev => ({ ...prev, pricing: { ...(prev.pricing || DEFAULT_PRICING), [key]: v } }))
+    setPricesSaved(false)
+  }
+
   const handleSavePrices = () => {
     const cleaned = mergePrices(prices)
     setPrices(cleaned)
@@ -814,7 +1069,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const handleQuantityBlur = () => {
     if (palletQuantity === '' || parseInt(palletQuantity) < 1) setPalletQuantity('1')
   }
-  const quantity = Math.max(1, parseInt(palletQuantity) || 1)
 
   const sectionCosts = {
     bottom: liveQuote.bottomBoardsTotal + liveQuote.bottomLeadersTotal,
@@ -925,11 +1179,21 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     }
   ].filter(Boolean)
 
-  const totalLabel = liveQuote.isComplete ? (quantity > 1 ? `Total for ${quantity} pallets` : 'Total') : 'Running total'
+  // Quote totals: ex GST, GST and the grand total
+  const totals = (() => {
+    const exGst = Math.round(liveQuote.totalPrice * quantity * 100) / 100
+    const gst = liveQuote.showGst ? Math.round(exGst * liveQuote.gstRate) / 100 : 0
+    return { exGst, gst, grand: Math.round((exGst + gst) * 100) / 100 }
+  })()
+
+  const totalLabel = liveQuote.isComplete
+    ? `${quantity > 1 ? `Total for ${quantity} pallets` : 'Total'}${liveQuote.showGst ? ' ex GST' : ''}`
+    : 'Running total'
 
   const tabs = [
     { id: 'calculator', label: 'Build' },
     { id: 'quote', label: 'Quote' },
+    { id: 'history', label: 'Quotes' },
     { id: 'prices', label: 'Prices' }
   ]
 
@@ -1145,15 +1409,49 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             <div className="panel-body">
               {liveQuote.hasAnyPrice ? (
                 <div className="quote">
-                  <div className="quote-meta">
-                    <div>
-                      <h2>{liveQuote.palletWidth && liveQuote.palletLength
-                        ? `${liveQuote.palletWidth} × ${liveQuote.palletLength} mm pallet`
-                        : 'Pallet'}</h2>
-                      <p className="hint">
-                        {liveQuote.isComplete ? 'Ready to export as a customer PDF or a cost breakdown.' : 'Still missing some parts, so this is a running total.'}
-                      </p>
+                  {ratesFromQuote && (
+                    <div className="banner">
+                      <p>Priced at the rates saved with {ratesFromQuote}.</p>
+                      <button type="button" className="text-btn" onClick={useTodaysRates}>Use today's rates</button>
                     </div>
+                  )}
+                  {historyNotice && (
+                    <div className="banner">
+                      <p>{historyNotice}</p>
+                      <button type="button" className="text-btn" onClick={() => setHistoryNotice('')}>Dismiss</button>
+                    </div>
+                  )}
+
+                  <div className="quote-meta">
+                    <div className="quote-id">
+                      <span className="quote-number">{currentQuote ? currentQuote.number : 'New quote'}</span>
+                      {currentQuote && <span className={`status-pill status-${currentQuote.status}`}>{STATUS_LABELS[currentQuote.status]}</span>}
+                      <span className="save-state">
+                        {!currentQuote ? 'Not saved yet' : isQuoteDirty ? 'Unsaved changes' : 'Saved'}
+                      </span>
+                      <button type="button" className="text-btn" onClick={() => saveQuote()} disabled={!!currentQuote && !isQuoteDirty}>
+                        {currentQuote && isQuoteDirty && currentQuote.status !== 'draft' ? 'Save as new quote' : 'Save quote'}
+                      </button>
+                    </div>
+                    <h2>{liveQuote.palletWidth && liveQuote.palletLength
+                      ? `${liveQuote.palletWidth} × ${liveQuote.palletLength} mm pallet`
+                      : 'Pallet'}</h2>
+                    <p className="hint">
+                      {liveQuote.isComplete ? 'Ready to export as a customer PDF or a cost breakdown.' : 'Still missing some parts, so this is a running total.'}
+                    </p>
+                  </div>
+
+                  <div className="field-row customer-row">
+                    <label className="field">
+                      <span className="field-label">Customer</span>
+                      <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Business or person" data-field="customer" />
+                    </label>
+                    <label className="field">
+                      <span className="field-label">Their reference</span>
+                      <input type="text" value={customerRef} onChange={(e) => setCustomerRef(e.target.value)}
+                        placeholder="PO or job number" data-field="customer-ref" />
+                    </label>
                   </div>
 
                   <ul className="line-items">
@@ -1182,9 +1480,31 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     </div>
                   )}
 
+                  {liveQuote.markupPercent <= 0 && (
+                    <div className="notice">
+                      <p>No markup is set, so the price is your cost. Add labour and markup under Prices.</p>
+                    </div>
+                  )}
+
                   <div className="totals">
+                    <div className="totals-row sub">
+                      <span>Materials</span>
+                      <span>{formatCurrency(liveQuote.materialsTotal)}</span>
+                    </div>
+                    {liveQuote.labourPerPallet > 0 && (
+                      <div className="totals-row sub">
+                        <span>Labour</span>
+                        <span>{formatCurrency(liveQuote.labourPerPallet)}</span>
+                      </div>
+                    )}
+                    {liveQuote.markupPercent > 0 && (
+                      <div className="totals-row sub">
+                        <span>Markup {r1(liveQuote.markupPercent)}% <em className="muted">({r1(liveQuote.marginPercent)}% margin)</em></span>
+                        <span>{formatCurrency(liveQuote.markupPerPallet)}</span>
+                      </div>
+                    )}
                     <div className="totals-row">
-                      <span>Per pallet</span>
+                      <span>Price per pallet{liveQuote.showGst ? ' ex GST' : ''}</span>
                       <span>{formatCurrency(liveQuote.totalPrice)}</span>
                     </div>
                     <div className="totals-row">
@@ -1192,9 +1512,21 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       <Stepper id="quote-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
                         onChange={(v) => setPalletQuantity(v)} />
                     </div>
+                    {liveQuote.showGst && (
+                      <>
+                        <div className="totals-row">
+                          <span>Total ex GST</span>
+                          <span>{formatCurrency(totals.exGst)}</span>
+                        </div>
+                        <div className="totals-row">
+                          <span>GST {r1(liveQuote.gstRate)}%</span>
+                          <span>{formatCurrency(totals.gst)}</span>
+                        </div>
+                      </>
+                    )}
                     <div className={`totals-row grand ${liveQuote.isComplete ? '' : 'partial'}`}>
-                      <span>{liveQuote.isComplete ? 'Total' : 'Running total'}</span>
-                      <span><Money value={liveQuote.totalPrice * quantity} /></span>
+                      <span>{liveQuote.isComplete ? (liveQuote.showGst ? 'Total inc GST' : 'Total') : 'Running total'}</span>
+                      <span><Money value={totals.grand} /></span>
                     </div>
                   </div>
                 </div>
@@ -1218,9 +1550,175 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           </>
         )}
 
+        {activeTab === 'history' && (
+          <>
+            <div className="panel-body history">
+              <div className="history-head">
+                <input type="text" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)}
+                  placeholder="Search by customer, number or size" aria-label="Search saved quotes" data-field="history-search" />
+              </div>
+              {quotes.length === 0 ? (
+                <div className="empty">
+                  <h2>No saved quotes yet</h2>
+                  <p>Quotes are saved here when you export a PDF or press Save quote. Each one keeps the rates it was priced on.</p>
+                  <button type="button" onClick={() => setActiveTab('calculator')} className="btn btn-secondary">Start a quote</button>
+                </div>
+              ) : (
+                <ul className="quote-list">
+                  {quotes
+                    .filter(q => {
+                      const term = historySearch.trim().toLowerCase()
+                      if (!term) return true
+                      return [q.number, q.customerName, q.customerRef, q.summary?.size].filter(Boolean).join(' ').toLowerCase().includes(term)
+                    })
+                    .map(q => (
+                      <li key={q.id} className={q.id === currentQuoteId ? 'current' : ''}>
+                        <div className="quote-row-top">
+                          <span className="quote-number">{q.number}</span>
+                          <select className={`status-select status-${q.status}`} value={q.status}
+                            onChange={(e) => setQuoteStatus(q.id, e.target.value)} aria-label={`Status of ${q.number}`}>
+                            {Object.entries(STATUS_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+                          </select>
+                        </div>
+                        <div className="quote-row-main">
+                          <span className="quote-customer">{q.customerName || 'No customer'}</span>
+                          <span className="quote-total">{formatCurrency(q.summary?.totalExGst || 0)}</span>
+                        </div>
+                        <div className="quote-row-sub">
+                          <span>{q.summary?.size ? `${q.summary.size} mm` : 'Pallet'} · {q.quantity} pallet{q.quantity === 1 ? '' : 's'}{q.customerRef ? ` · ${q.customerRef}` : ''}</span>
+                          <span>{new Date(q.updatedAt || q.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        </div>
+                        <div className="quote-row-actions">
+                          <button type="button" className="text-btn" onClick={() => openQuote(q)}>Open</button>
+                          <button type="button" className="text-btn" onClick={() => duplicateQuote(q)}>Duplicate at today's rates</button>
+                          {confirmDeleteId === q.id ? (
+                            <span className="confirm">
+                              Delete {q.number}?
+                              <button type="button" className="text-btn danger" onClick={() => deleteQuote(q.id)}>Delete</button>
+                              <button type="button" className="text-btn" onClick={() => setConfirmDeleteId(null)}>Keep</button>
+                            </span>
+                          ) : (
+                            <button type="button" className="text-btn muted-btn" onClick={() => setConfirmDeleteId(q.id)}>Delete</button>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+            <footer className="panel-footer">
+              <span className="save-state">Totals shown ex GST. Saved on this device.</span>
+              <button type="button" className="btn btn-secondary" onClick={exportPresets}>Back up</button>
+            </footer>
+          </>
+        )}
+
         {activeTab === 'prices' && (
           <>
             <div className="panel-body prices">
+              {ratesFromQuote && (
+                <div className="banner">
+                  <p>You're looking at the rates saved with {ratesFromQuote}. Switch to today's rates to edit them.</p>
+                  <button type="button" className="text-btn" onClick={useTodaysRates}>Use today's rates</button>
+                </div>
+              )}
+
+              {/* Labour, markup and GST */}
+              <section className="settings-group" aria-labelledby="pricing-title">
+                <div className="section-head">
+                  <h2 id="pricing-title">Labour, markup and GST</h2>
+                </div>
+                <div className="field-row">
+                  <label className="field">
+                    <span className="field-label">Labour per pallet</span>
+                    <span className="input-unit pre">
+                      <span className="unit-pre">$</span>
+                      <input type="number" min="0" step="0.01" inputMode="decimal" data-field="labour"
+                        value={prices.pricing?.labourPerPallet ?? 0} disabled={!!ratesFromQuote}
+                        onChange={(e) => handlePricingChange('labourPerPallet', e.target.value)} />
+                    </span>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Markup on cost</span>
+                    <span className="input-unit">
+                      <input type="number" min="0" step="0.5" inputMode="decimal" data-field="markup"
+                        value={prices.pricing?.markupPercent ?? 0} disabled={!!ratesFromQuote}
+                        onChange={(e) => handlePricingChange('markupPercent', e.target.value)} />
+                      <span className="unit">%</span>
+                    </span>
+                  </label>
+                </div>
+                <p className="hint formula">
+                  {(() => {
+                    const m = Number(prices.pricing?.markupPercent) || 0
+                    const margin = m > 0 ? (m / (100 + m)) * 100 : 0
+                    return m > 0
+                      ? `Price = cost × ${r1(1 + m / 100)}. A ${r1(m)}% markup gives a ${r1(margin)}% gross margin.`
+                      : 'Price = materials + labour. Add a markup to include your profit.'
+                  })()}
+                </p>
+                <div className="field-row">
+                  <label className="field">
+                    <span className="field-label">GST rate</span>
+                    <span className="input-unit">
+                      <input type="number" min="0" step="0.5" inputMode="decimal" data-field="gst"
+                        value={prices.pricing?.gstRate ?? 10} disabled={!!ratesFromQuote}
+                        onChange={(e) => handlePricingChange('gstRate', e.target.value)} />
+                      <span className="unit">%</span>
+                    </span>
+                  </label>
+                  <label className="switch switch-field">
+                    <input type="checkbox" checked={prices.pricing?.showGst !== false} disabled={!!ratesFromQuote}
+                      onChange={(e) => handlePricingChange('showGst', e.target.checked)} data-field="show-gst" />
+                    <span className="switch-track" aria-hidden="true"><span className="switch-thumb" /></span>
+                    <span>Add GST to quotes</span>
+                  </label>
+                </div>
+              </section>
+
+              {/* Business details for the customer PDF */}
+              <section className="settings-group" aria-labelledby="business-title">
+                <div className="section-head">
+                  <h2 id="business-title">Your business</h2>
+                  <span className="save-state">Saved automatically</span>
+                </div>
+                <label className="field">
+                  <span className="field-label">Business name</span>
+                  <input type="text" value={business.name} onChange={(e) => updateBusiness('name', e.target.value)} placeholder="Shown at the top of customer quotes" data-field="biz-name" />
+                </label>
+                <div className="field-row">
+                  <label className="field">
+                    <span className="field-label">ABN</span>
+                    <input type="text" value={business.abn} onChange={(e) => updateBusiness('abn', e.target.value)} placeholder="12 345 678 901" data-field="biz-abn" />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Phone</span>
+                    <input type="text" value={business.phone} onChange={(e) => updateBusiness('phone', e.target.value)} data-field="biz-phone" />
+                  </label>
+                </div>
+                <div className="field-row">
+                  <label className="field">
+                    <span className="field-label">Email</span>
+                    <input type="text" value={business.email} onChange={(e) => updateBusiness('email', e.target.value)} data-field="biz-email" />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Quotes valid for</span>
+                    <span className="input-unit">
+                      <input type="number" min="1" step="1" value={business.validDays}
+                        onChange={(e) => updateBusiness('validDays', e.target.value)} data-field="biz-valid" />
+                      <span className="unit">days</span>
+                    </span>
+                  </label>
+                </div>
+                <label className="field">
+                  <span className="field-label">Address</span>
+                  <input type="text" value={business.address} onChange={(e) => updateBusiness('address', e.target.value)} data-field="biz-address" />
+                </label>
+              </section>
+
+              <div className="section-head timber-head">
+                <h2>Timber and nails</h2>
+              </div>
               <p className="hint">
                 Timber is priced per metre of length. Unlock a price to change it, then save.
               </p>
@@ -1255,7 +1753,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                                       type="number"
                                       value={size[key]}
                                       onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, kind)}
-                                      disabled={isLocked}
+                                      disabled={isLocked || !!ratesFromQuote}
                                       step="0.01"
                                       min="0"
                                       aria-label={`${timberType.name} ${size.dimensions} ${kind} price per metre`}
@@ -1295,7 +1793,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           value={prices.nailPricePerNail ?? 0}
                           onChange={(e) => handleNailPriceChange(e.target.value)}
                           min="0"
-                          disabled={lockedFields.has('nails')}
+                          disabled={lockedFields.has('nails') || !!ratesFromQuote}
                           step="0.01"
                           aria-label="Nail price each"
                         />
@@ -1311,7 +1809,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               <span className="save-state" aria-live="polite">
                 {saveFlash ? 'Prices saved' : pricesSaved ? 'All prices saved' : 'Unsaved changes'}
               </span>
-              <button type="button" onClick={handleSavePrices} className="btn btn-primary" disabled={pricesSaved && !saveFlash}>
+              <button type="button" onClick={handleSavePrices} className="btn btn-primary" disabled={(pricesSaved && !saveFlash) || !!ratesFromQuote}>
                 Save prices
               </button>
             </footer>
@@ -1364,7 +1862,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       </main>
 
       {/* Printable Quote - only visible when printing */}
-      <PrintableQuote quoteData={liveQuote} quantity={quantity} variant={printVariant} quoteRef={quoteRef} />
+      <PrintableQuote quoteData={liveQuote} quantity={quantity} variant={printVariant} quoteRef={quoteRef}
+        totals={totals} business={business} customer={{ name: customerName.trim(), ref: customerRef.trim() }} />
     </div>
   )
 }

@@ -8,7 +8,7 @@ const metres = (mm) => `${((Number(mm) || 0) / 1000).toFixed(3)} m`
 
 // variant: 'customer' - drawings, specification and total price only
 //          'breakdown' - full cost breakdown for the business's own records
-function PrintableQuote({ quoteData, quantity = 1, variant = 'breakdown', quoteRef = '' }) {
+function PrintableQuote({ quoteData, quantity = 1, variant = 'breakdown', quoteRef = '', totals, business = {}, customer = {} }) {
   if (!quoteData) return null
 
   const {
@@ -75,15 +75,41 @@ function PrintableQuote({ quoteData, quantity = 1, variant = 'breakdown', quoteR
   const isCustomer = variant === 'customer'
   const sizeLabel = (size) => (size || '').replace('x', ' × ')
 
+  const t = totals || { exGst: grandTotal, gst: 0, grand: grandTotal }
+  const showGst = quoteData.showGst !== false
+  const validDays = Math.max(1, parseInt(business.validDays) || 30)
+  const validUntil = new Date(Date.now() + validDays * 86400000).toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const contact = [business.phone, business.email].filter(Boolean)
+
   const header = (
-    <div className="print-header">
-      <h1>{isCustomer ? 'Pallet specification & quote' : 'Cost breakdown'}</h1>
-      <div className="print-meta">
-        {quoteRef && <span>Ref: {quoteRef}</span>}
-        <span>Date: {today}</span>
-        <span>Qty: {quantity}</span>
+    <>
+      {isCustomer && (business.name || business.abn || contact.length > 0 || business.address) && (
+        <div className="print-business">
+          <div>
+            {business.name && <strong>{business.name}</strong>}
+            {business.address && <span>{business.address}</span>}
+          </div>
+          <div className="print-business-right">
+            {contact.map(c => <span key={c}>{c}</span>)}
+            {business.abn && <span>ABN {business.abn}</span>}
+          </div>
+        </div>
+      )}
+      <div className="print-header">
+        <h1>{isCustomer ? 'Quote' : 'Cost breakdown'}{quoteRef ? ` ${quoteRef}` : ''}</h1>
+        <div className="print-meta">
+          <span>Date: {today}</span>
+          {isCustomer && <span>Valid until: {validUntil}</span>}
+          <span>Qty: {quantity}</span>
+        </div>
       </div>
-    </div>
+      {(customer.name || customer.ref) && (
+        <div className="print-customer">
+          {customer.name && <span><b>Prepared for:</b> {customer.name}</span>}
+          {customer.ref && <span><b>Your reference:</b> {customer.ref}</span>}
+        </div>
+      )}
+    </>
   )
 
   const drawing = hasDimensions && (
@@ -137,16 +163,28 @@ function PrintableQuote({ quoteData, quantity = 1, variant = 'breakdown', quoteR
 
           <div className="totals-section">
             <div className="total-line">
-              <span className="total-label">Price per pallet</span>
+              <span className="total-label">Price per pallet{showGst ? ' (ex GST)' : ''}</span>
               <span className="total-value">{money(totalPrice)}</span>
             </div>
             <div className="total-line">
               <span className="total-label">Quantity</span>
               <span className="total-value">{quantity}</span>
             </div>
+            {showGst && (
+              <>
+                <div className="total-line">
+                  <span className="total-label">Subtotal (ex GST)</span>
+                  <span className="total-value">{money(t.exGst)}</span>
+                </div>
+                <div className="total-line">
+                  <span className="total-label">GST {quoteData.gstRate}%</span>
+                  <span className="total-value">{money(t.gst)}</span>
+                </div>
+              </>
+            )}
             <div className="total-line grand-total">
-              <span className="total-label">Total</span>
-              <span className="total-value">{money(grandTotal)}</span>
+              <span className="total-label">{showGst ? 'Total (inc GST)' : 'Total'}</span>
+              <span className="total-value">{money(t.grand)}</span>
             </div>
           </div>
         </div>
@@ -195,25 +233,49 @@ function PrintableQuote({ quoteData, quantity = 1, variant = 'breakdown', quoteR
 
           <div className="totals-section">
             <div className="total-line">
-              <span className="total-label">Per pallet</span>
+              <span className="total-label">Materials per pallet</span>
+              <span className="total-value">{money(quoteData.materialsTotal)}</span>
+            </div>
+            <div className="total-line">
+              <span className="total-label">Labour per pallet</span>
+              <span className="total-value">{money(quoteData.labourPerPallet)}</span>
+            </div>
+            <div className="total-line">
+              <span className="total-label">Cost per pallet</span>
+              <span className="total-value">{money(quoteData.costPerPallet)}</span>
+            </div>
+            <div className="total-line">
+              <span className="total-label">Markup {Math.round(quoteData.markupPercent * 10) / 10}% ({Math.round(quoteData.marginPercent * 10) / 10}% margin)</span>
+              <span className="total-value">{money(quoteData.markupPerPallet)}</span>
+            </div>
+            <div className="total-line">
+              <span className="total-label">Price per pallet{showGst ? ' (ex GST)' : ''}</span>
               <span className="total-value">{money(totalPrice)}</span>
             </div>
-            {quantity > 1 && (
-              <div className="total-line qty-line">
-                <span className="total-label">× {quantity} pallets</span>
-                <span className="total-value"></span>
+            <div className="total-line">
+              <span className="total-label">× {quantity} pallet{quantity === 1 ? '' : 's'}{showGst ? ' (ex GST)' : ''}</span>
+              <span className="total-value">{money(t.exGst)}</span>
+            </div>
+            {showGst && (
+              <div className="total-line">
+                <span className="total-label">GST {quoteData.gstRate}%</span>
+                <span className="total-value">{money(t.gst)}</span>
               </div>
             )}
             <div className="total-line grand-total">
-              <span className="total-label">Total</span>
-              <span className="total-value">{money(grandTotal)}</span>
+              <span className="total-label">{showGst ? 'Total (inc GST)' : 'Total'}</span>
+              <span className="total-value">{money(t.grand)}</span>
+            </div>
+            <div className="total-line">
+              <span className="total-label">Gross profit on this quote</span>
+              <span className="total-value">{money(quoteData.markupPerPallet * quantity)}</span>
             </div>
           </div>
         </div>
       )}
 
       <div className="print-footer">
-        {isCustomer ? 'Quote valid for 30 days.' : 'Internal record – not for customers. Quote valid for 30 days.'}
+        {isCustomer ? `Quote valid for ${validDays} days, until ${validUntil}.` : `Internal record – not for customers. Rates as used on ${today}.`}
       </div>
     </div>
   )

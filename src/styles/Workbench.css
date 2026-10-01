@@ -1865,3 +1865,230 @@ html.dark-mode .totals .stepper {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Quotes, pricing settings and business details ---------- */
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  font-size: 13.5px;
+}
+
+.banner + .banner {
+  margin-top: 8px;
+}
+
+.banner .text-btn {
+  flex: none;
+}
+
+.quote-id {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.quote-number {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.quote-id .save-state {
+  color: var(--ink-3);
+}
+
+.quote-id .text-btn {
+  margin-left: auto;
+}
+
+.text-btn:disabled {
+  color: var(--ink-3);
+  cursor: default;
+  text-decoration: none;
+}
+
+.status-pill,
+.status-select {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--field);
+  color: var(--ink-2);
+}
+
+.status-sent { background: #e6eefb; color: #2453a6; }
+.status-accepted { background: var(--accent-soft); color: var(--accent); }
+.status-lost { background: var(--warn-soft); color: var(--warn); }
+
+html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
+
+.customer-row {
+  margin-top: 18px;
+}
+
+.muted {
+  font-style: normal;
+  color: var(--ink-3);
+}
+
+.totals-row.sub {
+  min-height: 38px;
+  font-size: 14px;
+}
+
+/* History */
+.history-head {
+  padding-top: 18px;
+}
+
+.quote-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quote-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--field);
+  border: 1px solid transparent;
+}
+
+.quote-list li.current {
+  border-color: var(--accent);
+}
+
+.quote-row-top,
+.quote-row-main,
+.quote-row-sub {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.quote-row-main {
+  font-size: 16px;
+}
+
+.quote-customer {
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quote-total {
+  flex: none;
+  font-weight: 600;
+}
+
+.quote-row-sub {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.quote-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  padding-top: 4px;
+}
+
+.workbench select.status-select {
+  width: auto;
+  height: 26px;
+  padding: 0 26px 0 10px;
+  border: 0;
+  background-position: right 9px center;
+  font-size: 12px;
+}
+
+.text-btn.muted-btn {
+  color: var(--ink-3);
+  margin-left: auto;
+}
+
+.text-btn.danger {
+  color: var(--warn);
+}
+
+.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--warn);
+}
+
+/* Pricing settings and business details */
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--field);
+}
+
+.settings-group .section-head h2,
+.timber-head h2 {
+  font-size: 16px;
+}
+
+.settings-group input[type="number"],
+.settings-group input[type="text"] {
+  background-color: var(--paper);
+}
+
+.input-unit.pre input {
+  padding-left: 26px;
+}
+
+.input-unit .unit-pre {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+
+.formula {
+  margin-top: -4px;
+}
+
+.switch-field {
+  align-self: end;
+  min-height: var(--control-h);
+}
+
+.timber-head {
+  margin-top: 24px;
+}
+
+.prices > .hint {
+  padding: 6px 0 8px;
+}

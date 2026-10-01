@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Pallet Quote</title>
-    <meta name="description" content="Price a timber pallet in about a minute. Pallet Quote works out the boards, gaps and cost per metre, then draws it up with shop drawings your customer can sign off." />
+    <meta name="description" content="Turn a pallet enquiry into a priced, drawn quote in minutes. Pallet Quote works out the boards, gaps and cost per metre, adds your labour and markup, and draws it up for your customer to sign off." />
     <meta name="theme-color" content="#178a52" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
     <link rel="apple-touch-icon" href="/icons/icon.svg" />
@@ -35,7 +35,7 @@
         <div class="wrap hero-grid">
           <div class="hero-copy">
             <h1>Price the pallet before the customer hangs up.</h1>
-            <p class="lede">Enter a size and pick your timber. Pallet Quote works out the boards, the gaps and the cost per metre, then draws it up for your customer to sign off. A full quote takes about a minute.</p>
+            <p class="lede">Enter a size and pick your timber. Pallet Quote works out the boards, the gaps and the cost per metre, then draws it up for your customer to sign off. Turn an enquiry into a professional quote in minutes.</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="./app/">Start a quote</a>
               <a class="btn btn-ghost" href="#how">See how it works</a>
@@ -56,7 +56,7 @@
                 <li data-step="2"><span>Top boards <em>7 × 100 × 17</em></span><b>$5.06</b></li>
               </ol>
               <div class="ticket-total">
-                <span>Total for 250 pallets</span>
+                <span>Timber for 250 pallets</span>
                 <strong id="ticket-total">$3,230.00</strong>
               </div>
             </div>
@@ -117,10 +117,10 @@
           <div class="feature reverse">
             <div class="feature-copy">
               <h3>Priced per metre, the way you buy timber</h3>
-              <p>Every board and bearer is costed on its real length at your own rate per metre. Change the pallet size and the price follows. Change the quantity and the total updates on the spot.</p>
+              <p>Every board and bearer is costed on its real length at your own rate per metre. Add your labour per pallet and your markup, and GST goes on top. Change the size or the quantity and the price follows.</p>
               <ul class="ticks">
-                <li>Your rates, saved on your device</li>
-                <li>Prices are locked until you unlock them, so nobody changes one by accident</li>
+                <li>Markup and the gross margin it gives, side by side</li>
+                <li>Timber prices are locked until you unlock them, so nobody changes one by accident</li>
                 <li>Each line shows the count, the size and the length it was priced on</li>
               </ul>
             </div>
@@ -157,11 +157,11 @@
           <div class="feature reverse">
             <div class="feature-copy">
               <h3>One PDF for the customer, one for you</h3>
-              <p>Send the customer a clean specification with the drawings and the total. Keep a cost breakdown for yourself with every metre and every cent. Both carry the same quote reference, so they always match up.</p>
+              <p>Send the customer a clean quote with your business details, the drawings, the specification and the total with GST. Keep a cost breakdown for yourself with every metre, your markup and your profit. Both carry the same quote number.</p>
               <ul class="ticks">
                 <li>The customer copy shows what they're buying and what it costs, nothing more</li>
-                <li>Your copy records the rates you quoted on, for when timber prices move</li>
-                <li>Saved with a sensible file name, ready to email</li>
+                <li>Every quote is saved with the rates it was priced on, so an old quote never changes when timber does</li>
+                <li>Reopen a past quote, or duplicate it at today's rates for a repeat order</li>
               </ul>
             </div>
             <div class="sheets" aria-label="Example quote documents">
@@ -183,7 +183,7 @@
         <div class="wrap try-grid">
           <div class="try-copy">
             <h2 id="try-title" class="section-title">Try it on a pallet you quoted last week</h2>
-            <p>Move the sliders and watch the deck and the price change. This is a cut-down version with three bottom boards and three 100 × 38 bearers. The full calculator does the rest.</p>
+            <p>Move the sliders and watch the deck and the price change. This is a cut-down version with three bottom boards and three 100 × 38 bearers. It shows timber cost only; the full calculator adds your labour, markup and GST.</p>
             <form class="calc" id="calc" onsubmit="return false">
               <div class="calc-row">
                 <label for="c-width">Width</label>
@@ -217,8 +217,8 @@
             <svg id="plan" class="plan" viewBox="0 0 360 360" role="img" aria-label="Plan view of the top deck"></svg>
             <dl class="result">
               <div><dt>Gap between boards</dt><dd id="r-gap">78 mm</dd></div>
-              <div><dt>Per pallet</dt><dd id="r-each">$12.92</dd></div>
-              <div class="result-total"><dt id="r-total-label">Total for 250 pallets</dt><dd id="r-total">$3,230.00</dd></div>
+              <div><dt>Timber per pallet</dt><dd id="r-each">$12.92</dd></div>
+              <div class="result-total"><dt id="r-total-label">Timber for 250 pallets</dt><dd id="r-total">$3,230.00</dd></div>
             </dl>
             <a class="btn btn-primary" href="./app/">Do the full quote</a>
           </div>
@@ -256,9 +256,9 @@
               <p>The same calculator on whatever's in your hand, with the running total pinned to the top of the screen.</p>
             </li>
             <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h6"/><circle cx="18" cy="16" r="3"/></svg>
-              <h3>Typed or tapped</h3>
-              <p>Step the counts up and down, or type 500 pallets straight in. It never lets a number go outside what fits.</p>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2.5"/></svg>
+              <h3>Every quote on file</h3>
+              <p>Quotes are numbered and saved as you send them. Mark them sent, accepted or lost, search by customer, and duplicate one for a repeat order.</p>
             </li>
           </ul>
         </div>
@@ -282,16 +282,20 @@
               <p>It comes set up with green case pine and kiln dried boards and bearers in the common sizes, from 100 × 12 up to 150 × 25 for boards. Any width and length of pallet works.</p>
             </details>
             <details>
+              <summary>Does the price include my labour and profit?</summary>
+              <p>Yes, once you set them. Enter your labour per pallet and your markup under Prices and every quote includes them. The quote shows the markup and the gross margin it works out to, so there's no confusion between the two. Freight isn't included yet.</p>
+            </details>
+            <details>
               <summary>Will my customer understand the drawing?</summary>
               <p>That's what it's for. The customer copy shows a plan, two elevations, a 3D view and an enlarged end detail, with each part lettered to match the list underneath. There's nothing to interpret.</p>
             </details>
             <details>
               <summary>What does the customer see, and what stays with me?</summary>
-              <p>The customer PDF shows the drawings, the parts and sizes, the price per pallet and the total. Your rates and line-by-line costs only appear on the breakdown PDF, which is for your own records.</p>
+              <p>The customer PDF shows your business details, the drawings, the parts and sizes, the price per pallet, GST and the total. Your rates, labour, markup and line-by-line costs only appear on the breakdown PDF, which is for your own records.</p>
             </details>
             <details>
               <summary>Where is my data kept?</summary>
-              <p>Prices and saved presets are stored in the browser on your device. Nothing is sent anywhere. Use Export to keep a copy or move them to another device.</p>
+              <p>Prices, presets and saved quotes are stored in the browser on your device. Nothing is sent anywhere. Use Back up to save a copy to a file, which you can import on another device. Keep a backup, because clearing your browser data clears them too.</p>
             </details>
           </div>
         </div>
@@ -304,8 +308,8 @@
             <path d="M2 4v32M598 4v32M2 20h596" />
             <path d="M-3 25l10-10M593 25l10-10" />
           </svg>
-          <h2 id="final-title">Your next quote takes a minute.</h2>
-          <p>Open the calculator, enter the size and choose the timber. The price, the drawing and the PDF are ready before you'd have found the spreadsheet.</p>
+          <h2 id="final-title">Your next quote is minutes away.</h2>
+          <p>Open the calculator, enter the size and choose the timber. The price, the drawing and the PDF come together as you go.</p>
           <a class="btn btn-primary btn-large" href="./app/">Start a quote</a>
         </div>
       </section>

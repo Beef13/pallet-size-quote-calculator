@@ -30,8 +30,16 @@
           // The service worker lives at the site root, one level above /app/
           const swPath = new URL('../sw.js', window.location.href).pathname;
           navigator.serviceWorker.register(swPath, { scope: new URL('../', window.location.href).pathname })
+            .then(() => navigator.serviceWorker.ready)
             .then((registration) => {
-              console.log('SW registered:', registration.scope);
+              // Keep a copy of everything this first visit loaded, so the
+              // calculator opens without signal next time
+              const urls = [window.location.href].concat(
+                performance.getEntriesByType('resource')
+                  .map((entry) => entry.name)
+                  .filter((url) => url.startsWith(window.location.origin))
+              );
+              registration.active && registration.active.postMessage({ type: 'cache-urls', urls });
             })
             .catch((error) => {
               console.log('SW registration failed:', error);

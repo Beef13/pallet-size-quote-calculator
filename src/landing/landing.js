@@ -202,7 +202,7 @@ function setupCalculator() {
     $('r-gap').textContent = `${Math.round(gap * 10) / 10} mm`
     setMoney($('r-each'), each)
     setMoney($('r-total'), each * qty)
-    $('r-total-label').textContent = qty === 1 ? 'Total for 1 pallet' : `Total for ${qty} pallets`
+    $('r-total-label').textContent = qty === 1 ? 'Timber for 1 pallet' : `Timber for ${qty} pallets`
     form.querySelectorAll('input[type="range"]').forEach(fill)
 
     // Plan view of the top deck
