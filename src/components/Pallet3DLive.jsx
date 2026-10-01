@@ -2,7 +2,7 @@ import React, { useRef, useMemo, useEffect, Suspense } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, Text, Line, Billboard, ContactShadows } from '@react-three/drei'
 // Bundled locally so labels work offline (drei's default font is fetched from Google)
-import labelFont from '../assets/fonts/archivo-latin-500-normal.woff'
+import labelFont from '../assets/fonts/outfit-latin-500-normal.woff'
 import '../styles/Pallet3DLive.css'
 
 // If the labels ever fail to render, hide them instead of breaking the whole app
@@ -181,8 +181,8 @@ function Nail({ position }) {
 function PalletStructure({ previewData, dark = false }) {
   // Dimension line colours follow the light/dark theme
   const dim = dark
-    ? { color: '#8b959c', textColor: '#e3e6e1', outlineColor: '#1d2226' }
-    : { color: '#8a939b', textColor: '#3a434b', outlineColor: '#e4e6e7' }
+    ? { color: '#8b959c', textColor: '#e3e6e1', outlineColor: '#17191b' }
+    : { color: '#a1a5ab', textColor: '#3f444a', outlineColor: '#f4f4f5' }
 
   const groupRef = useRef()
   

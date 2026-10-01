@@ -1,52 +1,59 @@
 /* ------------------------------------------------------------------
    Pallet quote - workbench layout
    A docked panel on the left, the 3D pallet on a soft grey stage
-   on the right. One typeface (Archivo), one accent colour.
+   on the right, both as rounded cards on a soft grey canvas.
+   One typeface (Outfit), one green accent, pill-shaped controls.
    ------------------------------------------------------------------ */
 
 :root {
-  --yard: #e4e6e7;
-  --yard-floor: #d3d7da;
+  --canvas: #ececee;
+  --yard: #f4f4f5;
+  --yard-floor: #e6e7e9;
   --paper: #ffffff;
-  --field: #ffffff;
-  --ink: #15191e;
-  --ink-2: #5d6670;
-  --ink-3: #959da5;
-  --rule: #eceef0;
-  --rule-strong: #d9dde1;
-  --accent: #1f4f8a;
-  --accent-hover: #183f6e;
+  --field: #f4f4f5;
+  --ink: #111316;
+  --ink-2: #6b7078;
+  --ink-3: #a1a5ab;
+  --rule: #efeff1;
+  --rule-strong: #e2e3e6;
+  --accent: #178a52;
+  --accent-hover: #127444;
   --accent-ink: #ffffff;
-  --accent-soft: #eef3f9;
-  --warn: #9a3a1c;
-  --warn-soft: #f6e9e2;
-  --ready: #3d6a3a;
+  --accent-soft: #e5f3eb;
+  --accent-tint: #8fc4a6;
+  --warn: #b4441f;
+  --warn-soft: #fbece6;
+  --ready: #178a52;
 
-  --font-ui: 'Archivo Variable', 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ui: 'Outfit Variable', 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --panel-width: 440px;
-  --radius: 8px;
-  --control-h: 40px;
+  --radius: 12px;
+  --card-radius: 28px;
+  --control-h: 42px;
+  --gap: 14px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 html.dark-mode {
-  --yard: #1d2226;
-  --yard-floor: #171b1e;
-  --paper: #121518;
-  --field: #1c2126;
-  --ink: #e3e6e1;
-  --ink-2: #a3acb2;
-  --ink-3: #6f787f;
-  --rule: #22282d;
-  --rule-strong: #323a40;
-  --accent: #93b4df;
-  --accent-hover: #b0c9ea;
-  --accent-ink: #0f1a28;
-  --accent-soft: #1f2b3a;
-  --warn: #e6a083;
-  --warn-soft: #36231d;
-  --ready: #9cc795;
+  --canvas: #0e1011;
+  --yard: #17191b;
+  --yard-floor: #121415;
+  --paper: #1b1e20;
+  --field: #24282b;
+  --ink: #eceeef;
+  --ink-2: #9aa0a6;
+  --ink-3: #6a7076;
+  --rule: #26292c;
+  --rule-strong: #303438;
+  --accent: #34b273;
+  --accent-hover: #46c584;
+  --accent-ink: #06150d;
+  --accent-soft: #173226;
+  --accent-tint: #2a6b4a;
+  --warn: #f0a07f;
+  --warn-soft: #3a231b;
+  --ready: #34b273;
   color-scheme: dark;
 }
 
@@ -1132,6 +1139,517 @@ html.dark-mode .workbench select {
   color: var(--ink-2);
 }
 
+/* ---------- Card look: rounded white surfaces on a soft grey canvas ---------- */
+
+.workbench {
+  background: var(--canvas);
+  padding: var(--gap);
+  gap: var(--gap);
+  box-sizing: border-box;
+}
+
+.workbench.panel-collapsed {
+  gap: 0;
+}
+
+.panel {
+  border-right: 0;
+  border-radius: var(--card-radius);
+  box-shadow: 0 1px 2px rgba(17, 19, 22, 0.04);
+}
+
+.stage {
+  border-radius: var(--card-radius);
+}
+
+/* Header */
+.panel-header {
+  padding: 20px 20px 14px 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.brand-mark {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+}
+
+.icon-btn:hover {
+  background: var(--field);
+}
+
+.icon-btn.small {
+  width: 30px;
+  height: 30px;
+  border-color: transparent;
+}
+
+/* Tabs: pill segmented control */
+.tabs {
+  gap: 4px;
+  margin: 2px 24px 4px;
+  padding: 5px;
+  border-bottom: 0;
+  border-radius: 999px;
+  background: var(--field);
+}
+
+.tab {
+  flex: 1;
+  justify-content: center;
+  padding: 9px 12px;
+  border-radius: 999px;
+  font-size: 14.5px;
+}
+
+.tab.active {
+  background: var(--paper);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(17, 19, 22, 0.08);
+}
+
+html.dark-mode .tab.active {
+  background: var(--rule-strong);
+}
+
+.tab.active::after {
+  display: none;
+}
+
+.tab-flag {
+  width: 7px;
+  height: 7px;
+}
+
+/* Body & footer */
+.panel-body {
+  padding: 4px 24px 24px;
+}
+
+.panel-footer {
+  padding: 14px 20px 16px 24px;
+  border-top: 1px solid var(--rule);
+  background: transparent;
+}
+
+.form-section {
+  padding: 22px 0;
+}
+
+.section-head h2 {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* Cost badge next to a section heading */
+.section-cost {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* Fields: soft filled, no hard borders */
+.workbench select,
+.workbench input[type="number"],
+.workbench input[type="text"] {
+  height: var(--control-h);
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background-color: var(--field);
+}
+
+.workbench select {
+  padding-right: 36px;
+  background-position: right 15px center;
+}
+
+.workbench select:hover:not(:disabled),
+.workbench input:hover:not(:disabled) {
+  border-color: var(--rule-strong);
+}
+
+.workbench select:focus-visible,
+.workbench input:focus-visible {
+  border-color: var(--accent);
+  background-color: var(--paper);
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 0;
+}
+
+.workbench select:disabled,
+.workbench input:disabled {
+  border: 1px dashed var(--rule-strong);
+  background-color: transparent;
+}
+
+.input-unit .unit {
+  right: 14px;
+}
+
+/* Stepper: pill with round buttons */
+.stepper {
+  grid-template-columns: 34px 46px 34px;
+  align-items: center;
+  height: var(--control-h);
+  padding: 0 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--field);
+}
+
+.stepper-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(17, 19, 22, 0.08);
+}
+
+html.dark-mode .stepper-btn {
+  background: var(--rule-strong);
+}
+
+.stepper-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.stepper-btn:disabled {
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-3);
+}
+
+.stepper-value,
+.workbench input.stepper-value {
+  border: 0;
+  font-weight: 600;
+}
+
+.workbench input.stepper-value {
+  background: transparent;
+  height: 100%;
+}
+
+/* Switch */
+.switch-track {
+  width: 36px;
+  height: 22px;
+  border-radius: 11px;
+}
+
+.switch-thumb {
+  width: 18px;
+  height: 18px;
+}
+
+.switch input:checked + .switch-track .switch-thumb {
+  transform: translateX(14px);
+}
+
+/* Leader board options */
+.field-row.nested {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--accent-soft);
+}
+
+.field-row.nested select {
+  background-color: var(--paper);
+}
+
+/* Buttons: pills */
+.btn {
+  height: var(--control-h);
+  padding: 0 20px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.btn-secondary {
+  background: var(--paper);
+  border-color: var(--rule-strong);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--field);
+}
+
+.btn-quiet {
+  padding: 0 14px;
+}
+
+.btn-quiet:hover {
+  background: var(--field);
+}
+
+.text-btn {
+  font-weight: 500;
+}
+
+.notice {
+  border-radius: 16px;
+}
+
+/* Presets */
+.preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 0;
+}
+
+.preset-list li {
+  padding: 2px 6px 2px 14px;
+  border-bottom: 0;
+  border-radius: 14px;
+  background: var(--field);
+}
+
+/* Dialog */
+.modal {
+  border: 0;
+  border-radius: var(--card-radius);
+  padding: 28px;
+}
+
+/* Quote */
+.quote-meta h2 {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.line-items {
+  border-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.line-items li {
+  padding: 12px 14px;
+  margin: 0 -14px;
+  border-bottom: 0;
+  border-radius: 14px;
+}
+
+.line-items li:nth-child(even) {
+  background: var(--field);
+}
+
+.item-name {
+  font-weight: 500;
+}
+
+.totals {
+  padding: 4px 18px;
+  border-top: 0;
+  border-radius: 20px;
+  background: var(--field);
+}
+
+.totals-row:last-child {
+  border-bottom: 0;
+}
+
+.totals .stepper {
+  background: var(--paper);
+}
+
+html.dark-mode .totals .stepper {
+  background: var(--rule);
+}
+
+.totals-row.grand > span:last-child {
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+/* Prices */
+.price-group {
+  margin-bottom: 8px;
+  padding: 0 16px;
+  border-bottom: 0;
+  border-radius: 20px;
+  background: var(--field);
+}
+
+.price-row {
+  padding: 4px 0;
+}
+
+.workbench .price-input input {
+  height: 36px;
+  padding: 0 34px 0 24px;
+  text-align: right;
+  background-color: var(--paper);
+}
+
+.workbench .price-input input[aria-label="Nail price each"] {
+  padding-right: 46px;
+}
+
+.price-row.locked .price-input input {
+  background-color: transparent;
+}
+
+/* Cents shown lighter */
+.cents,
+.header-total strong .cents {
+  font-size: inherit;
+  color: var(--ink-3);
+}
+
+/* Stage: price card & controls */
+.stamp {
+  top: 20px;
+  right: 20px;
+  min-width: 250px;
+  padding: 20px 22px 18px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--paper);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 1px 2px rgba(17, 19, 22, 0.05), 0 10px 30px -14px rgba(17, 19, 22, 0.25);
+}
+
+.stamp-label {
+  font-size: 13.5px;
+}
+
+.stamp-value {
+  font-size: 42px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  margin: 4px 0 14px;
+}
+
+.stamp-qty {
+  border-top: 0;
+  padding: 6px 6px 6px 14px;
+  border-radius: 999px;
+  background: var(--field);
+}
+
+.stamp-qty .stepper {
+  background: transparent;
+  padding: 0;
+  grid-template-columns: 30px 44px 30px;
+}
+
+.stamp-qty .stepper-btn {
+  width: 30px;
+  height: 30px;
+}
+
+.show-panel-btn {
+  height: 42px;
+  padding: 0 18px 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: 0 4px 16px -6px rgba(17, 19, 22, 0.25);
+  font-weight: 500;
+}
+
+.stage-controls {
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  align-items: center;
+}
+
+.range {
+  padding: 14px 18px 12px;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: 0 1px 2px rgba(17, 19, 22, 0.05);
+}
+
+.range input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--field);
+}
+
+.range input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--field);
+}
+
+.range input[type="range"]::-moz-range-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.range input[type="range"]::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  background: var(--accent);
+  border: 3px solid var(--paper);
+  box-shadow: 0 1px 4px rgba(17, 19, 22, 0.25);
+}
+
+.range input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  border: 3px solid var(--paper);
+}
+
+.stage-hint {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper) 70%, transparent);
+}
+
+.stage-empty p {
+  padding: 14px 20px;
+  border-radius: 20px;
+  background: var(--paper);
+}
+
 /* ---------- Small screens ---------- */
 
 @media (max-width: 900px) {
@@ -1258,5 +1776,53 @@ html.dark-mode .workbench select {
   .switch-thumb,
   .chevron {
     transition: none;
+  }
+}
+
+/* Small screens: cards stack edge to edge */
+@media (max-width: 900px) {
+  .workbench,
+  .workbench.panel-collapsed {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .panel {
+    border-bottom: 0;
+  }
+
+  .panel-header {
+    border-radius: var(--card-radius) var(--card-radius) 0 0;
+    padding: 14px 14px 12px 18px;
+  }
+
+  .tabs {
+    margin: 10px 18px 4px;
+  }
+
+  .stage {
+    border-radius: var(--card-radius);
+  }
+
+  .header-total strong {
+    font-weight: 500;
+  }
+
+  .stamp {
+    top: 12px;
+    right: 12px;
+    min-width: 0;
+    padding: 12px 16px;
+    border-radius: 18px;
+  }
+
+  .stamp-value {
+    font-size: 30px;
+    margin: 2px 0 0;
+  }
+
+  .range {
+    width: 100%;
+    box-sizing: border-box;
   }
 }

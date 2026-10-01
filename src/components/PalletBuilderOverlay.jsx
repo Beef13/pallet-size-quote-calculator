@@ -108,6 +108,12 @@ function Stepper({ value, onChange, min = 1, max = 15, label, id, editable = fal
   )
 }
 
+// Price with the cents shown lighter, e.g. $12<span>.92</span>
+function Money({ value }) {
+  const [whole, cents] = formatCurrency(value).split('.')
+  return <>{whole}<span className="cents">.{cents}</span></>
+}
+
 // Section heading that also shows what that part of the pallet costs
 function SectionHead({ title, cost }) {
   return (
@@ -871,7 +877,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   ].filter(Boolean)
 
   const totalLabel = liveQuote.isComplete ? (quantity > 1 ? `Total for ${quantity} pallets` : 'Total') : 'Running total'
-  const totalValue = formatCurrency((liveQuote.totalPrice || 0) * quantity)
 
   const tabs = [
     { id: 'calculator', label: 'Build' },
@@ -885,11 +890,21 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       <aside className="panel" aria-hidden={isPanelCollapsed}>
         <header className="panel-header">
           <div className="brand">
+            <span className="brand-logo" aria-hidden="true">
+              {/* A pallet seen side-on: deck board over three blocks */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="3" y="7" width="18" height="3.5" rx="1" />
+                <rect x="4" y="12" width="3.5" height="4" rx="0.8" />
+                <rect x="10.25" y="12" width="3.5" height="4" rx="0.8" />
+                <rect x="16.5" y="12" width="3.5" height="4" rx="0.8" />
+                <rect x="3" y="17" width="18" height="2.5" rx="1" />
+              </svg>
+            </span>
             <span className="brand-mark">Pallet quote</span>
           </div>
           <div className="header-total" aria-hidden="true">
             <span>{totalLabel}</span>
-            <strong>{totalValue}</strong>
+            <strong><Money value={(liveQuote.totalPrice || 0) * quantity} /></strong>
           </div>
           <div className="header-actions">
             <button type="button" className="icon-btn" onClick={() => setIsDarkMode(!isDarkMode)}
@@ -1130,7 +1145,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     </div>
                     <div className={`totals-row grand ${liveQuote.isComplete ? '' : 'partial'}`}>
                       <span>{liveQuote.isComplete ? 'Total' : 'Running total'}</span>
-                      <span>{formatCurrency(liveQuote.totalPrice * quantity)}</span>
+                      <span><Money value={liveQuote.totalPrice * quantity} /></span>
                     </div>
                   </div>
                 </div>
@@ -1262,7 +1277,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
         <div className={`stamp ${liveQuote.isComplete ? 'complete' : ''} ${liveQuote.hasAnyPrice ? '' : 'empty'}`}>
           <span className="stamp-label">{liveQuote.hasAnyPrice ? totalLabel : 'No price yet'}</span>
-          <span className="stamp-value">{totalValue}</span>
+          <span className="stamp-value"><Money value={(liveQuote.totalPrice || 0) * quantity} /></span>
           <div className="stamp-qty">
             <span id="stage-qty-label">Pallets</span>
             <Stepper id="stage-qty-label" label="pallets" value={palletQuantity} min={1} max={9999} editable
