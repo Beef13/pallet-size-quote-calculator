@@ -29,6 +29,8 @@ const LW = {
 
 const HIDDEN_DASH = '5 3'
 const INK = '#000'
+// Colour of detail callouts (the box on the elevation and its matching marker)
+const CALLOUT = '#d0312d'
 const TONE = { top: '#ffffff', left: '#eeeeee', right: '#d9d9d9', end: '#e6e6e6', back: '#f4f4f4' }
 const FONT = "'Outfit Variable', Arial, Helvetica, sans-serif"
 
@@ -343,13 +345,22 @@ function ShopDrawing({ q, quantity, today, parts }) {
       {botLeaderW > 0 && tag('bottomLeader') && bTag !== 'bottomLeader' && (
         <Tag letter={tag('bottomLeader')} at={[fx(W) - 30, fy(0) + 46]} to={[fx(W - bot[bot.length - 1].w / 2), fy(bot[bot.length - 1].t / 2)]} />
       )}
-      {/* Detail callout on the front elevation */}
-      <g>
-        <ellipse cx={fx(xCut / 2)} cy={fy(H / 2)} rx={xCut * s / 2 + 8} ry={Hp / 2 + 8} fill="none" stroke={INK} strokeWidth={LW.thin} strokeDasharray="6 3" />
-        <line x1={fx(xCut) + 6} y1={fy(H) - 4} x2={fx(xCut) + 22} y2={fy(H) - 16} stroke={INK} strokeWidth={LW.thin} />
-        <circle cx={fx(xCut) + 29} cy={fy(H) - 20} r={8} fill="#fff" stroke={INK} strokeWidth={LW.visible} />
-        <text x={fx(xCut) + 29} y={fy(H) - 19.5} fontSize={10} fontWeight="600" fontFamily={FONT} textAnchor="middle" dominantBaseline="central">1</text>
-      </g>
+      {/* Detail callout on the front elevation: rounded box + numbered marker */}
+      {(() => {
+        const pad = 7
+        const x0 = fx(0) - pad, y0 = fy(H) - pad
+        const w = xCut * s + pad * 2, h = Hp + pad * 2
+        const bx = x0 + w + 16, by = y0 - 12
+        return (
+          <g stroke={CALLOUT}>
+            <rect x={x0} y={y0} width={w} height={h} rx={6} ry={6} fill="none" strokeWidth={LW.visible} strokeDasharray="6 3" />
+            <line x1={x0 + w} y1={y0 + 4} x2={bx - 6} y2={by + 5} strokeWidth={LW.thin} />
+            <circle cx={bx} cy={by} r={8} fill="#fff" strokeWidth={LW.visible} />
+            <text x={bx} y={by + 0.5} fontSize={10} fontWeight="600" fontFamily={FONT} textAnchor="middle"
+              dominantBaseline="central" fill={CALLOUT} stroke="none">1</text>
+          </g>
+        )
+      })()}
       <ViewTitle x={frontX} y={fy(0) + 80} title="FRONT ELEVATION" sub={`Scale 1:${denom}`} />
     </g>
   )
@@ -443,7 +454,10 @@ function ShopDrawing({ q, quantity, today, parts }) {
         ))
       })()}
 
-      <ViewTitle x={detX} y={dy(0) + 50} title="DETAIL 1  END PROFILE" sub={`Scale 1:${detailDenom}`} />
+      {/* Matching marker so the detail is easy to find from the elevation */}
+      <circle cx={detX + 8} cy={dy(0) + 45} r={8} fill="#fff" stroke={CALLOUT} strokeWidth={LW.visible} />
+      <text x={detX + 8} y={dy(0) + 45.5} fontSize={10} fontWeight="600" fontFamily={FONT} textAnchor="middle" dominantBaseline="central" fill={CALLOUT}>1</text>
+      <ViewTitle x={detX + 22} y={dy(0) + 50} title="DETAIL 1  END PROFILE" sub={`Scale 1:${detailDenom}`} />
     </g>
   )
 
