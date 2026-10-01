@@ -13,7 +13,7 @@
 }
 
 .lock-button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--rule);
 }
 
 .lock-button:active {
@@ -26,20 +26,20 @@
 
 /* Locked State - Grey */
 .lock-button.locked {
-  color: #9ca3af;
+  color: var(--ink-3);
 }
 
 .lock-button.locked:hover {
-  color: #6b7280;
+  color: var(--ink-2);
 }
 
 /* Unlocked State */
 .lock-button.unlocked {
-  color: var(--success-color);
+  color: var(--accent);
 }
 
 .lock-button.unlocked:hover {
-  color: #059669;
+  color: var(--accent-hover);
 }
 
 /* Shackle Animation */

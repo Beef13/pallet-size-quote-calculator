@@ -4,7 +4,7 @@ import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, formatCurr
 import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
 import PrintableQuote from './PrintableQuote'
-import '../styles/PalletBuilderOverlay.css'
+import '../styles/Workbench.css'
 
 // Look up a board or bearer size in the bundled timber data
 function findSize(typeId, sizeId, kind = 'board') {
@@ -64,13 +64,57 @@ function writeStorage(key, value) {
   }
 }
 
-// Edit Icon SVG component
-function EditIcon() {
+// Small line icons (stroke follows text colour)
+function Icon({ name, size = 18 }) {
+  const paths = {
+    panel: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /></>,
+    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>,
+    moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />,
+    close: <path d="M6 6l12 12M18 6L6 18" />,
+    minus: <path d="M6 12h12" />,
+    plus: <path d="M12 6v12M6 12h12" />
+  }
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {paths[name]}
     </svg>
+  )
+}
+
+// Number stepper used for board, bearer and pallet counts
+function Stepper({ value, onChange, min = 1, max = 15, label, id, editable = false }) {
+  // An empty editable field counts as the minimum (e.g. 1 pallet)
+  const n = parseInt(value) || (editable ? min : 0)
+  const set = (v) => onChange(String(Math.max(min, Math.min(max, v))))
+  return (
+    <div className="stepper" role="group" aria-labelledby={id}>
+      <button type="button" className="stepper-btn" onClick={() => set(n ? n - 1 : min)}
+        disabled={n !== 0 && n <= min} aria-label={`Fewer ${label}`}>
+        <Icon name="minus" size={16} />
+      </button>
+      {editable ? (
+        <input className="stepper-value" type="text" inputMode="numeric" value={value} aria-label={label}
+          onChange={(e) => { if (/^\d*$/.test(e.target.value)) onChange(e.target.value) }}
+          onBlur={() => { if (!parseInt(value) || parseInt(value) < min) onChange(String(min)) }} />
+      ) : (
+        <output className="stepper-value" aria-live="polite">{n || '–'}</output>
+      )}
+      <button type="button" className="stepper-btn" onClick={() => set(n ? n + 1 : min)}
+        disabled={n >= max} aria-label={`More ${label}`}>
+        <Icon name="plus" size={16} />
+      </button>
+    </div>
+  )
+}
+
+// Section heading that also shows what that part of the pallet costs
+function SectionHead({ title, cost }) {
+  return (
+    <div className="section-head">
+      <h2>{title}</h2>
+      {cost > 0 && <span className="section-cost">{formatCurrency(cost)}</span>}
+    </div>
   )
 }
 
@@ -80,7 +124,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return readStorage('palletDarkMode') === 'true'
+    const saved = readStorage('palletDarkMode')
+    if (saved === 'true' || saved === 'false') return saved === 'true'
+    // No choice saved yet: follow the device setting
+    return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-color-scheme: dark)').matches
   })
   
   // Tab state
@@ -107,7 +154,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [selectedBearerSize, setSelectedBearerSize] = useState('')
   const [numberOfBearers, setNumberOfBearers] = useState('')
   const [error, setError] = useState('')
-  const [palletQuantity, setPalletQuantity] = useState('')
+  const [palletQuantity, setPalletQuantity] = useState('1')
   
   // Price editor state
   const [prices, setPrices] = useState({ timberTypes: [] })
@@ -607,7 +654,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setSelectedBearerSize('')
     setNumberOfBearers('')
     setError('')
-    setPalletQuantity('')
+    setPalletQuantity('1')
     onQuoteCalculated(null)
   }
 
@@ -714,727 +761,527 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   }
   const quantity = Math.max(1, parseInt(palletQuantity) || 1)
 
-  return (
-    <div className={`builder-layout ${isPanelCollapsed ? 'panel-collapsed' : ''}`}>
-      {/* Collapsed Edit Button */}
-      {isPanelCollapsed && (
-        <button 
-          className="expand-panel-btn"
-          onClick={() => setIsPanelCollapsed(false)}
-          title="Open Editor"
-        >
-          <EditIcon />
-        </button>
-      )}
+  const sectionCosts = {
+    bottom: liveQuote.bottomBoardsTotal + liveQuote.bottomLeadersTotal,
+    top: liveQuote.topBoardsTotal + liveQuote.topLeadersTotal,
+    bearers: liveQuote.bearersTotal
+  }
 
-      {/* Left Panel - Form Card */}
-      <div className={`form-panel ${isPanelCollapsed ? 'hidden' : ''}`}>
-        <div className="form-card">
-          {/* Collapse Button */}
-          <button 
-            className="collapse-panel-btn"
-            onClick={() => setIsPanelCollapsed(true)}
-            title="Collapse Panel"
-          >
-            ✕
-          </button>
-          
-          {/* Tab Navigation */}
-          <div className="card-tabs">
-            <button 
-              className={`card-tab ${activeTab === 'calculator' ? 'active' : ''}`}
-              onClick={() => setActiveTab('calculator')}
-            >
-              Builder
+  const timberOptions = timberData.timberTypes.map(type => (
+    <option key={type.id} value={type.id}>{type.name}</option>
+  ))
+
+  const sizeOptions = (sizes) => sizes.map(size => (
+    <option key={size.id} value={size.id}>{size.dimensions.replace('x', ' × ')}</option>
+  ))
+
+  const maxNote = (max) => (max > 0 && max < 15 ? <span className="field-note">up to {max}</span> : null)
+
+  // One deck of boards (top or bottom) - the two sections share the same controls
+  const renderDeck = (deck) => {
+    const isTop = deck === 'top'
+    const p = isTop ? {
+      type: selectedTopBoardType, setType: changeTopBoardType, size: selectedTopBoardSize, setSize: setSelectedTopBoardSize,
+      sizes: availableTopBoardSizes, count: displayedTopBoards, setCount: setNumberOfTopBoards, max: maxTopBoardsAllowed,
+      maxUI: maxTopBoardsForUI, leaders: useCustomTopLeaders, setLeaders: setUseCustomTopLeaders,
+      leaderType: selectedTopLeaderType, setLeaderType: changeTopLeaderType, leaderSize: selectedTopLeaderSize,
+      setLeaderSize: setSelectedTopLeaderSize, leaderSizes: availableTopLeaderSizes
+    } : {
+      type: selectedBottomBoardType, setType: changeBottomBoardType, size: selectedBottomBoardSize, setSize: setSelectedBottomBoardSize,
+      sizes: availableBottomBoardSizes, count: displayedBottomBoards, setCount: setNumberOfBottomBoards, max: maxBottomBoardsAllowed,
+      maxUI: maxBottomBoardsForUI, leaders: useCustomBottomLeaders, setLeaders: setUseCustomBottomLeaders,
+      leaderType: selectedBottomLeaderType, setLeaderType: changeBottomLeaderType, leaderSize: selectedBottomLeaderSize,
+      setLeaderSize: setSelectedBottomLeaderSize, leaderSizes: availableBottomLeaderSizes
+    }
+    return (
+      <section className="form-section" aria-label={isTop ? 'Top boards' : 'Bottom boards'}>
+        <SectionHead title={isTop ? 'Top boards' : 'Bottom boards'} cost={sectionCosts[deck]} />
+        <div className="field-row">
+          <label className="field">
+            <span className="field-label">Timber</span>
+            <select value={p.type} onChange={(e) => p.setType(e.target.value)} data-field={`${deck}-type`}>
+              <option value="">Choose timber</option>
+              {timberOptions}
+            </select>
+          </label>
+          <label className="field">
+            <span className="field-label">Size</span>
+            <select value={p.size} onChange={(e) => p.setSize(e.target.value)} disabled={!p.type} data-field={`${deck}-size`}>
+              <option value="">{p.type ? 'Choose size' : 'Choose timber first'}</option>
+              {sizeOptions(p.sizes)}
+            </select>
+          </label>
+        </div>
+        <div className="field field-inline">
+          <span className="field-label" id={`${deck}-count-label`}>Boards {maxNote(p.max)}</span>
+          <Stepper id={`${deck}-count-label`} label={`${deck} boards`} value={p.count} onChange={p.setCount} max={p.maxUI} />
+        </div>
+        <label className="switch">
+          <input type="checkbox" checked={p.leaders} onChange={(e) => p.setLeaders(e.target.checked)} data-field={`${deck}-leaders`} />
+          <span className="switch-track" aria-hidden="true"><span className="switch-thumb" /></span>
+          <span>Different leader boards on the outside edges</span>
+        </label>
+        {p.leaders && (
+          <div className="field-row nested">
+            <label className="field">
+              <span className="field-label">Leader timber</span>
+              <select value={p.leaderType} onChange={(e) => p.setLeaderType(e.target.value)} data-field={`${deck}-leader-type`}>
+                <option value="">Choose timber</option>
+                {timberOptions}
+              </select>
+            </label>
+            <label className="field">
+              <span className="field-label">Leader size</span>
+              <select value={p.leaderSize} onChange={(e) => p.setLeaderSize(e.target.value)} disabled={!p.leaderType} data-field={`${deck}-leader-size`}>
+                <option value="">{p.leaderType ? 'Choose size' : 'Choose timber first'}</option>
+                {sizeOptions(p.leaderSizes)}
+              </select>
+            </label>
+          </div>
+        )}
+      </section>
+    )
+  }
+
+  const lineItems = [
+    liveQuote.topLeaderCount > 0 && {
+      name: 'Top leader boards', amount: liveQuote.topLeadersTotal,
+      detail: `${liveQuote.topLeaderCount} × ${liveQuote.topLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+    },
+    liveQuote.topBoardSize && liveQuote.topInnerBoards > 0 && {
+      name: 'Top boards', amount: liveQuote.topBoardsTotal,
+      detail: `${liveQuote.topInnerBoards} × ${liveQuote.topBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+    },
+    liveQuote.bottomLeaderCount > 0 && {
+      name: 'Bottom leader boards', amount: liveQuote.bottomLeadersTotal,
+      detail: `${liveQuote.bottomLeaderCount} × ${liveQuote.bottomLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+    },
+    liveQuote.bottomBoardSize && liveQuote.bottomInnerBoards > 0 && {
+      name: 'Bottom boards', amount: liveQuote.bottomBoardsTotal,
+      detail: `${liveQuote.bottomInnerBoards} × ${liveQuote.bottomBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+    },
+    liveQuote.bearerSize && liveQuote.numberOfBearers > 0 && {
+      name: 'Bearers', amount: liveQuote.bearersTotal,
+      detail: `${liveQuote.numberOfBearers} × ${liveQuote.bearerSize.replace('x', ' × ')}, ${formatDimension(liveQuote.bearerLength)} long`
+    },
+    liveQuote.totalNails > 0 && {
+      name: 'Nails', amount: liveQuote.nailsTotal,
+      detail: `${liveQuote.totalNails} at ${formatCurrency(liveQuote.pricePerNail)} each`
+    }
+  ].filter(Boolean)
+
+  const totalLabel = liveQuote.isComplete ? (quantity > 1 ? `Total for ${quantity} pallets` : 'Total') : 'Running total'
+  const totalValue = formatCurrency((liveQuote.totalPrice || 0) * quantity)
+
+  const tabs = [
+    { id: 'calculator', label: 'Build' },
+    { id: 'quote', label: 'Quote' },
+    { id: 'prices', label: 'Prices' }
+  ]
+
+  return (
+    <div className={`workbench ${isPanelCollapsed ? 'panel-collapsed' : ''}`}>
+      {/* Left panel */}
+      <aside className="panel" aria-hidden={isPanelCollapsed}>
+        <header className="panel-header">
+          <div className="brand">
+            <span className="brand-mark">Pallet quote</span>
+          </div>
+          <div className="header-total" aria-hidden="true">
+            <span>{totalLabel}</span>
+            <strong>{totalValue}</strong>
+          </div>
+          <div className="header-actions">
+            <button type="button" className="icon-btn" onClick={() => setIsDarkMode(!isDarkMode)}
+              title={isDarkMode ? 'Use light theme' : 'Use dark theme'} aria-label={isDarkMode ? 'Use light theme' : 'Use dark theme'}>
+              <Icon name={isDarkMode ? 'sun' : 'moon'} />
             </button>
-            <button 
-              className={`card-tab ${activeTab === 'quote' ? 'active' : ''} ${liveQuote?.isComplete ? 'has-quote' : ''}`}
-              onClick={() => setActiveTab('quote')}
-            >
-              Quote {liveQuote?.hasAnyPrice && <span className={`quote-ready-dot ${liveQuote.isComplete ? '' : 'partial'}`}>●</span>}
-            </button>
-            <button 
-              className={`card-tab ${activeTab === 'prices' ? 'active' : ''}`}
-              onClick={() => setActiveTab('prices')}
-            >
-              Prices
+            <button type="button" className="icon-btn hide-panel-btn" onClick={() => setIsPanelCollapsed(true)}
+              title="Hide panel" aria-label="Hide panel">
+              <Icon name="panel" />
             </button>
           </div>
+        </header>
 
-          {activeTab === 'calculator' ? (
-            <>
-              <div className="card-content">
-              
-                <div className="quote-form">
-                  {/* Pallet Dimensions Section */}
-                  <div className="section-heading">
-                    <span className="section-title">Pallet Dimensions</span>
-                  </div>
-                  <div className="form-row three-col">
-                    <div className="form-field">
-                      <label>Load Preset</label>
-                      <select
-                        onChange={(e) => {
-                          const value = e.target.value
-                          if (value.startsWith('saved:')) {
-                            const presetId = value.replace('saved:', '')
-                            const preset = savedPresets.find(p => p.id === presetId)
-                            if (preset) loadPreset(preset)
-                          } else if (value) {
-                            const [w, l] = value.split('x')
-                            setPalletWidth(w)
-                            setPalletLength(l)
-                          }
-                        }}
-                        value=""
-                      >
-                        <option value="">Select...</option>
-                        <optgroup label="Standard Sizes">
-                          <option value="1165x1165">1165 × 1165mm</option>
-                          <option value="1140x1140">1140 × 1140mm</option>
-                        </optgroup>
-                        {savedPresets.length > 0 && (
-                          <optgroup label="My Saved Presets">
-                            {savedPresets.map(preset => (
-                              <option key={preset.id} value={`saved:${preset.id}`}>
-                                {preset.name}
-                              </option>
-                            ))}
-                          </optgroup>
-                        )}
-                      </select>
-                    </div>
-                    <div className="form-field">
-                      <label>Width (mm)</label>
-                      <input
-                        type="number"
-                        value={palletWidth}
-                        onChange={(e) => setPalletWidth(e.target.value)}
-                        placeholder="e.g., 1200"
-                      />
-                    </div>
-                    <div className="form-field">
-                      <label>Length (mm)</label>
-                      <input
-                        type="number"
-                        value={palletLength}
-                        onChange={(e) => setPalletLength(e.target.value)}
-                        placeholder="e.g., 1200"
-                      />
-                    </div>
-                  </div>
+        <nav className="tabs" role="tablist">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              className={`tab ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+              {tab.id === 'quote' && liveQuote.hasAnyPrice && (
+                <span className={`tab-flag ${liveQuote.isComplete ? 'ready' : ''}`} aria-label={liveQuote.isComplete ? 'complete' : 'in progress'} />
+              )}
+              {tab.id === 'prices' && !pricesSaved && <span className="tab-flag unsaved" aria-label="unsaved changes" />}
+            </button>
+          ))}
+        </nav>
 
-                  <div className="section-divider" />
-
-                  {/* Bottom Boards Section */}
-                  <div className="section-heading">
-                    <span className="section-title">Bottom Boards</span>
-                  </div>
-                  <div className="form-row two-col">
-                    <div className="form-field">
-                      <label>Timber</label>
-                      <select
-                        value={selectedBottomBoardType}
-                        onChange={(e) => changeBottomBoardType(e.target.value)}
-                      >
-                        <option value="">Select type...</option>
-                        {timberData.timberTypes.map(type => (
-                          <option key={type.id} value={type.id}>{type.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-field">
-                      <label>Size</label>
-                      <select
-                        value={selectedBottomBoardSize}
-                        onChange={(e) => setSelectedBottomBoardSize(e.target.value)}
-                        disabled={!selectedBottomBoardType}
-                      >
-                        <option value="">Select size...</option>
-                        {availableBottomBoardSizes.map(size => (
-                          <option key={size.id} value={size.id}>{size.dimensions}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="form-field">
-                    <label>Number of Boards {maxBottomBoardsAllowed > 0 && maxBottomBoardsAllowed < 15 && <span className="max-hint">(max {maxBottomBoardsAllowed})</span>}</label>
-                    <select
-                      value={displayedBottomBoards}
-                      onChange={(e) => setNumberOfBottomBoards(e.target.value)}
-                    >
-                      <option value="">Select...</option>
-                      {[...Array(maxBottomBoardsForUI)].map((_, i) => (
-                        <option key={i + 1} value={i + 1}>{i + 1}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  {/* Custom Leader Boards Option (Bottom) */}
-                  <div className="form-field checkbox-field">
-                    <label className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={useCustomBottomLeaders}
-                        onChange={(e) => setUseCustomBottomLeaders(e.target.checked)}
-                      />
-                      <span>Custom Leader Boards</span>
-                    </label>
-                  </div>
-                  
-                  {useCustomBottomLeaders && (
-                    <div className="leader-board-options">
-                      <div className="form-row two-col">
-                        <div className="form-field">
-                          <label>Timber</label>
-                          <select
-                            value={selectedBottomLeaderType}
-                            onChange={(e) => changeBottomLeaderType(e.target.value)}
-                          >
-                            <option value="">Select type...</option>
-                            {timberData.timberTypes.map(type => (
-                              <option key={type.id} value={type.id}>{type.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="form-field">
-                          <label>Size</label>
-                          <select
-                            value={selectedBottomLeaderSize}
-                            onChange={(e) => setSelectedBottomLeaderSize(e.target.value)}
-                            disabled={!selectedBottomLeaderType}
-                          >
-                            <option value="">Select size...</option>
-                            {availableBottomLeaderSizes.map(size => (
-                              <option key={size.id} value={size.id}>{size.dimensions}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="section-divider" />
-
-                  {/* Top Boards Section */}
-                  <div className="section-heading">
-                    <span className="section-title">Top Boards</span>
-                  </div>
-                  <div className="form-row two-col">
-                    <div className="form-field">
-                      <label>Timber</label>
-                      <select
-                        value={selectedTopBoardType}
-                        onChange={(e) => changeTopBoardType(e.target.value)}
-                      >
-                        <option value="">Select type...</option>
-                        {timberData.timberTypes.map(type => (
-                          <option key={type.id} value={type.id}>{type.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-field">
-                      <label>Size</label>
-                      <select
-                        value={selectedTopBoardSize}
-                        onChange={(e) => setSelectedTopBoardSize(e.target.value)}
-                        disabled={!selectedTopBoardType}
-                      >
-                        <option value="">Select size...</option>
-                        {availableTopBoardSizes.map(size => (
-                          <option key={size.id} value={size.id}>{size.dimensions}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="form-field">
-                    <label>Number of Boards {maxTopBoardsAllowed > 0 && maxTopBoardsAllowed < 15 && <span className="max-hint">(max {maxTopBoardsAllowed})</span>}</label>
-                    <select
-                      value={displayedTopBoards}
-                      onChange={(e) => setNumberOfTopBoards(e.target.value)}
-                    >
-                      <option value="">Select...</option>
-                      {[...Array(maxTopBoardsForUI)].map((_, i) => (
-                        <option key={i + 1} value={i + 1}>{i + 1}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  {/* Custom Leader Boards Option (Top) */}
-                  <div className="form-field checkbox-field">
-                    <label className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={useCustomTopLeaders}
-                        onChange={(e) => setUseCustomTopLeaders(e.target.checked)}
-                      />
-                      <span>Custom Leader Boards</span>
-                    </label>
-                  </div>
-                  
-                  {useCustomTopLeaders && (
-                    <div className="leader-board-options">
-                      <div className="form-row two-col">
-                        <div className="form-field">
-                          <label>Timber</label>
-                          <select
-                            value={selectedTopLeaderType}
-                            onChange={(e) => changeTopLeaderType(e.target.value)}
-                          >
-                            <option value="">Select type...</option>
-                            {timberData.timberTypes.map(type => (
-                              <option key={type.id} value={type.id}>{type.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="form-field">
-                          <label>Size</label>
-                          <select
-                            value={selectedTopLeaderSize}
-                            onChange={(e) => setSelectedTopLeaderSize(e.target.value)}
-                            disabled={!selectedTopLeaderType}
-                          >
-                            <option value="">Select size...</option>
-                            {availableTopLeaderSizes.map(size => (
-                              <option key={size.id} value={size.id}>{size.dimensions}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="section-divider" />
-
-                  {/* Bearers Section */}
-                  <div className="section-heading">
-                    <span className="section-title">Bearers</span>
-                  </div>
-                  <div className="form-field">
-                    <label>Timber</label>
-                    <select
-                      value={selectedBearerType}
-                      onChange={(e) => changeBearerType(e.target.value)}
-                    >
-                      <option value="">Select timber type...</option>
-                      {timberData.timberTypes.map(type => (
-                        <option key={type.id} value={type.id}>{type.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Bearer Size and Number - Two Column */}
-                  <div className="form-row two-col">
-                    <div className="form-field">
-                      <label>Size</label>
-                      <select
-                        value={selectedBearerSize}
-                        onChange={(e) => setSelectedBearerSize(e.target.value)}
-                        disabled={!selectedBearerType}
-                      >
-                        <option value="">Select bearer size...</option>
-                        {availableBearerSizes.map(size => (
-                          <option key={size.id} value={size.id}>{size.dimensions}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-field">
-                      <label>Number of Bearers {maxBearersAllowed > 0 && maxBearersAllowed < 15 && <span className="max-hint">(max {maxBearersAllowed})</span>}</label>
-                      <select
-                        value={displayedBearers}
-                        onChange={(e) => setNumberOfBearers(e.target.value)}
-                      >
-                        <option value="">Select...</option>
-                        {[...Array(maxBearersForUI)].map((_, i) => (
-                          <option key={i + 1} value={i + 1}>{i + 1}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {error && <div className="error-msg">{error}</div>}
-                  {layoutWarnings.map(w => <div key={w} className="error-msg">{w}</div>)}
-
-                  <div className="section-divider" />
-
-                  <div className="form-actions">
-                    <button type="button" onClick={handleClear} className="btn-clear">Clear All</button>
-                    <button type="button" onClick={() => setShowSavePresetModal(true)} className="btn-save-preset">Save Preset</button>
-                  </div>
-                  
-                  <div className="preset-actions">
-                    <button type="button" onClick={exportPresets} className="btn-export">
-                      ↓ Export
-                    </button>
-                    <label className="btn-import">
-                      ↑ Import
-                      <input type="file" accept=".json" onChange={importPresets} hidden />
-                    </label>
-                  </div>
-                  
-                  {/* Saved Presets List */}
-                  {savedPresets.length > 0 && (
-                    <div className="saved-presets-section">
-                      <div className="saved-presets-header">
-                        <span>Saved Presets ({savedPresets.length})</span>
-                      </div>
-                      <div className="saved-presets-list">
+        {activeTab === 'calculator' && (
+          <>
+            <div className="panel-body">
+              <section className="form-section" aria-label="Pallet size">
+                <SectionHead title="Pallet size" />
+                <label className="field">
+                  <span className="field-label">Start from</span>
+                  <select
+                    value=""
+                    data-field="preset"
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value.startsWith('saved:')) {
+                        const preset = savedPresets.find(p => p.id === value.replace('saved:', ''))
+                        if (preset) loadPreset(preset)
+                      } else if (value) {
+                        const [w, l] = value.split('x')
+                        setPalletWidth(w)
+                        setPalletLength(l)
+                      }
+                    }}
+                  >
+                    <option value="">A standard size or saved preset</option>
+                    <optgroup label="Standard sizes">
+                      <option value="1165x1165">1165 × 1165 mm</option>
+                      <option value="1140x1140">1140 × 1140 mm</option>
+                    </optgroup>
+                    {savedPresets.length > 0 && (
+                      <optgroup label="Saved presets">
                         {savedPresets.map(preset => (
-                          <div key={preset.id} className="saved-preset-item">
-                            <span className="preset-name">{preset.name}</span>
-                            <span className="preset-size">{preset.palletWidth}×{preset.palletLength}</span>
-                            <button 
-                              className="preset-delete-btn"
-                              onClick={() => deletePreset(preset.id)}
-                              title="Delete preset"
-                            >
-                              ×
-                            </button>
-                          </div>
+                          <option key={preset.id} value={`saved:${preset.id}`}>{preset.name}</option>
                         ))}
-                      </div>
-                    </div>
-                  )}
+                      </optgroup>
+                    )}
+                  </select>
+                </label>
+                <div className="field-row">
+                  <label className="field">
+                    <span className="field-label">Width</span>
+                    <span className="input-unit">
+                      <input type="number" inputMode="numeric" min="0" value={palletWidth} data-field="width"
+                        onChange={(e) => setPalletWidth(e.target.value)} placeholder="1165" />
+                      <span className="unit">mm</span>
+                    </span>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Length</span>
+                    <span className="input-unit">
+                      <input type="number" inputMode="numeric" min="0" value={palletLength} data-field="length"
+                        onChange={(e) => setPalletLength(e.target.value)} placeholder="1165" />
+                      <span className="unit">mm</span>
+                    </span>
+                  </label>
                 </div>
+                <p className="hint">Boards run the length of the pallet. Bearers run across the width.</p>
+              </section>
 
-              </div>
-              
-              {/* Save Preset Modal */}
-              {showSavePresetModal && (
-                <div className="modal-overlay" onClick={() => setShowSavePresetModal(false)}>
-                  <div className="modal-content" onClick={e => e.stopPropagation()}>
-                    <h3>Save Preset</h3>
-                    <p>Save current configuration as a preset:</p>
-                    <input
-                      type="text"
-                      value={newPresetName}
-                      onChange={(e) => setNewPresetName(e.target.value)}
-                      placeholder="Enter preset name..."
-                      autoFocus
-                      onKeyDown={(e) => e.key === 'Enter' && savePreset()}
-                    />
-                    <div className="modal-actions">
-                      <button onClick={() => setShowSavePresetModal(false)} className="btn-cancel">Cancel</button>
-                      <button onClick={savePreset} className="btn-save" disabled={!newPresetName.trim()}>Save</button>
-                    </div>
-                  </div>
+              {renderDeck('bottom')}
+              {renderDeck('top')}
+
+              <section className="form-section" aria-label="Bearers">
+                <SectionHead title="Bearers" cost={sectionCosts.bearers} />
+                <div className="field-row">
+                  <label className="field">
+                    <span className="field-label">Timber</span>
+                    <select value={selectedBearerType} onChange={(e) => changeBearerType(e.target.value)} data-field="bearer-type">
+                      <option value="">Choose timber</option>
+                      {timberOptions}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Size</span>
+                    <select value={selectedBearerSize} onChange={(e) => setSelectedBearerSize(e.target.value)} disabled={!selectedBearerType} data-field="bearer-size">
+                      <option value="">{selectedBearerType ? 'Choose size' : 'Choose timber first'}</option>
+                      {sizeOptions(availableBearerSizes)}
+                    </select>
+                  </label>
+                </div>
+                <div className="field field-inline">
+                  <span className="field-label" id="bearer-count-label">Bearers {maxNote(maxBearersAllowed)}</span>
+                  <Stepper id="bearer-count-label" label="bearers" value={displayedBearers} onChange={setNumberOfBearers} max={maxBearersForUI} />
+                </div>
+              </section>
+
+              {(error || layoutWarnings.length > 0) && (
+                <div className="notice" role="alert">
+                  {error && <p>{error}</p>}
+                  {layoutWarnings.map(w => <p key={w}>{w}</p>)}
                 </div>
               )}
-            </>
-          ) : activeTab === 'quote' ? (
-            <>
-              <div className="card-content">
-                {liveQuote?.hasAnyPrice ? (
-                  <div className="quote-results">
-                    <div className="quote-header">
-                      <h3>Quote Summary</h3>
-                      <span className={`quote-status ${liveQuote.isComplete ? 'ready' : 'partial'}`}>
-                        {liveQuote.isComplete ? 'Complete' : 'In Progress'}
-                      </span>
-                    </div>
-                    
-                    <div className="result-grid">
-                      {(liveQuote.palletWidth > 0 || liveQuote.palletLength > 0) && (
-                        <div className="result-row">
-                          <span>Pallet Size</span>
-                          <span>{liveQuote.palletWidth || '—'} × {liveQuote.palletLength || '—'} mm</span>
-                        </div>
-                      )}
-                      {/* Top Leader Boards (if custom leaders enabled) */}
-                      {liveQuote.topLeaderCount > 0 && (
-                        <div className="result-row leader-row">
-                          <span>Top Leaders ({liveQuote.topLeaderCount}× {liveQuote.topLeaderSize || '—'} @ {formatDimension(liveQuote.boardLength)})</span>
-                          <span>{formatCurrency(liveQuote.topLeadersTotal)}</span>
-                        </div>
-                      )}
-                      {/* Top Inner Boards */}
-                      {liveQuote.topBoardSize && liveQuote.topInnerBoards > 0 && (
-                        <div className="result-row">
-                          <span>Top Boards ({liveQuote.topInnerBoards}× {liveQuote.topBoardSize} @ {formatDimension(liveQuote.boardLength)})</span>
-                          <span>{formatCurrency(liveQuote.topBoardsTotal)}</span>
-                        </div>
-                      )}
-                      {/* Bottom Leader Boards (if custom leaders enabled) */}
-                      {liveQuote.bottomLeaderCount > 0 && (
-                        <div className="result-row leader-row">
-                          <span>Bottom Leaders ({liveQuote.bottomLeaderCount}× {liveQuote.bottomLeaderSize || '—'} @ {formatDimension(liveQuote.boardLength)})</span>
-                          <span>{formatCurrency(liveQuote.bottomLeadersTotal)}</span>
-                        </div>
-                      )}
-                      {/* Bottom Inner Boards */}
-                      {liveQuote.bottomBoardSize && liveQuote.bottomInnerBoards > 0 && (
-                        <div className="result-row">
-                          <span>Bottom Boards ({liveQuote.bottomInnerBoards}× {liveQuote.bottomBoardSize} @ {formatDimension(liveQuote.boardLength)})</span>
-                          <span>{formatCurrency(liveQuote.bottomBoardsTotal)}</span>
-                        </div>
-                      )}
-                      {liveQuote.bearerSize && liveQuote.numberOfBearers > 0 && (
-                        <div className="result-row">
-                          <span>Bearers ({liveQuote.numberOfBearers}× {liveQuote.bearerSize} @ {formatDimension(liveQuote.bearerLength)})</span>
-                          <span>{formatCurrency(liveQuote.bearersTotal)}</span>
-                        </div>
-                      )}
-                      {liveQuote.totalNails > 0 && (
-                        <div className="result-row">
-                          <span>Nails ({liveQuote.totalNails})</span>
-                          <span>{formatCurrency(liveQuote.nailsTotal)}</span>
-                        </div>
-                      )}
-                      
-                      {(liveQuote.topGapSize > 0 || liveQuote.bottomGapSize > 0) && (
-                        <div className="section-divider" />
-                      )}
-                      {liveQuote.topGapSize > 0 && (
-                        <div className="result-row highlight">
-                          <span>Top Gap</span>
-                          <span>{formatDimension(liveQuote.topGapSize)}</span>
-                        </div>
-                      )}
-                      {liveQuote.bottomGapSize > 0 && (
-                        <div className="result-row highlight">
-                          <span>Bottom Gap</span>
-                          <span>{formatDimension(liveQuote.bottomGapSize)}</span>
-                        </div>
-                      )}
-                      {layoutWarnings.map(w => <div key={w} className="error-msg">{w}</div>)}
-                      {liveQuote.palletLength <= 0 && (
-                        <div className="error-msg">Enter the pallet length - timber is priced per metre.</div>
-                      )}
-                    </div>
 
-                    <div className={`subtotal-row ${!liveQuote.isComplete ? 'partial' : ''}`}>
-                      <span>{liveQuote.isComplete ? 'Subtotal (1 Pallet)' : 'Running Total'}</span>
-                      <span>{formatCurrency(liveQuote.totalPrice)}</span>
-                    </div>
-
-                    <div className="quantity-row">
-                      <label>Number of Pallets</label>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        inputMode="numeric"
-                        value={palletQuantity}
-                        onChange={(e) => handleQuantityChange(e.target.value)}
-                        onBlur={handleQuantityBlur}
-                        placeholder="e.g, 1"
-                        className="quantity-input"
-                      />
-                    </div>
-
-                    <div className={`total-row ${!liveQuote.isComplete ? 'partial' : ''}`}>
-                      <span>Total ({quantity} Pallet{quantity > 1 ? 's' : ''})</span>
-                      <span>{formatCurrency(liveQuote.totalPrice * quantity)}</span>
-                    </div>
-
-                    <div className="form-actions">
-                      <button onClick={() => window.print()} className="btn-calculate">Print Quote</button>
-                      <button onClick={handleClear} className="btn-clear">New Quote</button>
-                    </div>
+              <section className="form-section presets" aria-label="Saved presets">
+                <div className="section-head">
+                  <h2>Saved presets</h2>
+                  <div className="text-actions">
+                    <button type="button" className="text-btn" onClick={exportPresets}>Export</button>
+                    <label className="text-btn">
+                      Import
+                      <input type="file" accept=".json,application/json" onChange={importPresets} hidden />
+                    </label>
                   </div>
-                ) : (
-                  <div className="quote-empty">
-                    <div className="quote-empty-icon">📋</div>
-                    <h3>No Quote Yet</h3>
-                    <p>Fill in all fields in the Builder tab to see your quote calculated in real-time.</p>
-                    <button onClick={() => setActiveTab('calculator')} className="btn-calculate">
-                      Go to Builder
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="card-content price-editor-content">
-              
-              <div className="price-header">
-                <span className="price-header-label">Size</span>
-                <span className="price-header-currency">$/metre</span>
-              </div>
-              
-              <div className="price-editor-scroll">
-                {prices.timberTypes.map(timberType => {
-                  const isExpanded = expandedGroups.has(timberType.id)
-                  const categoryLocked = isCategoryLocked(timberType.id)
-                  return (
-                    <div key={timberType.id} className={`price-group ${isExpanded ? 'expanded' : 'collapsed'}`}>
-                      <div className="price-group-header">
-                        <button className="price-group-toggle" onClick={() => toggleGroup(timberType.id)}>
-                          <span className="toggle-icon">{isExpanded ? '▼' : '▶'}</span>
-                          <span className="toggle-title">{timberType.name}</span>
+                </div>
+                {savedPresets.length > 0 ? (
+                  <ul className="preset-list">
+                    {savedPresets.map(preset => (
+                      <li key={preset.id}>
+                        <button type="button" className="preset-load" onClick={() => loadPreset(preset)} title="Load this preset">
+                          <span className="preset-name">{preset.name}</span>
+                          <span className="preset-size">{preset.palletWidth || '–'} × {preset.palletLength || '–'}</span>
                         </button>
-                        <div className="master-lock" onClick={(e) => toggleCategoryLock(timberType.id, e)}>
-                          <span className="master-lock-label">ALL</span>
-                          <LockIcon isLocked={categoryLocked} onClick={(e) => toggleCategoryLock(timberType.id, e)} />
-                        </div>
-                      </div>
-                      
-                      {isExpanded && (
-                        <div className="price-group-content">
-                          <div className="price-subgroup">
-                            <span className="subgroup-label">Boards (per metre)</span>
-                            {timberType.boardSizes.map(size => {
-                              const fieldId = `${timberType.id}-board-${size.id}`
-                              const isLocked = lockedFields.has(fieldId)
-                              return (
-                                <div key={size.id} className="price-item">
-                                  <span>{size.dimensions}</span>
-                                  <div className="price-input-wrap">
-                                    <span className="price-prefix">$</span>
-                                    <input
-                                      type="number"
-                                      value={size.pricePerBoard}
-                                      onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, 'board')}
-                                      disabled={isLocked}
-                                      step="0.01"
-                                    />
-                                    <LockIcon isLocked={isLocked} onClick={() => toggleLock(fieldId)} />
-                                  </div>
-                                </div>
-                              )
-                            })}
-                          </div>
+                        <button type="button" className="icon-btn small" onClick={() => deletePreset(preset.id)}
+                          title={`Delete ${preset.name}`} aria-label={`Delete ${preset.name}`}>
+                          <Icon name="close" size={14} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="hint">Save a build you quote often and load it here in one click.</p>
+                )}
+              </section>
+            </div>
 
-                          <div className="price-subgroup">
-                            <span className="subgroup-label">Bearers (per metre)</span>
-                            {timberType.bearerSizes.map(size => {
-                              const fieldId = `${timberType.id}-bearer-${size.id}`
-                              const isLocked = lockedFields.has(fieldId)
-                              return (
-                                <div key={size.id} className="price-item">
-                                  <span>{size.dimensions}</span>
-                                  <div className="price-input-wrap">
-                                    <span className="price-prefix">$</span>
-                                    <input
-                                      type="number"
-                                      value={size.pricePerBearer}
-                                      onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, 'bearer')}
-                                      disabled={isLocked}
-                                      step="0.01"
-                                    />
-                                    <LockIcon isLocked={isLocked} onClick={() => toggleLock(fieldId)} />
-                                  </div>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-                
-                <div className={`price-group ${expandedGroups.has('hardware') ? 'expanded' : 'collapsed'}`}>
-                  <div className="price-group-header">
-                    <button className="price-group-toggle" onClick={() => toggleGroup('hardware')}>
-                      <span className="toggle-icon">{expandedGroups.has('hardware') ? '▼' : '▶'}</span>
-                      <span className="toggle-title">Hardware</span>
-                    </button>
-                    <div className="master-lock" onClick={(e) => toggleCategoryLock('hardware', e)}>
-                      <span className="master-lock-label">ALL</span>
-                      <LockIcon isLocked={isCategoryLocked('hardware')} onClick={(e) => toggleCategoryLock('hardware', e)} />
-                    </div>
+            <footer className="panel-footer">
+              <button type="button" onClick={handleClear} className="btn btn-quiet">Clear</button>
+              <button type="button" onClick={() => setShowSavePresetModal(true)} className="btn btn-secondary">Save as preset</button>
+            </footer>
+
+            {showSavePresetModal && (
+              <div className="modal-overlay" onClick={() => setShowSavePresetModal(false)}>
+                <div className="modal" role="dialog" aria-modal="true" aria-labelledby="save-preset-title" onClick={e => e.stopPropagation()}>
+                  <h3 id="save-preset-title">Save as preset</h3>
+                  <p>Saves the size, timber and counts so you can load them again later. A preset with the same name is replaced.</p>
+                  <input
+                    type="text"
+                    value={newPresetName}
+                    onChange={(e) => setNewPresetName(e.target.value)}
+                    placeholder="e.g. 1165 export, heavy duty"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') savePreset()
+                      if (e.key === 'Escape') setShowSavePresetModal(false)
+                    }}
+                  />
+                  <div className="modal-actions">
+                    <button type="button" onClick={() => setShowSavePresetModal(false)} className="btn btn-quiet">Cancel</button>
+                    <button type="button" onClick={savePreset} className="btn btn-primary" disabled={!newPresetName.trim()}>Save preset</button>
                   </div>
-                  
-                  {expandedGroups.has('hardware') && (
-                    <div className="price-group-content">
-                      <div className="price-item">
-                        <span>Nail (per unit)</span>
-                        <div className="price-input-wrap">
-                          <input
-                            type="number"
-                            value={prices.nailPricePerNail ?? 0}
-                            onChange={(e) => handleNailPriceChange(e.target.value)}
-                            min="0"
-                            disabled={lockedFields.has('nails')}
-                            step="0.01"
-                          />
-                          <LockIcon isLocked={lockedFields.has('nails')} onClick={() => toggleLock('nails')} />
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
-              
-              <div className="price-save-actions">
-                <button onClick={handleSavePrices} className="btn-calculate">
-                  {saveFlash ? 'Saved ✓' : pricesSaved ? 'Save Prices' : 'Save Prices •'}
-                </button>
-              </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+            )}
+          </>
+        )}
 
-      {/* Right Panel - 3D Pallet */}
-      <div className="pallet-panel">
-        {/* Live Price Header */}
-        <div className="live-price-header">
-          <div className="quantity-input-group">
-            <label>Pallets</label>
-            <input
-              type="number"
-              min="1"
-              value={palletQuantity}
-              step="1"
-              inputMode="numeric"
-              onChange={(e) => handleQuantityChange(e.target.value)}
-              onBlur={handleQuantityBlur}
-              placeholder="e.g, 1"
-              className="quantity-input"
-            />
-          </div>
-          <div className="live-price-display">
-            {liveQuote?.hasAnyPrice ? (
-              <>
-                <span className="price-label">{liveQuote.isComplete ? 'Total' : 'Running'}</span>
-                <span className={`price-value ${!liveQuote.isComplete ? 'partial' : ''}`}>
-                  ${((liveQuote.totalPrice || 0) * quantity).toFixed(2)}
-                </span>
-              </>
-            ) : (
-              <span className="price-placeholder">$0.00</span>
+        {activeTab === 'quote' && (
+          <>
+            <div className="panel-body">
+              {liveQuote.hasAnyPrice ? (
+                <div className="quote">
+                  <div className="quote-meta">
+                    <div>
+                      <h2>{liveQuote.palletWidth && liveQuote.palletLength
+                        ? `${liveQuote.palletWidth} × ${liveQuote.palletLength} mm pallet`
+                        : 'Pallet'}</h2>
+                      <p className="hint">
+                        {liveQuote.isComplete ? 'Ready to print.' : 'Still missing some parts, so this is a running total.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <ul className="line-items">
+                    {lineItems.map(item => (
+                      <li key={item.name}>
+                        <div>
+                          <span className="item-name">{item.name}</span>
+                          <span className="item-detail">{item.detail}</span>
+                        </div>
+                        <span className="item-amount">{formatCurrency(item.amount)}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {(liveQuote.topGapSize > 0 || liveQuote.bottomGapSize > 0) && (
+                    <dl className="spec">
+                      {liveQuote.topGapSize > 0 && (<><dt>Gap between top boards</dt><dd>{formatDimension(liveQuote.topGapSize)}</dd></>)}
+                      {liveQuote.bottomGapSize > 0 && (<><dt>Gap between bottom boards</dt><dd>{formatDimension(liveQuote.bottomGapSize)}</dd></>)}
+                    </dl>
+                  )}
+
+                  {(layoutWarnings.length > 0 || liveQuote.palletLength <= 0) && (
+                    <div className="notice" role="alert">
+                      {layoutWarnings.map(w => <p key={w}>{w}</p>)}
+                      {liveQuote.palletLength <= 0 && <p>Enter the pallet length. Timber is priced per metre.</p>}
+                    </div>
+                  )}
+
+                  <div className="totals">
+                    <div className="totals-row">
+                      <span>Per pallet</span>
+                      <span>{formatCurrency(liveQuote.totalPrice)}</span>
+                    </div>
+                    <div className="totals-row">
+                      <span id="quote-qty-label">Pallets</span>
+                      <Stepper id="quote-qty-label" label="pallets" value={palletQuantity} min={1} max={9999} editable
+                        onChange={(v) => setPalletQuantity(v)} />
+                    </div>
+                    <div className={`totals-row grand ${liveQuote.isComplete ? '' : 'partial'}`}>
+                      <span>{liveQuote.isComplete ? 'Total' : 'Running total'}</span>
+                      <span>{formatCurrency(liveQuote.totalPrice * quantity)}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="empty">
+                  <h2>Nothing to quote yet</h2>
+                  <p>Choose timber and board counts in Build. The quote fills in as you go.</p>
+                  <button type="button" onClick={() => setActiveTab('calculator')} className="btn btn-secondary">Go to Build</button>
+                </div>
+              )}
+            </div>
+            {liveQuote.hasAnyPrice && (
+              <footer className="panel-footer">
+                <button type="button" onClick={handleClear} className="btn btn-quiet">Start a new quote</button>
+                <button type="button" onClick={() => window.print()} className="btn btn-primary">Print quote</button>
+              </footer>
             )}
-          </div>
-          
-          {/* Dark Mode Toggle */}
-          <button 
-            className={`dark-mode-toggle ${isDarkMode ? 'active' : ''}`}
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {isDarkMode ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            )}
+          </>
+        )}
+
+        {activeTab === 'prices' && (
+          <>
+            <div className="panel-body prices">
+              <p className="hint">
+                Timber is priced per metre of length. Unlock a price to change it, then save.
+              </p>
+              {prices.timberTypes.map(timberType => {
+                const isExpanded = expandedGroups.has(timberType.id)
+                const categoryLocked = isCategoryLocked(timberType.id)
+                return (
+                  <section key={timberType.id} className={`price-group ${isExpanded ? 'open' : ''}`}>
+                    <div className="price-group-head">
+                      <button type="button" className="price-group-toggle" onClick={() => toggleGroup(timberType.id)} aria-expanded={isExpanded}>
+                        <span className="chevron" aria-hidden="true" />
+                        {timberType.name}
+                      </button>
+                      <button type="button" className="text-btn" onClick={(e) => toggleCategoryLock(timberType.id, e)}>
+                        {categoryLocked ? 'Unlock all' : 'Lock all'}
+                      </button>
+                    </div>
+                    {isExpanded && (
+                      <div className="price-table">
+                        {[['Boards', 'board', timberType.boardSizes, 'pricePerBoard'], ['Bearers', 'bearer', timberType.bearerSizes, 'pricePerBearer']].map(([title, kind, sizes, key]) => (
+                          <div key={kind} className="price-subgroup">
+                            <h3>{title}</h3>
+                            {sizes.map(size => {
+                              const fieldId = `${timberType.id}-${kind}-${size.id}`
+                              const isLocked = lockedFields.has(fieldId)
+                              return (
+                                <div key={size.id} className={`price-row ${isLocked ? 'locked' : ''}`}>
+                                  <span className="price-size">{size.dimensions.replace('x', ' × ')}</span>
+                                  <span className="price-input">
+                                    <span className="unit-pre">$</span>
+                                    <input
+                                      type="number"
+                                      value={size[key]}
+                                      onChange={(e) => handlePriceChange(timberType.id, size.id, e.target.value, kind)}
+                                      disabled={isLocked}
+                                      step="0.01"
+                                      min="0"
+                                      aria-label={`${timberType.name} ${size.dimensions} ${kind} price per metre`}
+                                    />
+                                    <span className="unit">/m</span>
+                                  </span>
+                                  <LockIcon isLocked={isLocked} onClick={() => toggleLock(fieldId)} />
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                )
+              })}
+
+              <section className={`price-group ${expandedGroups.has('hardware') ? 'open' : ''}`}>
+                <div className="price-group-head">
+                  <button type="button" className="price-group-toggle" onClick={() => toggleGroup('hardware')} aria-expanded={expandedGroups.has('hardware')}>
+                    <span className="chevron" aria-hidden="true" />
+                    Hardware
+                  </button>
+                  <button type="button" className="text-btn" onClick={(e) => toggleCategoryLock('hardware', e)}>
+                    {isCategoryLocked('hardware') ? 'Unlock all' : 'Lock all'}
+                  </button>
+                </div>
+                {expandedGroups.has('hardware') && (
+                  <div className="price-table">
+                    <div className={`price-row ${lockedFields.has('nails') ? 'locked' : ''}`}>
+                      <span className="price-size">Nails</span>
+                      <span className="price-input">
+                        <span className="unit-pre">$</span>
+                        <input
+                          type="number"
+                          value={prices.nailPricePerNail ?? 0}
+                          onChange={(e) => handleNailPriceChange(e.target.value)}
+                          min="0"
+                          disabled={lockedFields.has('nails')}
+                          step="0.01"
+                          aria-label="Nail price each"
+                        />
+                        <span className="unit">each</span>
+                      </span>
+                      <LockIcon isLocked={lockedFields.has('nails')} onClick={() => toggleLock('nails')} />
+                    </div>
+                  </div>
+                )}
+              </section>
+            </div>
+            <footer className="panel-footer">
+              <span className="save-state" aria-live="polite">
+                {saveFlash ? 'Prices saved' : pricesSaved ? 'All prices saved' : 'Unsaved changes'}
+              </span>
+              <button type="button" onClick={handleSavePrices} className="btn btn-primary" disabled={pricesSaved && !saveFlash}>
+                Save prices
+              </button>
+            </footer>
+          </>
+        )}
+      </aside>
+
+      {/* Right - 3D pallet */}
+      <main className="stage">
+        {isPanelCollapsed && (
+          <button type="button" className="show-panel-btn" onClick={() => setIsPanelCollapsed(false)}>
+            <Icon name="panel" /> Show panel
           </button>
+        )}
+
+        <div className={`stamp ${liveQuote.isComplete ? 'complete' : ''} ${liveQuote.hasAnyPrice ? '' : 'empty'}`}>
+          <span className="stamp-label">{liveQuote.hasAnyPrice ? totalLabel : 'No price yet'}</span>
+          <span className="stamp-value">{totalValue}</span>
+          <div className="stamp-qty">
+            <span id="stage-qty-label">Pallets</span>
+            <Stepper id="stage-qty-label" label="pallets" value={palletQuantity} min={1} max={9999} editable
+              onChange={(v) => setPalletQuantity(v)} />
+          </div>
         </div>
 
-        <Pallet3DLive previewData={livePreviewData} />
-        
-        {/* Top Boards Slider */}
-        <div className="dimension-sliders">
-          <div className="slider-group">
-            <label>
-              <span className="slider-label">Top Boards</span>
-              <span className="slider-value">{displayedTopBoards || 0}{maxTopBoardsAllowed > 0 && maxTopBoardsAllowed < 15 ? ` / ${maxTopBoardsAllowed}` : ''}</span>
-            </label>
+        <Pallet3DLive previewData={livePreviewData} dark={isDarkMode} />
+
+        {!(livePreviewData.numberOfTopBoards || livePreviewData.numberOfBottomBoards || livePreviewData.numberOfBearers) && (
+          <div className="stage-empty">
+            <p>Enter a size and choose some boards to see the pallet take shape.</p>
+          </div>
+        )}
+
+        <div className="stage-controls">
+          {selectedTopBoardSize ? (
+          <label className="range">
+            <span>Top boards <strong>{displayedTopBoards || 0}{maxTopBoardsAllowed > 0 && maxTopBoardsAllowed < 15 ? ` of ${maxTopBoardsAllowed}` : ''}</strong></span>
             <input
               type="range"
               min="1"
@@ -1442,13 +1289,12 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               step="1"
               value={parseInt(displayedTopBoards) || 1}
               onChange={(e) => setNumberOfTopBoards(e.target.value)}
-              className="dimension-slider"
             />
-          </div>
+          </label>
+          ) : <span />}
+          <span className="stage-hint">Drag to turn, scroll or pinch to zoom</span>
         </div>
-        
-        <div className="drag-hint">Drag to rotate • Scroll to zoom</div>
-      </div>
+      </main>
 
       {/* Printable Quote - only visible when printing */}
       <PrintableQuote quoteData={liveQuote} quantity={quantity} />

@@ -28,8 +28,8 @@ html, body {
   html, body {
     height: auto;
     min-height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: visible;
+    overflow-x: clip;
   }
 
   #root,

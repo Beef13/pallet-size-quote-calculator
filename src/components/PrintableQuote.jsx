@@ -125,7 +125,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
     <div className="printable-quote">
       {/* Header */}
       <div className="print-header">
-        <h1>PALLET QUOTE</h1>
+        <h1>Pallet quote</h1>
         <div className="print-meta">
           <span>Date: {today}</span>
           <span>Qty: {quantity}</span>
@@ -139,7 +139,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
 
           {/* Plan View (top-down): width across, length down. Deck boards run the length, bearers run the width. */}
           <div className="diagram-box">
-            <div className="diagram-label">PLAN VIEW</div>
+            <div className="diagram-label">Plan view</div>
             <svg
               viewBox={`0 0 ${palletWidth + 180} ${palletLength + 180}`}
               className="diagram-svg"
@@ -207,7 +207,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
 
           {/* Front Elevation - looking along the length: deck boards end-on, front bearer full width */}
           <div className="diagram-box">
-            <div className="diagram-label">FRONT ELEVATION</div>
+            <div className="diagram-label">Front elevation</div>
             <svg
               viewBox={`0 0 ${palletWidth + 180} ${palletHeight + 190}`}
               className="diagram-svg"
@@ -246,7 +246,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
 
           {/* Side Elevation - looking across the width: edge boards full length, bearers end-on */}
           <div className="diagram-box">
-            <div className="diagram-label">SIDE ELEVATION</div>
+            <div className="diagram-label">Side elevation</div>
             <svg
               viewBox={`0 0 ${palletLength + 180} ${palletHeight + 190}`}
               className="diagram-svg"
@@ -345,7 +345,7 @@ function PrintableQuote({ quoteData, quantity = 1 }) {
             </div>
           )}
           <div className="total-line grand-total">
-            <span className="total-label">TOTAL</span>
+            <span className="total-label">Total</span>
             <span className="total-value">{money(grandTotal)}</span>
           </div>
         </div>

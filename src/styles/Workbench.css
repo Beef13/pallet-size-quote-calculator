@@ -1,0 +1,1264 @@
+/* ------------------------------------------------------------------
+   Pallet quote - workbench layout
+   A docked panel on the left, the 3D pallet on a concrete "yard"
+   on the right. One accent colour (stamp-ink blue). The only display
+   type is the stencilled price, like a marking on a pallet.
+   ------------------------------------------------------------------ */
+
+:root {
+  --yard: #c6cccb;
+  --yard-floor: #b3babb;
+  --paper: #f6f6f3;
+  --field: #ffffff;
+  --ink: #1e2833;
+  --ink-2: #56616b;
+  --ink-3: #848d94;
+  --rule: #dfe1dc;
+  --rule-strong: #c4c9c4;
+  --accent: #2d5281;
+  --accent-hover: #234269;
+  --accent-ink: #ffffff;
+  --accent-soft: #e4eaf2;
+  --warn: #9a3a1c;
+  --warn-soft: #f6e9e2;
+  --ready: #3d6a3a;
+
+  --font-ui: 'Archivo Variable', 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-stencil: 'Big Shoulders Stencil Variable', 'Archivo Variable', sans-serif;
+
+  --panel-width: 440px;
+  --radius: 6px;
+  --control-h: 40px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+html.dark-mode {
+  --yard: #252b30;
+  --yard-floor: #1c2125;
+  --paper: #15191d;
+  --field: #1c2126;
+  --ink: #e3e6e1;
+  --ink-2: #a3acb2;
+  --ink-3: #6f787f;
+  --rule: #2a3137;
+  --rule-strong: #3a434a;
+  --accent: #93b4df;
+  --accent-hover: #b0c9ea;
+  --accent-ink: #0f1a28;
+  --accent-soft: #1f2b3a;
+  --warn: #e6a083;
+  --warn-soft: #36231d;
+  --ready: #9cc795;
+  color-scheme: dark;
+}
+
+body,
+.workbench {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 15px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+
+.workbench h2,
+.workbench h3,
+.workbench p {
+  margin: 0;
+  color: inherit;
+}
+
+/* ---------- Layout ---------- */
+
+.workbench {
+  display: grid;
+  grid-template-columns: var(--panel-width) 1fr;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--yard);
+  transition: grid-template-columns 0.35s var(--ease);
+}
+
+.workbench.panel-collapsed {
+  grid-template-columns: 0 1fr;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  background: var(--paper);
+  border-right: 1px solid var(--rule-strong);
+  overflow: hidden;
+  position: relative;
+}
+
+.panel-collapsed .panel {
+  visibility: hidden;
+  border-right: 0;
+}
+
+/* ---------- Panel header & tabs ---------- */
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 12px 28px;
+}
+
+.brand-mark {
+  font-family: var(--font-stencil);
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.header-total {
+  display: none;
+}
+
+.header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--rule);
+  color: var(--ink);
+}
+
+.icon-btn.small {
+  width: 28px;
+  height: 28px;
+}
+
+.tabs {
+  display: flex;
+  gap: 24px;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 0 12px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab.active {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+}
+
+/* Small marker next to a tab: quote in progress / ready, unsaved prices */
+.tab-flag {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-3);
+}
+
+.tab-flag.ready {
+  border-color: var(--ready);
+  background: var(--ready);
+}
+
+.tab-flag.unsaved {
+  border-color: var(--warn);
+  background: var(--warn);
+}
+
+/* ---------- Panel body ---------- */
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 28px 28px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+.panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 28px;
+  border-top: 1px solid var(--rule-strong);
+  background: var(--paper);
+}
+
+.panel-footer .btn-quiet:first-child,
+.panel-footer .save-state {
+  margin-right: auto;
+}
+
+.save-state {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+/* ---------- Form ---------- */
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 0 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.form-section:last-child {
+  border-bottom: 0;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-head h2 {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.section-cost {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field-row.nested {
+  padding: 14px;
+  margin-top: -2px;
+  border-left: 2px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.field-note {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.field-inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hint {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+.workbench select,
+.workbench input[type="number"],
+.workbench input[type="text"] {
+  width: 100%;
+  min-width: 0;
+  height: var(--control-h);
+  padding: 0 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background-color: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.workbench select {
+  padding-right: 34px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%2356616b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+}
+
+html.dark-mode .workbench select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23a3acb2' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+}
+
+.workbench select:hover:not(:disabled),
+.workbench input:hover:not(:disabled) {
+  border-color: var(--ink-3);
+}
+
+.workbench select:disabled,
+.workbench input:disabled {
+  color: var(--ink-3);
+  background-color: transparent;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.workbench select option {
+  background: var(--field);
+  color: var(--ink);
+}
+
+.workbench input::placeholder {
+  color: var(--ink-3);
+}
+
+.workbench input[type="number"]::-webkit-outer-spin-button,
+.workbench input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.workbench input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Visible keyboard focus everywhere */
+.workbench :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.workbench select:focus-visible,
+.workbench input:focus-visible {
+  outline-offset: 0;
+  border-color: var(--accent);
+}
+
+/* Input with a unit suffix */
+.input-unit {
+  position: relative;
+  display: block;
+}
+
+.input-unit input {
+  padding-right: 40px;
+}
+
+.input-unit .unit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+
+/* ---------- Stepper ---------- */
+
+.stepper {
+  display: inline-grid;
+  grid-template-columns: 36px 52px 36px;
+  height: var(--control-h);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--field);
+  overflow: hidden;
+}
+
+.stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.stepper-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.stepper-btn:disabled {
+  color: var(--rule-strong);
+  cursor: default;
+}
+
+.stepper-btn:focus-visible {
+  outline-offset: -2px;
+}
+
+.stepper-value,
+.workbench input.stepper-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border: 0;
+  border-left: 1px solid var(--rule);
+  border-right: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink);
+  background: transparent;
+}
+
+/* ---------- Switch ---------- */
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--rule-strong);
+  transition: background 0.2s var(--ease);
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--field);
+  box-shadow: 0 1px 2px rgba(20, 30, 40, 0.25);
+  transition: transform 0.2s var(--ease);
+}
+
+.switch input:checked + .switch-track {
+  background: var(--accent);
+}
+
+.switch input:checked + .switch-track .switch-thumb {
+  transform: translateX(12px);
+}
+
+.switch input:checked ~ span:last-child {
+  color: var(--ink);
+}
+
+.switch input:focus-visible + .switch-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-h);
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--field);
+  border-color: var(--rule-strong);
+  color: var(--ink);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--ink-3);
+}
+
+.btn-quiet {
+  background: transparent;
+  color: var(--ink-2);
+  padding: 0 10px;
+}
+
+.btn-quiet:hover {
+  color: var(--ink);
+  background: var(--rule);
+}
+
+.text-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.text-btn:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.text-actions {
+  display: flex;
+  gap: 16px;
+}
+
+/* ---------- Notices ---------- */
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-left: 2px solid var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 13.5px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* ---------- Presets ---------- */
+
+.preset-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.preset-list li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.preset-load {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 8px 10px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.preset-load:hover .preset-name {
+  color: var(--accent);
+}
+
+.preset-name {
+  font-size: 14px;
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preset-size {
+  font-size: 13px;
+  color: var(--ink-3);
+  flex: none;
+}
+
+/* ---------- Save preset dialog ---------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(20, 26, 32, 0.45);
+}
+
+.modal {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 10px;
+  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  box-shadow: 0 24px 60px rgba(15, 22, 30, 0.3);
+}
+
+.modal h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.modal p {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ---------- Quote tab ---------- */
+
+.quote {
+  padding-top: 22px;
+}
+
+.quote-meta h2 {
+  font-size: 19px;
+  font-weight: 650;
+  margin-bottom: 4px;
+}
+
+.line-items {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--ink);
+}
+
+.line-items li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.item-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 550;
+}
+
+.item-detail {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.item-amount {
+  flex: none;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.spec {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  margin: 16px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.spec dd {
+  margin: 0;
+  color: var(--ink);
+  text-align: right;
+}
+
+.totals {
+  margin-top: 22px;
+  border-top: 1px solid var(--rule-strong);
+}
+
+.totals-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+  font-size: 15px;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.totals-row > span:last-child {
+  color: var(--ink);
+}
+
+.totals-row.grand {
+  min-height: 60px;
+  border-bottom: 2px solid var(--ink);
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.totals-row.grand > span:last-child {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.totals-row.grand.partial > span:last-child {
+  color: var(--ink-2);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 40px;
+}
+
+.empty h2 {
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.empty p {
+  color: var(--ink-2);
+  max-width: 34ch;
+  margin-bottom: 8px;
+}
+
+/* ---------- Prices tab ---------- */
+
+.prices > .hint {
+  padding: 18px 0 8px;
+}
+
+.price-group {
+  border-bottom: 1px solid var(--rule);
+}
+
+.price-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.price-group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 1.6px solid var(--ink-2);
+  border-bottom: 1.6px solid var(--ink-2);
+  transform: rotate(-45deg);
+  transition: transform 0.2s var(--ease);
+  margin-right: 2px;
+}
+
+.price-group.open .chevron {
+  transform: rotate(45deg) translate(-2px, -1px);
+}
+
+.price-table {
+  padding-bottom: 16px;
+}
+
+.price-subgroup + .price-subgroup {
+  margin-top: 14px;
+}
+
+.price-subgroup h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.price-row {
+  display: grid;
+  grid-template-columns: 1fr 118px 32px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+}
+
+.price-size {
+  font-size: 14.5px;
+}
+
+.price-input {
+  position: relative;
+  display: block;
+}
+
+.workbench .price-input input {
+  height: 36px;
+  padding: 0 34px 0 24px;
+  text-align: right;
+}
+
+.price-input .unit-pre,
+.price-input .unit {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+
+.price-input .unit-pre {
+  left: 10px;
+}
+
+.price-input .unit {
+  right: 10px;
+}
+
+.workbench .price-input input[aria-label="Nail price each"] {
+  padding-right: 46px;
+}
+
+.price-row.locked .price-input input {
+  border-style: solid;
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink);
+}
+
+/* ---------- Stage (3D) ---------- */
+
+.stage {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 70% at 50% 108%, var(--yard-floor) 0%, transparent 60%),
+    var(--yard);
+}
+
+.stage .pallet-3d-live {
+  position: absolute;
+  inset: 0;
+}
+
+.show-panel-btn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px 0 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* The price, stamped like a pallet marking */
+.stamp {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: auto;
+  min-width: 220px;
+  padding: 12px 16px 12px;
+  border: 2px solid var(--ink);
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  color: var(--ink);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.stamp-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.stamp-value {
+  font-family: var(--font-stencil);
+  font-weight: 800;
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  margin: 4px 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stamp.empty .stamp-value {
+  color: var(--ink-3);
+}
+
+.stamp-qty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-strong);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.stamp-qty .stepper {
+  --control-h: 32px;
+  grid-template-columns: 30px 56px 30px;
+}
+
+.stamp-qty .stepper-value {
+  font-size: 15px;
+}
+
+.stage-controls {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 22px;
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  pointer-events: none;
+}
+
+.stage-controls > * {
+  pointer-events: auto;
+}
+
+.range {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(280px, 60%);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.range strong {
+  margin-left: 6px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.range input[type="range"] {
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.range input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--ink-2);
+}
+
+.range input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: var(--ink-2);
+}
+
+.range input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -7px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+}
+
+.range input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+}
+
+.stage-empty {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.stage-empty p {
+  max-width: 30ch;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.stage-hint {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 900px) {
+  .workbench,
+  .workbench.panel-collapsed {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .panel {
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule-strong);
+    overflow: visible;
+  }
+
+  .panel-collapsed .panel {
+    visibility: visible;
+  }
+
+  .hide-panel-btn,
+  .show-panel-btn {
+    display: none;
+  }
+
+  /* Keep the price in view while filling in the form */
+  .panel-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--paper);
+    padding: 12px 16px 10px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .header-total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-left: auto;
+    line-height: 1.1;
+  }
+
+  .header-total span {
+    font-size: 11.5px;
+    color: var(--ink-2);
+  }
+
+  .header-total strong {
+    font-family: var(--font-stencil);
+    font-weight: 800;
+    font-size: 26px;
+  }
+
+  .brand-mark {
+    font-size: 22px;
+  }
+
+  .tabs {
+    padding: 0 18px;
+  }
+
+  .panel-body {
+    overflow: visible;
+    padding: 4px 18px 24px;
+  }
+
+  .panel-footer {
+    padding: 12px 18px;
+  }
+
+  .stage {
+    flex: none;
+    height: 72vh;
+    min-height: 420px;
+  }
+
+  .stamp {
+    top: 14px;
+    right: 14px;
+    min-width: 0;
+    padding: 10px 12px;
+  }
+
+  .stamp-value {
+    font-size: 34px;
+    margin-bottom: 0;
+  }
+
+  /* The sticky header already shows the total; keep the stamp compact */
+  .stamp .stamp-qty {
+    display: none;
+  }
+
+  .stage-controls {
+    left: 18px;
+    right: 18px;
+    bottom: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .range {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .field-row {
+    gap: 10px;
+  }
+
+  .price-row {
+    grid-template-columns: 1fr 112px 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workbench,
+  .switch-track,
+  .switch-thumb,
+  .chevron {
+    transition: none;
+  }
+}

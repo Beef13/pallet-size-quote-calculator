@@ -1,8 +1,8 @@
 import React, { useRef, useMemo, useEffect, Suspense } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
-import { OrbitControls, Text, Line, Billboard } from '@react-three/drei'
+import { OrbitControls, Text, Line, Billboard, ContactShadows } from '@react-three/drei'
 // Bundled locally so labels work offline (drei's default font is fetched from Google)
-import labelFont from '../assets/fonts/roboto-latin-400-normal.woff'
+import labelFont from '../assets/fonts/archivo-latin-500-normal.woff'
 import '../styles/Pallet3DLive.css'
 
 // If the labels ever fail to render, hide them instead of breaking the whole app
@@ -24,10 +24,13 @@ class LabelErrorBoundary extends React.Component {
 
 // Keep the whole pallet in view when its size changes (keeps the user's viewing angle)
 function CameraFit({ width, length, height }) {
-  const { camera, controls } = useThree()
+  const { camera, controls, size: viewport } = useThree()
   const size = Math.max(width, length, height, 4)
+  // Tall, narrow views (phones) need the camera further back to fit the width
+  const aspect = viewport.width / Math.max(1, viewport.height)
+  const narrowFactor = aspect < 1.2 ? 1.2 / aspect : 1
   useEffect(() => {
-    const distance = size * 2.8
+    const distance = size * 2.8 * narrowFactor
     const dir = camera.position.clone()
     if (dir.lengthSq() < 1e-6) dir.set(14, 10, 14)
     dir.normalize().multiplyScalar(distance)
@@ -38,12 +41,12 @@ function CameraFit({ width, length, height }) {
       controls.target.set(0, 0, 0)
       controls.update()
     }
-  }, [size, camera, controls])
+  }, [size, narrowFactor, camera, controls])
   return null
 }
 
 // Dimension Line Component - technical drawing style like reference image
-function DimensionLine({ start, end, offset = 0.5, label, color = '#555555', direction = 'horizontal' }) {
+function DimensionLine({ start, end, offset = 0.5, label, color = '#3d4852', textColor = '#1e2833', outlineColor = '#c6cccb', direction = 'horizontal' }) {
   const lineWidth = 1
   const arrowSize = 0.12
   
@@ -133,11 +136,11 @@ function DimensionLine({ start, end, offset = 0.5, label, color = '#555555', dir
         <Text
           font={labelFont}
           fontSize={0.4}
-          color="#333333"
+          color={textColor}
           anchorX="center"
           anchorY="middle"
-          outlineWidth={0.015}
-          outlineColor="#ffffff"
+          outlineWidth={0.03}
+          outlineColor={outlineColor}
         >
           {label}
         </Text>
@@ -175,7 +178,12 @@ function Nail({ position }) {
 }
 
 // Progressive Pallet Structure - builds item by item
-function PalletStructure({ previewData }) {
+function PalletStructure({ previewData, dark = false }) {
+  // Dimension line colours follow the light/dark theme
+  const dim = dark
+    ? { color: '#8b959c', textColor: '#e3e6e1', outlineColor: '#252b30' }
+    : { color: '#4a545d', textColor: '#1e2833', outlineColor: '#c6cccb' }
+
   const groupRef = useRef()
   
   // Scale: 1mm = 0.01 units
@@ -330,7 +338,7 @@ function PalletStructure({ previewData }) {
       )}
 
       {/* Ghost outline when no components */}
-      {!hasComponents && (
+      {!hasComponents && palletWidth > 0 && palletDepth > 0 && (
         <mesh position={[0, 0, 0]}>
           <boxGeometry args={[palletWidth, bearerStandingHeight + topBoardThickness + bottomBoardThickness, palletDepth]} />
           <meshStandardMaterial 
@@ -350,6 +358,7 @@ function PalletStructure({ previewData }) {
       {/* Width dimension - shows when pallet width is set AND there are any boards or bearers */}
       {palletWidth > 0 && palletDepth > 0 && hasComponents && (
         <DimensionLine
+          {...dim}
           start={[-palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
           end={[palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
           offset={1.8}
@@ -361,6 +370,7 @@ function PalletStructure({ previewData }) {
       {/* Length dimension - shows when pallet length is set AND there are any boards or bearers */}
       {palletWidth > 0 && palletDepth > 0 && hasComponents && (
         <DimensionLine
+          {...dim}
           start={[palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
           end={[palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, palletDepth / 2]}
           offset={1.8}
@@ -375,6 +385,7 @@ function PalletStructure({ previewData }) {
        previewData.numberOfBearers > 0 && 
        previewData.numberOfBottomBoards > 0 && (
         <DimensionLine
+          {...dim}
           start={[-palletWidth / 2, -bearerStandingHeight / 2 - bottomBoardThickness, -palletDepth / 2]}
           end={[-palletWidth / 2, bearerStandingHeight / 2 + topBoardThickness, -palletDepth / 2]}
           offset={-1.8}
@@ -386,6 +397,7 @@ function PalletStructure({ previewData }) {
       {/* Top gap dimension - shows only when 2+ top boards exist */}
       {previewData.numberOfTopBoards >= 2 && topGap > 0.001 && topBoardData.length >= 2 && (
         <DimensionLine
+          {...dim}
           start={[topBoardData[0].xPos + topBoardData[0].width / 2, bearerStandingHeight / 2 + topBoardData[0].thickness, palletDepth / 2]}
           end={[topBoardData[1].xPos - topBoardData[1].width / 2, bearerStandingHeight / 2 + topBoardData[1].thickness, palletDepth / 2]}
           offset={3.0}
@@ -397,6 +409,7 @@ function PalletStructure({ previewData }) {
       {/* Bottom gap dimension - shows only when 2+ bottom boards exist */}
       {previewData.numberOfBottomBoards >= 2 && bottomGap > 0.001 && bottomBoardData.length >= 2 && (
         <DimensionLine
+          {...dim}
           start={[bottomBoardData[0].xPos + bottomBoardData[0].width / 2, -bearerStandingHeight / 2 - bottomBoardData[0].thickness, palletDepth / 2]}
           end={[bottomBoardData[1].xPos - bottomBoardData[1].width / 2, -bearerStandingHeight / 2 - bottomBoardData[1].thickness, palletDepth / 2]}
           offset={-2.5}
@@ -411,7 +424,7 @@ function PalletStructure({ previewData }) {
 }
 
 // Main Live 3D Component
-function Pallet3DLive({ previewData }) {
+function Pallet3DLive({ previewData, dark = false }) {
   return (
     <div className="pallet-3d-live">
       <Canvas
@@ -440,7 +453,18 @@ function Pallet3DLive({ previewData }) {
         <pointLight position={[0, 10, -15]} intensity={0.4} />
         
         {/* Pallet */}
-        <PalletStructure previewData={previewData} />
+        <PalletStructure previewData={previewData} dark={dark} />
+
+        {/* Soft shadow on the ground under the pallet */}
+        <ContactShadows
+          position={[0, -((previewData.bearerWidth || 75) / 2 + (previewData.bottomBoardThickness || 22) + 1) * 0.01, 0]}
+          scale={Math.max(previewData.palletWidth || 0, previewData.palletLength || 0, 600) * 0.01 * 1.6}
+          opacity={dark ? 0.6 : 0.35}
+          blur={2.4}
+          far={4}
+          resolution={256}
+          color={dark ? '#000000' : '#26313a'}
+        />
 
         <CameraFit
           width={(previewData.palletWidth || 0) * 0.01}
