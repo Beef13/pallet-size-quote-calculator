@@ -17,3 +17,61 @@
 .pallet-3d-live canvas:active {
   cursor: grabbing;
 }
+
+/* World axis indicator, top left of the 3D view. Colours follow Rhino: X red, Y green, Z blue. */
+.axis-indicator {
+  --axis-x: #c80000;
+  --axis-y: #009600;
+  --axis-z: #0000c8;
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  z-index: 4;
+  overflow: visible;
+  pointer-events: none;
+  user-select: none;
+}
+
+.axis-indicator line {
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+
+.axis-indicator text {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.axis-indicator .axis-x line { stroke: var(--axis-x); }
+.axis-indicator .axis-y line { stroke: var(--axis-y); }
+.axis-indicator .axis-z line { stroke: var(--axis-z); }
+.axis-indicator .axis-x text { fill: var(--axis-x); }
+.axis-indicator .axis-y text { fill: var(--axis-y); }
+.axis-indicator .axis-z text { fill: var(--axis-z); }
+
+/* Leave room for the "Show panel" button when the side panel is hidden */
+.panel-collapsed .axis-indicator {
+  top: 62px;
+}
+
+@media print {
+  .axis-indicator {
+    display: none;
+  }
+}
+
+/* Same hues, lifted so they stay readable on the dark canvas */
+html.dark-mode .axis-indicator {
+  --axis-x: #ff5a5a;
+  --axis-y: #3fce5a;
+  --axis-z: #6a8cff;
+}
+
+@media (max-width: 900px) {
+  .axis-indicator,
+  .panel-collapsed .axis-indicator {
+    top: 12px;
+    left: 14px;
+  }
+}

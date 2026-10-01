@@ -1,5 +1,6 @@
 import React, { useRef, useMemo, useEffect, Suspense } from 'react'
-import { Canvas, useThree } from '@react-three/fiber'
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
+import { Vector3 } from 'three'
 import { OrbitControls, Text, Line, Billboard, ContactShadows } from '@react-three/drei'
 // Bundled locally so labels work offline (drei's default font is fetched from Google)
 import labelFont from '../assets/fonts/outfit-latin-500-normal.woff'
@@ -20,6 +21,74 @@ class LabelErrorBoundary extends React.Component {
   render() {
     return this.state.failed ? null : this.props.children
   }
+}
+
+// World axes shown in the corner of the view, CAD style (Z up, as in Rhino).
+// The scene itself is Y up, so: X = pallet width, Y = pallet length (into the scene), Z = height.
+const AXES = [
+  { key: 'x', dir: [1, 0, 0] },
+  { key: 'y', dir: [0, 0, -1] },
+  { key: 'z', dir: [0, 1, 0] }
+]
+const AXIS_LENGTH = 26   // px, at full length (axis lying flat to the screen)
+const AXIS_LABEL_GAP = 9 // px from the end of the line to its letter
+
+// Runs inside the canvas: turns the corner axes to match the camera on every frame
+function AxisTracker({ targetRef }) {
+  const scratch = useMemo(() => new Vector3(), [])
+  const last = useRef('')
+  useFrame(({ camera }) => {
+    const svg = targetRef.current
+    if (!svg) return
+    // Skip the DOM work unless the camera has actually turned
+    const q = camera.quaternion
+    const stamp = `${q.x.toFixed(4)},${q.y.toFixed(4)},${q.z.toFixed(4)},${q.w.toFixed(4)}`
+    if (stamp === last.current) return
+    last.current = stamp
+
+    const inverse = q.clone().invert()
+    const placed = AXES.map(({ key, dir }) => {
+      // Axis direction as seen from the camera: x right, y up, z towards the viewer
+      scratch.set(dir[0], dir[1], dir[2]).applyQuaternion(inverse)
+      return { key, x: scratch.x, y: -scratch.y, depth: scratch.z }
+    })
+    placed.forEach(({ key, x, y }) => {
+      const line = svg.querySelector(`[data-axis-line="${key}"]`)
+      const text = svg.querySelector(`[data-axis-label="${key}"]`)
+      if (!line || !text) return
+      const ex = x * AXIS_LENGTH
+      const ey = y * AXIS_LENGTH
+      line.setAttribute('x2', ex.toFixed(2))
+      line.setAttribute('y2', ey.toFixed(2))
+      // Push the letter out along the axis; straight up when the axis points at the viewer
+      const flat = Math.hypot(x, y)
+      const ux = flat > 0.05 ? x / flat : 0
+      const uy = flat > 0.05 ? y / flat : -1
+      text.setAttribute('x', (ex + ux * AXIS_LABEL_GAP).toFixed(2))
+      text.setAttribute('y', (ey + uy * AXIS_LABEL_GAP).toFixed(2))
+    })
+    // Draw the nearest axis last so it sits on top
+    placed
+      .sort((a, b) => a.depth - b.depth)
+      .forEach(({ key }) => {
+        const group = svg.querySelector(`[data-axis="${key}"]`)
+        if (group) svg.appendChild(group)
+      })
+  })
+  return null
+}
+
+function AxisIndicator({ svgRef }) {
+  return (
+    <svg ref={svgRef} className="axis-indicator" viewBox="-44 -44 88 88" width="88" height="88" role="img" aria-label="X, Y and Z axis directions">
+      {AXES.map(({ key }) => (
+        <g key={key} data-axis={key} className={`axis axis-${key}`}>
+          <line data-axis-line={key} x1="0" y1="0" x2="0" y2="0" />
+          <text data-axis-label={key} x="0" y="0" textAnchor="middle" dominantBaseline="central">{key}</text>
+        </g>
+      ))}
+    </svg>
+  )
 }
 
 // Keep the whole pallet in view when its size changes (keeps the user's viewing angle)
@@ -425,8 +494,10 @@ function PalletStructure({ previewData, dark = false }) {
 
 // Main Live 3D Component
 function Pallet3DLive({ previewData, dark = false }) {
+  const axisRef = useRef(null)
   return (
     <div className="pallet-3d-live">
+      <AxisIndicator svgRef={axisRef} />
       <Canvas
         camera={{ position: [14, 10, 14], fov: 40 }}
         shadows
@@ -465,6 +536,8 @@ function Pallet3DLive({ previewData, dark = false }) {
           resolution={256}
           color={dark ? '#000000' : '#26313a'}
         />
+
+        <AxisTracker targetRef={axisRef} />
 
         <CameraFit
           width={(previewData.palletWidth || 0) * 0.01}
