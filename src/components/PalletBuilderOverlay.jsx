@@ -2174,6 +2174,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   </div>
                 </Reveal>
               </section>
+              <p className="legal-links">
+                <a href="../terms/index.html" target="_blank" rel="noopener">Terms of use</a>
+                <span aria-hidden="true">·</span>
+                <a href="../privacy/index.html" target="_blank" rel="noopener">Privacy</a>
+              </p>
             </div>
             <footer className="panel-footer">
               <span className="save-state" aria-live="polite">

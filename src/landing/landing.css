@@ -1252,3 +1252,20 @@ a {
     transition: none !important;
   }
 }
+
+/* Footer links: calculator, terms and privacy */
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-left: auto;
+}
+
+.footer-inner .footer-links a {
+  margin-left: 0;
+}
+
+.footer-links a.quiet {
+  color: var(--ink-2);
+  font-weight: 400;
+}

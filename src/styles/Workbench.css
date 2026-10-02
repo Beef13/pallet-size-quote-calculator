@@ -2804,3 +2804,23 @@ html.dark-mode .status-pill.attention-follow-up {
   line-height: 26px;
   white-space: nowrap;
 }
+
+/* Links to the terms and privacy pages, at the foot of the Prices tab */
+.workbench .legal-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.legal-links a {
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.legal-links a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}

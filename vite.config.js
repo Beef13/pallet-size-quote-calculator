@@ -8,10 +8,12 @@ export default defineConfig({
   base: process.env.BASE_PATH || '/pallet-size-quote-calculator/',
   build: {
     rollupOptions: {
-      // Landing page at the site root, the calculator at /app/
+      // Landing page at the site root, the calculator at /app/, legal pages at /terms/ and /privacy/
       input: {
         main: resolve(__dirname, 'index.html'),
-        app: resolve(__dirname, 'app/index.html')
+        app: resolve(__dirname, 'app/index.html'),
+        terms: resolve(__dirname, 'terms/index.html'),
+        privacy: resolve(__dirname, 'privacy/index.html')
       }
     }
   }
