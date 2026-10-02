@@ -26,6 +26,10 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      # A failing price test stops the site from being published
+      - name: Test price calculations
+        run: npm test
+
       - name: Build
         run: npm run build
 

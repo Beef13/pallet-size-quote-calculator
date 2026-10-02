@@ -39,7 +39,8 @@ BASE_PATH=./ npx vite build   # relative base, e.g. for static previews
 ```
 
 - Stack: React 18, Vite 6, `@react-three/fiber` and `drei` (three 0.160), and `@fontsource-variable/outfit`.
-- There are no automated tests. Previous sessions verified changes with ad hoc Playwright scripts: build a 1165 × 1165 pallet, fill in the Quote tab, export both PDFs, and check for console errors.
+- `npm test` runs the price calculation tests (Vitest, `src/utils/calculations.test.js`): timber cost, deck layout, the labour and markup stack (`costStack`), order totals and GST (`orderTotals`), and one full quote end to end. The deploy workflow runs them before building, so a failing test blocks publishing. Add a test whenever the pricing rules change.
+- The interface itself has no automated tests. Previous sessions verified changes with ad hoc Playwright scripts: build a 1165 × 1165 pallet, fill in the Quote tab, export both PDFs, and check for console errors.
 - Use stable selectors: `[data-field="..."]` attributes on inputs, and steppers with `aria-label="Number of {label}"`.
 - When stopping a dev server, kill by port (`fuser -k 5173/tcp`). Don't use `pkill -f` with a pattern that also matches your own shell command; that killed the shell in a previous session.
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import timberData from '../data/timber-prices.json'
-import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, formatCurrency, formatDimension } from '../utils/calculations'
+import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, costStack, orderTotals, formatCurrency, formatDimension } from '../utils/calculations'
 import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
 import PrintableQuote from './PrintableQuote'
@@ -793,12 +793,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     // Cost stack: materials + labour = cost; cost + markup = sell price (per pallet)
     const pricing = prices.pricing || DEFAULT_PRICING
     const hasMaterials = materialsTotal > 0 || totalNails > 0
-    const labourPerPallet = hasMaterials ? round2(Number(pricing.labourPerPallet) || 0) : 0
-    const costPerPallet = round2(materialsTotal + labourPerPallet)
-    const markupPercent = Number(pricing.markupPercent) || 0
-    const markupPerPallet = round2(costPerPallet * markupPercent / 100)
-    const runningTotal = round2(costPerPallet + markupPerPallet)
-    const marginPercent = runningTotal > 0 ? (markupPerPallet / runningTotal) * 100 : 0
+    const { labourPerPallet, costPerPallet, markupPercent, markupPerPallet, sellPerPallet: runningTotal, marginPercent } =
+      costStack(materialsTotal, pricing, hasMaterials)
 
     // When using custom leaders, also need leader type/size selected
     const topLeadersValid = !useCustomTopLeaders || (topLeaderTimberType && topLeaderSize)
@@ -1366,11 +1362,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   ].filter(Boolean)
 
   // Quote totals: ex GST, GST and the grand total
-  const totals = (() => {
-    const exGst = Math.round(liveQuote.totalPrice * quantity * 100) / 100
-    const gst = liveQuote.showGst ? Math.round(exGst * liveQuote.gstRate) / 100 : 0
-    return { exGst, gst, grand: Math.round((exGst + gst) * 100) / 100 }
-  })()
+  const totals = orderTotals(liveQuote.totalPrice, quantity, liveQuote.gstRate, liveQuote.showGst)
 
   const totalLabel = liveQuote.isComplete
     ? `${quantity > 1 ? `Total for ${quantity} pallets` : 'Total'}${liveQuote.showGst ? ' ex GST' : ''}`

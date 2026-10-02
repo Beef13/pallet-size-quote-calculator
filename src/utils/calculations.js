@@ -149,3 +149,38 @@ export function formatDimension(value) {
   return `${Math.round(parseFloat(value))}mm`;
 }
 
+
+const round2 = (v) => Math.round(v * 100) / 100
+
+/**
+ * Build the price of one pallet from its material cost.
+ *   cost  = materials + labour
+ *   sell  = cost + cost x markup%
+ *   margin% = markup / sell
+ * Each step is rounded to cents, so the figures shown always add up.
+ * @param {number} materialsTotal - timber and nails for one pallet
+ * @param {{labourPerPallet?: number, markupPercent?: number}} pricing
+ * @param {boolean} hasMaterials - labour is only charged once there is something to build
+ */
+export function costStack(materialsTotal, pricing = {}, hasMaterials = materialsTotal > 0) {
+  const labourPerPallet = hasMaterials ? round2(Number(pricing.labourPerPallet) || 0) : 0
+  const costPerPallet = round2((Number(materialsTotal) || 0) + labourPerPallet)
+  const markupPercent = Number(pricing.markupPercent) || 0
+  const markupPerPallet = round2(costPerPallet * markupPercent / 100)
+  const sellPerPallet = round2(costPerPallet + markupPerPallet)
+  const marginPercent = sellPerPallet > 0 ? (markupPerPallet / sellPerPallet) * 100 : 0
+  return { labourPerPallet, costPerPallet, markupPercent, markupPerPallet, sellPerPallet, marginPercent }
+}
+
+/**
+ * Totals for the whole order.
+ * @param {number} sellPerPallet - price of one pallet, ex GST
+ * @param {number} quantity
+ * @param {number} gstRate - percent, e.g. 10
+ * @param {boolean} showGst - false leaves GST off the quote
+ */
+export function orderTotals(sellPerPallet, quantity, gstRate = 10, showGst = true) {
+  const exGst = round2((Number(sellPerPallet) || 0) * (Number(quantity) || 0))
+  const gst = showGst ? Math.round(exGst * (Number(gstRate) || 0)) / 100 : 0
+  return { exGst, gst, grand: round2(exGst + gst) }
+}
