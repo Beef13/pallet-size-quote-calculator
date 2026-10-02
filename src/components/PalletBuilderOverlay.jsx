@@ -6,6 +6,7 @@ import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
 import PrintableQuote from './PrintableQuote'
 import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
+import { quoteAttention } from '../utils/quotes'
 import '../styles/Workbench.css'
 
 // Saved or imported prices laid over the standard list (or the business's own edited list)
@@ -370,6 +371,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [historyNotice, setHistoryNotice] = useState('')
   const [historySearch, setHistorySearch] = useState('')
   const [historyStatus, setHistoryStatus] = useState('all')
+  const [openQuoteId, setOpenQuoteId] = useState(null) // the one History row that is expanded
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
   // Available sizes - derived from the selected timber type
@@ -969,7 +971,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       list = [saved, ...list]
     }
     if (markSent && saved.status === 'draft') {
-      saved = { ...saved, status: 'sent', sentAt: now }
+      saved = { ...saved, status: 'sent', sentAt: now, validUntil: validUntilFrom(now) }
       list = list.map(q => q.id === saved.id ? saved : q)
     }
     persistQuotes(list)
@@ -1010,8 +1012,16 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setActiveTab('quote')
   }
 
+  // When a quote is sent, note the date and how long it stays valid, so History can say when to chase it
+  const validUntilFrom = (iso) => new Date(Date.parse(iso) + Math.max(1, parseInt(business.validDays) || 30) * 86400000).toISOString()
   const setQuoteStatus = (id, status) => {
-    persistQuotes(quotes.map(q => q.id === id ? { ...q, status, updatedAt: new Date().toISOString() } : q))
+    const now = new Date().toISOString()
+    persistQuotes(quotes.map(q => {
+      if (q.id !== id) return q
+      const next = { ...q, status, updatedAt: now }
+      if (status === 'sent' && q.status !== 'sent') { next.sentAt = now; next.validUntil = validUntilFrom(now) }
+      return next
+    }))
   }
 
   const deleteQuote = (id) => {
@@ -1232,8 +1242,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const canShowProfit = liveQuote.hasAnyPrice && (liveQuote.markupPerPallet || 0) > 0
 
   // History tab: search text and status chip together
+  const attentionFor = (q) => quoteAttention(q, Date.now(), business.validDays)
+  const attentionCount = quotes.filter(q => attentionFor(q)).length
   const shownQuotes = quotes.filter(q => {
-    if (historyStatus !== 'all' && q.status !== historyStatus) return false
+    if (historyStatus === 'attention') { if (!attentionFor(q)) return false }
+    else if (historyStatus !== 'all' && q.status !== historyStatus) return false
     const term = historySearch.trim().toLowerCase()
     if (!term) return true
     return [q.number, q.customerName, q.customerRef, q.summary?.size].filter(Boolean).join(' ').toLowerCase().includes(term)
@@ -1794,8 +1807,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   placeholder="Search by customer, number or size" aria-label="Search saved quotes" data-field="history-search" />
                 {quotes.length > 0 && (
                   <div className="status-filter" role="group" aria-label="Show quotes by status">
-                    {[['all', 'All'], ...Object.entries(STATUS_LABELS)].map(([value, label]) => {
-                      const count = value === 'all' ? quotes.length : quotes.filter(q => q.status === value).length
+                    {[['all', 'All'], ...(attentionCount > 0 || historyStatus === 'attention' ? [['attention', 'To chase']] : []), ...Object.entries(STATUS_LABELS)].map(([value, label]) => {
+                      const count = value === 'all' ? quotes.length : value === 'attention' ? attentionCount : quotes.filter(q => q.status === value).length
                       return (
                         <button key={value} type="button" data-status-filter={value}
                           className={`chip ${historyStatus === value ? 'active' : ''}`} aria-pressed={historyStatus === value}
@@ -1822,38 +1835,59 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 </div>
               ) : (
                 <ul className="quote-list">
-                  {shownQuotes.map(q => (
-                      <li key={q.id} className={q.id === currentQuoteId ? 'current' : ''}>
-                        <div className="quote-row-top">
-                          <span className="quote-number">{q.number}</span>
-                          <select className={`status-select status-${q.status}`} value={q.status}
-                            onChange={(e) => setQuoteStatus(q.id, e.target.value)} aria-label={`Status of ${q.number}`}>
-                            {Object.entries(STATUS_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
-                          </select>
-                        </div>
-                        <div className="quote-row-main">
-                          <span className="quote-customer">{q.customerName || 'No customer'}</span>
-                          <span className="quote-total">{formatCurrency(q.summary?.totalExGst || 0)}</span>
-                        </div>
-                        <div className="quote-row-sub">
-                          <span>{q.summary?.size ? `${q.summary.size} mm` : 'Pallet'} · {q.quantity} pallet{q.quantity === 1 ? '' : 's'}{q.customerRef ? ` · ${q.customerRef}` : ''}</span>
-                          <span>{new Date(q.updatedAt || q.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                        </div>
-                        <div className="quote-row-actions">
-                          <button type="button" className="text-btn" onClick={() => openQuote(q)}>Open</button>
-                          <button type="button" className="text-btn" onClick={() => duplicateQuote(q)}>Duplicate at today's rates</button>
-                          {confirmDeleteId === q.id ? (
-                            <span className="confirm">
-                              Delete {q.number}?
-                              <button type="button" className="text-btn danger" onClick={() => deleteQuote(q.id)}>Delete</button>
-                              <button type="button" className="text-btn" onClick={() => setConfirmDeleteId(null)}>Keep</button>
+                  {shownQuotes.map(q => {
+                    const isOpen = openQuoteId === q.id
+                    const attention = attentionFor(q)
+                    const date = new Date(q.updatedAt || q.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+                    return (
+                      <li key={q.id} className={`quote-item ${q.id === currentQuoteId ? 'current' : ''} ${isOpen ? 'open' : ''}`} data-quote={q.number}>
+                        <button type="button" className="quote-summary" aria-expanded={isOpen} aria-controls={`quote-${q.id}`}
+                          onClick={() => { setOpenQuoteId(isOpen ? null : q.id); setConfirmDeleteId(null) }}>
+                          <span className="quote-line">
+                            <span className="quote-customer">{q.customerName || 'No customer'}</span>
+                            <span className="quote-total">{formatCurrency(q.summary?.totalExGst || 0)}</span>
+                          </span>
+                          <span className="quote-line quote-line-sub">
+                            <span className="quote-meta">
+                              {q.number} · {q.summary?.size ? `${q.summary.size} mm` : 'Pallet'} · {q.quantity} pallet{q.quantity === 1 ? '' : 's'}{q.customerRef ? ` · ${q.customerRef}` : ''}
                             </span>
-                          ) : (
-                            <button type="button" className="text-btn muted-btn" onClick={() => setConfirmDeleteId(q.id)}>Delete</button>
-                          )}
-                        </div>
+                            <span className="quote-tags">
+                              {attention && <span className={`status-pill attention-${attention.kind}`} title={attention.detail}>{attention.label}</span>}
+                              <span className={`status-pill status-${q.status}`}>{STATUS_LABELS[q.status]}</span>
+                            </span>
+                          </span>
+                        </button>
+                        <Reveal open={isOpen} id={`quote-${q.id}`}>
+                          <div className="quote-detail">
+                            <p className="quote-detail-note">
+                              {attention ? `${attention.detail}.` : `Last changed ${date}.`}
+                            </p>
+                            {confirmDeleteId === q.id ? (
+                              // The question takes the whole row, so it never has to squeeze in beside the other actions
+                              <div className="quote-row-actions">
+                                <span className="confirm-question">Delete {q.number}? This can't be undone.</span>
+                                <button type="button" className="text-btn danger" onClick={() => deleteQuote(q.id)}>Delete</button>
+                                <button type="button" className="text-btn" onClick={() => setConfirmDeleteId(null)}>Keep</button>
+                              </div>
+                            ) : (
+                              <div className="quote-row-actions">
+                                <label className="quote-status-field">
+                                  <span>Status</span>
+                                  <select className={`status-select status-${q.status}`} value={q.status}
+                                    onChange={(e) => setQuoteStatus(q.id, e.target.value)} aria-label={`Status of ${q.number}`}>
+                                    {Object.entries(STATUS_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+                                  </select>
+                                </label>
+                                <button type="button" className="text-btn" onClick={() => openQuote(q)}>Open</button>
+                                <button type="button" className="text-btn" onClick={() => duplicateQuote(q)} title="Start a new quote from this one, priced at today's rates">Duplicate</button>
+                                <button type="button" className="text-btn muted-btn" onClick={() => setConfirmDeleteId(q.id)}>Delete</button>
+                              </div>
+                            )}
+                          </div>
+                        </Reveal>
                       </li>
-                    ))}
+                    )
+                  })}
                 </ul>
               )}
             </div>

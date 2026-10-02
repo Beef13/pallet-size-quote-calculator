@@ -2653,3 +2653,154 @@ html.dark-mode .status-tick {
 .workbench .logo-error {
   color: var(--warn);
 }
+
+/* ---------- History: compact rows that expand ---------- */
+
+.quote-list {
+  gap: 6px;
+}
+
+.quote-list li.quote-item {
+  gap: 0;
+  padding: 0;
+  border-radius: 16px;
+}
+
+.quote-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.quote-summary:hover {
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+
+.quote-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  font-size: 15.5px;
+}
+
+.quote-line-sub {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.quote-meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quote-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+}
+
+.quote-tags .status-pill {
+  padding: 1px 8px;
+  font-size: 11.5px;
+}
+
+/* Draft tag needs its own surface: the row is already the field colour */
+.quote-tags .status-draft {
+  background: var(--paper);
+}
+
+.status-pill.attention-follow-up {
+  background: #fdf0d5;
+  color: #8a5a00;
+}
+
+.status-pill.attention-expired {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+html.dark-mode .status-pill.attention-follow-up {
+  background: #3a2e12;
+  color: #f0c36a;
+}
+
+.quote-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 14px 12px;
+}
+
+.workbench .quote-detail-note {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.quote-status-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.quote-detail .status-select.status-draft {
+  background-color: var(--paper);
+}
+
+/* The status colours use the background shorthand, which would otherwise tile the dropdown arrow */
+.workbench select.status-select {
+  background-repeat: no-repeat !important;
+  background-position: right 9px center !important;
+}
+
+.quote-detail .quote-row-actions {
+  flex-wrap: nowrap;
+  gap: 4px 14px;
+  padding-top: 0;
+}
+
+.quote-detail .confirm {
+  white-space: nowrap;
+}
+
+/* Keep the status chips on one line; they scroll sideways if there are too many to fit */
+.status-filter {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-right: -24px;
+  padding-right: 24px;
+}
+
+.status-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.status-filter .chip {
+  flex: none;
+  padding: 0 10px;
+}
+
+.confirm-question {
+  margin-right: auto;
+  font-size: 13px;
+  color: var(--warn);
+  /* same height as the status dropdown it replaces, so the row doesn't jump */
+  line-height: 26px;
+  white-space: nowrap;
+}

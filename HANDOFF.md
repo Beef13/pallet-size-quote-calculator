@@ -115,7 +115,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 **Same-timber shortcut:** while a Build section has no timber, it offers a one-click "Use X, same as bottom boards" button (`sameTimberButton`).
 
-**History filter:** status chips (All, Draft, Sent, Accepted, Lost, each with a count) work together with the search box (`shownQuotes`).
+**History tab:** each saved quote is a compact two-line row (customer and total; number, size, quantity, reference and a status tag). Tapping a row expands it to show the status picker, Open, Duplicate and Delete; one row is open at a time. Status chips (All, Draft, Sent, Accepted, Lost, each with a count) work together with the search box (`shownQuotes`). Sent quotes that need chasing get a tag from `quoteAttention()` in `src/utils/quotes.js` (tested): "Follow up" after 7 days with no answer, "Expired" once past the valid-until date. A "To chase" chip appears when any exist. Quotes record `sentAt` and `validUntil` when they're marked sent, whether by exporting the customer PDF or by hand.
 
 **Gross profit on the price card:** an eye button on the card shows or hides a "Gross profit $X · Y% margin" line (markup × quantity). It's off by default and remembered in `palletShowProfit`, because that card is the part of the screen most likely to be shown to a customer. The button only appears once a markup is set. It's gross profit: freight and overheads aren't in the cost yet.
 
