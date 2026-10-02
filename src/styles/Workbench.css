@@ -2395,7 +2395,7 @@ html.dark-mode .status-tick {
 }
 
 /* What's left to choose, on the price card */
-.stamp-missing {
+.stamp .stamp-missing {
   margin: -4px 0 16px;
   max-width: 260px;
   font-size: 13px;
@@ -2418,7 +2418,7 @@ html.dark-mode .status-tick {
 }
 
 @media (max-width: 900px) {
-  .stamp-missing {
+  .stamp .stamp-missing {
     max-width: none;
     margin-bottom: 0;
   }
@@ -2491,4 +2491,66 @@ html.dark-mode .status-tick {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   opacity: 0.7;
+}
+
+/* ---------- Gross profit on the price card (off unless switched on) ---------- */
+
+.stamp-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 22px;
+}
+
+.stamp-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: -4px -6px -4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.stamp-eye:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink-2);
+}
+
+.stamp-eye[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+.stamp .stamp-profit {
+  margin: -6px 0 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.stamp-profit strong {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.stamp .stamp-profit + .stamp-missing {
+  margin-top: -8px;
+}
+
+@media (max-width: 900px) {
+  .stamp .stamp-profit {
+    margin: 2px 0 0;
+  }
+
+  .stamp .stamp-profit + .stamp-missing {
+    margin-top: 4px;
+  }
 }

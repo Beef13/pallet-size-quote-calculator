@@ -107,7 +107,9 @@ function Icon({ name, size = 18 }) {
     moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />,
     close: <path d="M6 6l12 12M18 6L6 18" />,
     minus: <path d="M6 12h12" />,
-    plus: <path d="M12 6v12M6 12h12" />
+    plus: <path d="M12 6v12M6 12h12" />,
+    eye: <><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>,
+    'eye-off': <><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.5 6.6C3.6 8.5 2 12 2 12s3.6 7 10 7a10.6 10.6 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /><path d="M3 3l18 18" /></>
   }
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -292,6 +294,16 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   
   // Saved presets state
   const [savedPresets, setSavedPresets] = useState([])
+
+  // Gross profit on the price card. Hidden unless switched on, because that card is on the
+  // part of the screen most likely to be shown to a customer.
+  const [showProfit, setShowProfit] = useState(() => readStorage('palletShowProfit') === 'true')
+  const toggleProfit = () => {
+    setShowProfit(prev => {
+      writeStorage('palletShowProfit', String(!prev))
+      return !prev
+    })
+  }
 
   // Which panel sections are folded open. Remembered between visits; sections the user
   // hasn't touched fall back to a sensible default (see isOpen below).
@@ -1163,6 +1175,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     bearers: liveQuote.bearersTotal
   }
 
+  // Profit can only be shown once there is a price with a markup on it
+  const canShowProfit = liveQuote.hasAnyPrice && (liveQuote.markupPerPallet || 0) > 0
+
   // Quotes tab: search text and status chip together
   const shownQuotes = quotes.filter(q => {
     if (historyStatus !== 'all' && q.status !== historyStatus) return false
@@ -2011,8 +2026,22 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         )}
 
         <div className={`stamp ${liveQuote.isComplete ? 'complete' : ''} ${liveQuote.hasAnyPrice ? '' : 'empty'}`}>
-          <span className="stamp-label">{liveQuote.hasAnyPrice ? totalLabel : 'No price yet'}</span>
+          <div className="stamp-top">
+            <span className="stamp-label">{liveQuote.hasAnyPrice ? totalLabel : 'No price yet'}</span>
+            {canShowProfit && (
+              <button type="button" className="stamp-eye" onClick={toggleProfit} aria-pressed={showProfit} data-profit-toggle
+                aria-label={showProfit ? 'Hide gross profit' : 'Show gross profit'} title={showProfit ? 'Hide gross profit' : 'Show gross profit'}>
+                <Icon name={showProfit ? 'eye' : 'eye-off'} size={16} />
+              </button>
+            )}
+          </div>
           <span className="stamp-value"><Money value={(liveQuote.totalPrice || 0) * quantity} /></span>
+          {canShowProfit && showProfit && (
+            <p className="stamp-profit" data-profit>
+              Gross profit <strong>{formatCurrency(Math.round((liveQuote.markupPerPallet || 0) * quantity * 100) / 100)}</strong>
+              <span> · {r1(liveQuote.marginPercent)}% margin</span>
+            </p>
+          )}
           {missingText && <p className="stamp-missing" data-missing>Still to choose: {missingText}</p>}
           <div className="stamp-qty">
             <span id="stage-qty-label">Pallets</span>
