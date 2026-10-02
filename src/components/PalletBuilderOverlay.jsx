@@ -184,11 +184,12 @@ function Reveal({ open, id, className = '', children }) {
   )
 }
 
-// Status mark on a section heading. A thin line fills as the section is completed; when it's
-// done the line swells into a bright green pill with a tick, and pulses once to catch the eye.
+// Status mark on a section heading. The outline of a circle fills as the section is completed;
+// when it's done it becomes a bright green ticked circle that blinks briefly to catch the eye.
 const STATUS_TEXT = { todo: 'not started', partial: 'not finished', done: 'done' }
+const RING_LENGTH = 2 * Math.PI * 8 // circumference of the r=8 outline
 function StatusMark({ status, ratio = 0 }) {
-  // Pulse only at the moment a section becomes complete, not every time the tab is shown
+  // Blink only at the moment a section becomes complete, not every time the tab is shown
   const previous = useRef(status)
   const [justDone, setJustDone] = useState(false)
   useEffect(() => {
@@ -199,19 +200,20 @@ function StatusMark({ status, ratio = 0 }) {
       return
     }
     setJustDone(true)
-    const timer = setTimeout(() => setJustDone(false), 1600)
+    const timer = setTimeout(() => setJustDone(false), 2000)
     return () => clearTimeout(timer)
   }, [status])
 
   return (
     <span className={`status-mark ${status} ${justDone ? 'just-done' : ''}`} role="img" aria-label={STATUS_TEXT[status]}
       title={STATUS_TEXT[status].replace(/^./, c => c.toUpperCase())}>
-      <span className="status-track">
-        <span className="status-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
-        <svg className="status-tick" width="12" height="10" viewBox="0 0 12 10" fill="none" aria-hidden="true">
-          <path d="M1.5 5.2l3 3 6-6.4" />
-        </svg>
-      </span>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle className="status-track" cx="10" cy="10" r="8" />
+        <circle className="status-progress" cx="10" cy="10" r="8" transform="rotate(-90 10 10)"
+          strokeDasharray={RING_LENGTH} strokeDashoffset={RING_LENGTH * (1 - ratio)} />
+        <circle className="status-disc" cx="10" cy="10" r="9" />
+        <path className="status-tick" d="M6.2 10.3l2.6 2.6 5.1-5.5" />
+      </svg>
     </span>
   )
 }
