@@ -2269,59 +2269,26 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
 }
 
 .status-mark {
-  display: inline-flex;
+  position: relative;
   flex-shrink: 0;
+  width: 26px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+  overflow: hidden;
 }
 
-.status-mark svg {
-  display: block;
-  overflow: visible;
+.status-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  /* Width, not a scale, so the leading end stays round while it's part filled */
+  border-radius: 999px;
+  background: var(--ink-3);
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease;
 }
 
-.status-ring {
-  stroke: var(--ink-3);
-  stroke-width: 1.5;
-  opacity: 0.7;
-  transition: stroke 0.25s ease, opacity 0.25s ease;
-}
-
-.status-half {
-  fill: var(--ink-3);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.status-disc {
-  fill: var(--accent);
-  transform-origin: 9px 9px;
-  transform: scale(0);
-  transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
-}
-
-.status-tick {
-  stroke: #fff;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 11;
-  stroke-dashoffset: 11;
-  transition: stroke-dashoffset 0.25s ease 0.08s;
-}
-
-.status-mark.partial .status-half {
-  opacity: 0.7;
-}
-
-.status-mark.done .status-disc {
-  transform: scale(1);
-}
-
-.status-mark.done .status-tick {
-  stroke-dashoffset: 0;
-}
-
-.status-mark.done .status-ring {
-  opacity: 0;
+.status-mark.done .status-fill {
+  background: var(--accent);
 }
 
 /* A field with nothing chosen yet is hollow with a dashed outline; a chosen one is filled */
@@ -2356,10 +2323,7 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .status-ring,
-  .status-half,
-  .status-disc,
-  .status-tick {
+  .status-fill {
     transition: none;
   }
 }

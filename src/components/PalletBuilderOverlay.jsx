@@ -184,23 +184,19 @@ function Reveal({ open, id, className = '', children }) {
   )
 }
 
-// Small mark beside a section title: empty ring (nothing chosen), half ring (partly done), tick (done)
+// Short line beside a section title that fills as the section is completed:
+// empty track (nothing chosen), part filled (partly done), full and green (done)
 const STATUS_TEXT = { todo: 'not started', partial: 'not finished', done: 'done' }
-function StatusMark({ status }) {
+function StatusMark({ status, ratio = 0 }) {
   return (
     <span className={`status-mark ${status}`} role="img" aria-label={STATUS_TEXT[status]} title={STATUS_TEXT[status].replace(/^./, c => c.toUpperCase())}>
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <circle className="status-ring" cx="9" cy="9" r="7" />
-        <path className="status-half" d="M9 2a7 7 0 0 1 0 14z" />
-        <circle className="status-disc" cx="9" cy="9" r="8" />
-        <path className="status-tick" d="M5.4 9.3l2.4 2.4 4.8-5.1" />
-      </svg>
+      <span className="status-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
     </span>
   )
 }
 
 // A panel section that folds down to its heading and a one-line summary
-function Fold({ id, title, summary, cost, aside, status, open, onToggle, className = 'form-section', children }) {
+function Fold({ id, title, summary, cost, aside, status, ratio, open, onToggle, className = 'form-section', children }) {
   return (
     <section className={`${className} fold ${open ? 'open' : ''}`} aria-label={title} data-fold={id}>
       <div className="section-head fold-head">
@@ -209,7 +205,7 @@ function Fold({ id, title, summary, cost, aside, status, open, onToggle, classNa
             <span className="chevron" aria-hidden="true" />
             {title}
           </button>
-          {status && <StatusMark status={status} />}
+          {status && <StatusMark status={status} ratio={ratio} />}
         </h2>
         <div className="fold-aside">
           {aside && <div className={`fold-aside-extra ${open ? 'shown' : ''}`} inert={open ? undefined : ''}>{aside}</div>}
@@ -1184,13 +1180,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // How far along each part of the build is: 'todo', 'partial' or 'done'
   const progress = (checks) => {
     const done = checks.filter(Boolean).length
-    return done === 0 ? 'todo' : done === checks.length ? 'done' : 'partial'
+    return { status: done === 0 ? 'todo' : done === checks.length ? 'done' : 'partial', ratio: done / checks.length }
   }
   const deckChecks = (type, size, count, leaders, leaderType, leaderSize) => [
     !!type, !!size, (parseInt(count) || 0) > 0,
     ...(leaders ? [!!leaderType, !!leaderSize] : [])
   ]
-  const buildStatus = {
+  const buildProgress = {
     size: progress([Number(palletWidth) > 0, Number(palletLength) > 0]),
     bottom: progress(deckChecks(selectedBottomBoardType, selectedBottomBoardSize, displayedBottomBoards, useCustomBottomLeaders, selectedBottomLeaderType, selectedBottomLeaderSize)),
     top: progress(deckChecks(selectedTopBoardType, selectedTopBoardSize, displayedTopBoards, useCustomTopLeaders, selectedTopLeaderType, selectedTopLeaderSize)),
@@ -1198,7 +1194,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   }
   // Plain-English list of what's left, for the price card
   const missingParts = [['size', 'pallet size'], ['bottom', 'bottom boards'], ['top', 'top boards'], ['bearers', 'bearers']]
-    .filter(([key]) => buildStatus[key] !== 'done').map(([, name]) => name)
+    .filter(([key]) => buildProgress[key].status !== 'done').map(([, name]) => name)
   const missingText = missingParts.length === 0 ? ''
     : missingParts.length === 1 ? missingParts[0]
     : `${missingParts.slice(0, -1).join(', ')} and ${missingParts[missingParts.length - 1]}`
@@ -1221,7 +1217,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       setLeaderSize: setSelectedBottomLeaderSize, leaderSizes: availableBottomLeaderSizes
     }
     return (
-      <Fold {...fold(deck)} title={isTop ? 'Top boards' : 'Bottom boards'} cost={sectionCosts[deck]} status={buildStatus[deck]}
+      <Fold {...fold(deck)} title={isTop ? 'Top boards' : 'Bottom boards'} cost={sectionCosts[deck]} {...buildProgress[deck]}
         summary={timberSummary({ count: p.count, noun: 'board', type: p.type, size: p.size, sizes: p.sizes, leaders: p.leaders, leaderSize: p.leaderSize, leaderSizes: p.leaderSizes })}>
         <div className="field-row">
           <label className="field">
@@ -1402,7 +1398,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 )}
               </Fold>
 
-              <Fold {...fold('size')} title="Pallet size" summary={sizeSummary} status={buildStatus.size}>
+              <Fold {...fold('size')} title="Pallet size" summary={sizeSummary} {...buildProgress.size}>
                 <label className="field">
                   <span className="field-label">Start from</span>
                   <select
@@ -1458,7 +1454,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               {renderDeck('bottom')}
               {renderDeck('top')}
 
-              <Fold {...fold('bearers')} title="Bearers" cost={sectionCosts.bearers} status={buildStatus.bearers}
+              <Fold {...fold('bearers')} title="Bearers" cost={sectionCosts.bearers} {...buildProgress.bearers}
                 summary={timberSummary({ count: displayedBearers, noun: 'bearer', type: selectedBearerType, size: selectedBearerSize, sizes: availableBearerSizes })}>
                 <div className="field-row">
                   <label className="field">
