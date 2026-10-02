@@ -478,6 +478,9 @@ html.dark-mode .workbench select {
 /* ---------- Switch ---------- */
 
 .switch {
+  /* Anchors the hidden checkbox; without this it escapes to the panel and lets the
+     whole panel scroll out of place when the switch takes focus */
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;

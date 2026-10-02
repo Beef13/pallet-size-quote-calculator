@@ -205,11 +205,12 @@ function Fold({ id, title, summary, cost, aside, status, ratio, open, onToggle, 
             <span className="chevron" aria-hidden="true" />
             {title}
           </button>
-          {status && <StatusMark status={status} ratio={ratio} />}
         </h2>
         <div className="fold-aside">
           {aside && <div className={`fold-aside-extra ${open ? 'shown' : ''}`} inert={open ? undefined : ''}>{aside}</div>}
           {cost > 0 && <span className="section-cost">{formatCurrency(cost)}</span>}
+          {/* Always last, so the lines sit in one column down the right edge */}
+          {status && <StatusMark status={status} ratio={ratio} />}
         </div>
       </div>
       <Reveal open={!open}>
