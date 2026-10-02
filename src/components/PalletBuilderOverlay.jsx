@@ -5,31 +5,11 @@ import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, costStack,
 import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
 import PrintableQuote from './PrintableQuote'
+import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
 import '../styles/Workbench.css'
 
-// Look up a board or bearer size in the bundled timber data
-function findSize(typeId, sizeId, kind = 'board') {
-  if (!typeId || !sizeId) return null
-  const type = timberData.timberTypes.find(t => t.id === typeId)
-  const list = kind === 'bearer' ? type?.bearerSizes : type?.boardSizes
-  return list?.find(s => s.id === sizeId) || null
-}
-
-function sizesForType(typeId, kind = 'board') {
-  const type = timberData.timberTypes.find(t => t.id === typeId)
-  if (!type) return []
-  return kind === 'bearer' ? type.bearerSizes : type.boardSizes
-}
-
-// Pricing settings that sit on top of the timber cost.
-// Labour is per pallet, markup is a percentage added to cost
-// (sell = cost x (1 + markup%)), GST is added to the quoted total.
-const DEFAULT_PRICING = {
-  labourPerPallet: 0,
-  markupPercent: 0,
-  gstRate: 10,
-  showGst: true
-}
+// Saved or imported prices laid over the standard list (or the business's own edited list)
+const mergeSaved = (saved) => mergePrices(timberData, saved)
 
 const DEFAULT_BUSINESS = {
   name: '',
@@ -37,46 +17,43 @@ const DEFAULT_BUSINESS = {
   phone: '',
   email: '',
   address: '',
-  validDays: 30
+  validDays: 30,
+  logo: '' // small image as a data URL, shown on the customer PDF
 }
 
-function mergePricing(saved) {
-  const p = { ...DEFAULT_PRICING }
-  if (saved && typeof saved === 'object') {
-    for (const key of ['labourPerPallet', 'markupPercent', 'gstRate']) {
-      if (saved[key] !== undefined && saved[key] !== '') p[key] = Math.max(0, Number(saved[key]) || 0)
+// Shrink an uploaded logo so it's sharp on paper but small enough to store on the device.
+// PNG keeps transparency; photos (JPEG) stay JPEG.
+function readLogo(file) {
+  return new Promise((resolve, reject) => {
+    if (!file || !/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) {
+      reject(new Error('Choose a PNG, JPG, WebP or SVG image.'))
+      return
     }
-    if (typeof saved.showGst === 'boolean') p.showGst = saved.showGst
-  }
-  return p
-}
-
-// Merge saved/imported price values onto the current timber data structure,
-// so old or partial price files can never remove timber types or sizes.
-function mergePrices(saved) {
-  const merged = JSON.parse(JSON.stringify(timberData))
-  merged.pricing = mergePricing(saved?.pricing)
-  if (!saved || typeof saved !== 'object') return merged
-  merged.timberTypes.forEach(type => {
-    const savedType = saved.timberTypes?.find(t => t.id === type.id)
-    if (!savedType) return
-    type.boardSizes.forEach(size => {
-      const savedSize = savedType.boardSizes?.find(s => s.id === size.id)
-      if (savedSize && savedSize.pricePerBoard !== undefined && savedSize.pricePerBoard !== '') {
-        size.pricePerBoard = Number(savedSize.pricePerBoard) || 0
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('That file could not be read.'))
+    reader.onload = () => {
+      const img = new Image()
+      img.onerror = () => reject(new Error('That image could not be opened.'))
+      img.onload = () => {
+        const w = img.naturalWidth || 600
+        const h = img.naturalHeight || 240
+        const type = file.type === 'image/jpeg' ? 'image/jpeg' : 'image/png'
+        // Try smaller sizes until it fits comfortably in storage
+        for (const [maxW, maxH] of [[900, 360], [600, 240], [360, 144]]) {
+          const scale = Math.min(1, maxW / w, maxH / h)
+          const canvas = document.createElement('canvas')
+          canvas.width = Math.max(1, Math.round(w * scale))
+          canvas.height = Math.max(1, Math.round(h * scale))
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+          const dataUrl = canvas.toDataURL(type, 0.9)
+          if (dataUrl.length < 350000) { resolve(dataUrl); return }
+        }
+        reject(new Error('That image is too detailed to store. Try a simpler or smaller logo.'))
       }
-    })
-    type.bearerSizes.forEach(size => {
-      const savedSize = savedType.bearerSizes?.find(s => s.id === size.id)
-      if (savedSize && savedSize.pricePerBearer !== undefined && savedSize.pricePerBearer !== '') {
-        size.pricePerBearer = Number(savedSize.pricePerBearer) || 0
-      }
-    })
+      img.src = reader.result
+    }
+    reader.readAsDataURL(file)
   })
-  if (saved.nailPricePerNail !== undefined && saved.nailPricePerNail !== '') {
-    merged.nailPricePerNail = Number(saved.nailPricePerNail) || 0
-  }
-  return merged
 }
 
 function readStorage(key) {
@@ -288,7 +265,26 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const quantity = Math.max(1, parseInt(palletQuantity) || 1)
   
   // Price editor state
-  const [prices, setPrices] = useState({ timberTypes: [] })
+  const [prices, setPrices] = useState(() => {
+    try {
+      return mergeSaved(JSON.parse(readStorage('timberPrices') || 'null'))
+    } catch (e) {
+      return mergeSaved(null)
+    }
+  })
+  // The timber list comes from the price list, so a business can add, rename and remove its own
+  const timberTypes = prices.timberTypes
+  const sizesForType = (typeId, kind = 'board') => {
+    const type = timberTypes.find(t => t.id === typeId)
+    if (!type) return []
+    return kind === 'bearer' ? type.bearerSizes : type.boardSizes
+  }
+  const findSize = (typeId, sizeId, kind = 'board') =>
+    (typeId && sizeId && sizesForType(typeId, kind).find(sz => sz.id === sizeId)) || null
+  const [editingList, setEditingList] = useState(false)
+  const [newSize, setNewSize] = useState({})           // draft "add a size" inputs, keyed by type and kind
+  const [confirmRemoveType, setConfirmRemoveType] = useState(null)
+  const [confirmResetList, setConfirmResetList] = useState(false)
   const [lockedFields, setLockedFields] = useState(new Set())
   const [expandedGroups, setExpandedGroups] = useState(new Set(['pine-green-case'])) // First group expanded by default
   
@@ -331,6 +327,21 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Fold the business section away if the details were already filled in when the app opened
   // (decided once, so it doesn't snap shut while the name is being typed)
   const [businessOpenByDefault] = useState(() => !String(business.name || '').trim())
+  const [logoError, setLogoError] = useState('')
+  const handleLogoFile = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = '' // so the same file can be chosen again
+    if (!file) return
+    try {
+      const logo = await readLogo(file)
+      const next = { ...business, logo }
+      if (!writeStorage('palletBusiness', JSON.stringify(next))) throw new Error('There isn\'t room to store that logo on this device.')
+      setBusiness(next)
+      setLogoError('')
+    } catch (e) {
+      setLogoError(e.message || 'That logo could not be added.')
+    }
+  }
   const updateBusiness = (key, value) => {
     setBusiness(prev => {
       const next = { ...prev, [key]: value }
@@ -362,11 +373,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
   // Available sizes - derived from the selected timber type
-  const availableTopBoardSizes = useMemo(() => sizesForType(selectedTopBoardType), [selectedTopBoardType])
-  const availableBottomBoardSizes = useMemo(() => sizesForType(selectedBottomBoardType), [selectedBottomBoardType])
-  const availableTopLeaderSizes = useMemo(() => sizesForType(selectedTopLeaderType), [selectedTopLeaderType])
-  const availableBottomLeaderSizes = useMemo(() => sizesForType(selectedBottomLeaderType), [selectedBottomLeaderType])
-  const availableBearerSizes = useMemo(() => sizesForType(selectedBearerType, 'bearer'), [selectedBearerType])
+  const availableTopBoardSizes = sizesForType(selectedTopBoardType)
+  const availableBottomBoardSizes = sizesForType(selectedBottomBoardType)
+  const availableTopLeaderSizes = sizesForType(selectedTopLeaderType)
+  const availableBottomLeaderSizes = sizesForType(selectedBottomLeaderType)
+  const availableBearerSizes = sizesForType(selectedBearerType, 'bearer')
 
   // Changing a timber type clears its size (done in the handler, not an effect,
   // so loading a preset can set type and size together)
@@ -376,24 +387,34 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const changeBottomLeaderType = (v) => { setSelectedBottomLeaderType(v); setSelectedBottomLeaderSize('') }
   const changeBearerType = (v) => { setSelectedBearerType(v); setSelectedBearerSize('') }
 
+  // If a timber type or size is removed from the list (or a preset or old quote names one that
+  // no longer exists), clear that choice so the build shows it as "still to choose".
+  useEffect(() => {
+    const check = (typeId, sizeId, kind, setType, setSize) => {
+      if (!typeId) return
+      const type = timberTypes.find(t => t.id === typeId)
+      if (!type) { setType(''); setSize(''); return }
+      const list = kind === 'bearer' ? type.bearerSizes : type.boardSizes
+      if (sizeId && !list.some(sz => sz.id === sizeId)) setSize('')
+    }
+    check(selectedTopBoardType, selectedTopBoardSize, 'board', setSelectedTopBoardType, setSelectedTopBoardSize)
+    check(selectedBottomBoardType, selectedBottomBoardSize, 'board', setSelectedBottomBoardType, setSelectedBottomBoardSize)
+    check(selectedTopLeaderType, selectedTopLeaderSize, 'board', setSelectedTopLeaderType, setSelectedTopLeaderSize)
+    check(selectedBottomLeaderType, selectedBottomLeaderSize, 'board', setSelectedBottomLeaderType, setSelectedBottomLeaderSize)
+    check(selectedBearerType, selectedBearerSize, 'bearer', setSelectedBearerType, setSelectedBearerSize)
+  }, [timberTypes, selectedTopBoardType, selectedTopBoardSize, selectedBottomBoardType, selectedBottomBoardSize,
+    selectedTopLeaderType, selectedTopLeaderSize, selectedBottomLeaderType, selectedBottomLeaderSize, selectedBearerType, selectedBearerSize])
+
   // Save and apply dark mode
   useEffect(() => {
     writeStorage('palletDarkMode', JSON.stringify(isDarkMode))
     document.documentElement.classList.toggle('dark-mode', isDarkMode)
   }, [isDarkMode])
 
-  // Load prices - merge saved prices with current timber data structure
+  // Every price starts locked on each visit
   useEffect(() => {
-    let saved = null
-    try {
-      saved = JSON.parse(readStorage('timberPrices') || 'null')
-    } catch (e) {
-      console.log('Could not read saved prices, using defaults')
-    }
-    setPrices(mergePrices(saved))
-    
     const allFieldIds = []
-    timberData.timberTypes.forEach(type => {
+    timberTypes.forEach(type => {
       type.boardSizes.forEach(size => allFieldIds.push(`${type.id}-board-${size.id}`))
       type.bearerSizes.forEach(size => allFieldIds.push(`${type.id}-bearer-${size.id}`))
     })
@@ -507,7 +528,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const exportPresets = () => {
     // Always export today's saved prices, even while an old quote is open
     let savedPrices = prices
-    try { savedPrices = mergePrices(JSON.parse(readStorage('timberPrices') || 'null')) } catch (e) { /* keep current */ }
+    try { savedPrices = mergeSaved(JSON.parse(readStorage('timberPrices') || 'null')) } catch (e) { /* keep current */ }
     const dataToExport = {
       version: '2.0',
       exportDate: new Date().toISOString(),
@@ -563,7 +584,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         }
         if (data.prices) {
           // Only take price values - never replace the timber list itself
-          const merged = mergePrices(data.prices)
+          const merged = mergeSaved(data.prices)
           setPrices(merged)
           writeStorage('timberPrices', JSON.stringify(merged))
           setPricesSaved(true)
@@ -905,7 +926,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     return `${prefix}${String(seq).padStart(4, '0')}`
   }
 
-  const cleanPrices = () => mergePrices(prices)
+  const cleanPrices = () => mergeSaved(prices)
   const signatureOf = (design, qty, name, ref, priceList) =>
     JSON.stringify([design, String(qty), name.trim(), ref.trim(), priceList])
   const currentQuote = quotes.find(q => q.id === currentQuoteId) || null
@@ -959,7 +980,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const useTodaysRates = () => {
     let saved = null
     try { saved = JSON.parse(readStorage('timberPrices') || 'null') } catch (e) { saved = null }
-    setPrices(mergePrices(saved))
+    setPrices(mergeSaved(saved))
     setRatesFromQuote(null)
   }
 
@@ -973,7 +994,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Reopen a quote exactly as it was priced
   const openQuote = (q) => {
     applyQuote(q)
-    setPrices(mergePrices(q.prices))
+    setPrices(mergeSaved(q.prices))
     setRatesFromQuote(q.number)
     setCurrentQuoteId(q.id)
     setHistoryNotice('')
@@ -1071,7 +1092,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     if (categoryId === 'hardware') {
       return ['nails']
     }
-    const type = timberData.timberTypes.find(t => t.id === categoryId)
+    const type = timberTypes.find(t => t.id === categoryId)
     if (!type) return []
     const boardIds = type.boardSizes.map(s => `${categoryId}-board-${s.id}`)
     const bearerIds = type.bearerSizes.map(s => `${categoryId}-bearer-${s.id}`)
@@ -1132,6 +1153,42 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setPricesSaved(false)
   }
 
+  // ----- Editing the timber list (saved with "Save prices", like any price change) -----
+  const editList = (change) => { setPrices(change); setPricesSaved(false) }
+  const draftKey = (typeId, kind) => `${typeId}:${kind}`
+  const setDraft = (typeId, kind, field, value) => {
+    if (value !== '' && !/^\d{0,4}$/.test(value)) return
+    setNewSize(prev => ({ ...prev, [draftKey(typeId, kind)]: { ...prev[draftKey(typeId, kind)], [field]: value } }))
+  }
+  const handleAddSize = (typeId, kind) => {
+    const draft = newSize[draftKey(typeId, kind)] || {}
+    const next = addSize(prices, typeId, kind, draft.width, draft.thickness)
+    if (next === prices) return // not a valid size, or already in the list
+    editList(next)
+    setNewSize(prev => ({ ...prev, [draftKey(typeId, kind)]: {} }))
+  }
+  // Why the Add button is unavailable, or '' when the size can be added
+  const addSizeProblem = (type, kind) => {
+    const draft = newSize[draftKey(type.id, kind)] || {}
+    const w = parseInt(draft.width), t = parseInt(draft.thickness)
+    if (!(w > 0) || !(t > 0)) return 'Enter a width and a thickness'
+    const list = kind === 'bearer' ? type.bearerSizes : type.boardSizes
+    return list.some(sz => sz.id === `${w}x${t}`) ? 'That size is already in the list' : ''
+  }
+  const handleAddType = () => {
+    const id = `timber-${Date.now().toString(36)}`
+    editList(addType(prices, id))
+    setExpandedGroups(prev => new Set(prev).add(id))
+  }
+  const handleRemoveType = (typeId) => {
+    editList(removeType(prices, typeId))
+    setConfirmRemoveType(null)
+  }
+  const handleResetList = () => {
+    editList(resetList(timberData, prices))
+    setConfirmResetList(false)
+  }
+
   const handleNailPriceChange = (newPrice) => {
     const value = parsePriceInput(newPrice)
     setPrices(prev => ({ ...prev, nailPricePerNail: value }))
@@ -1146,7 +1203,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   }
 
   const handleSavePrices = () => {
-    const cleaned = mergePrices(prices)
+    const cleaned = mergeSaved(prices)
     setPrices(cleaned)
     if (writeStorage('timberPrices', JSON.stringify(cleaned))) {
       setPricesSaved(true)
@@ -1182,7 +1239,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     return [q.number, q.customerName, q.customerRef, q.summary?.size].filter(Boolean).join(' ').toLowerCase().includes(term)
   })
 
-  const timberOptions = timberData.timberTypes.map(type => (
+  const timberOptions = timberTypes.map(type => (
     <option key={type.id} value={type.id} title={type.name}>{type.shortName || type.name}</option>
   ))
 
@@ -1205,7 +1262,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   // One-line summaries shown while a section is folded
   const timberName = (typeId) => {
-    const type = timberData.timberTypes.find(t => t.id === typeId)
+    const type = timberTypes.find(t => t.id === typeId)
     return type ? (type.shortName || type.name) : ''
   }
   const dims = (sizes, sizeId) => {
@@ -1906,33 +1963,79 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <span className="field-label">Address</span>
                   <input type="text" value={business.address} onChange={(e) => updateBusiness('address', e.target.value)} data-field="biz-address" />
                 </label>
+                <div className="field">
+                  <span className="field-label">Logo</span>
+                  <div className="logo-field">
+                    {business.logo
+                      ? <img className="logo-preview" src={business.logo} alt="Your logo" />
+                      : <span className="logo-empty">Shown at the top of customer quotes</span>}
+                    <div className="text-actions">
+                      <label className="text-btn">
+                        {business.logo ? 'Replace' : 'Add logo'}
+                        <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={handleLogoFile} hidden data-field="biz-logo" />
+                      </label>
+                      {business.logo && (
+                        <button type="button" className="text-btn muted-btn" onClick={() => { updateBusiness('logo', ''); setLogoError('') }}>Remove</button>
+                      )}
+                    </div>
+                  </div>
+                  {logoError && <p className="hint logo-error" role="alert">{logoError}</p>}
+                </div>
               </Fold>
 
               <div className="section-head timber-head">
                 <h2>Timber and nails</h2>
+                {!ratesFromQuote && (
+                  <button type="button" className="text-btn" data-edit-list aria-pressed={editingList}
+                    onClick={() => { setEditingList(v => !v); setConfirmRemoveType(null); setConfirmResetList(false) }}>
+                    {editingList ? 'Done' : 'Edit list'}
+                  </button>
+                )}
               </div>
               <p className="hint">
-                Timber is priced per metre of length. Unlock a price to change it, then save.
+                {editingList
+                  ? 'Add the timber and sizes you use, and remove the ones you don\'t. Press Save prices to keep the changes.'
+                  : 'Timber is priced per metre of length. Unlock a price to change it, then save.'}
               </p>
               {prices.timberTypes.map(timberType => {
                 const isExpanded = expandedGroups.has(timberType.id)
                 const categoryLocked = isCategoryLocked(timberType.id)
+                const editing = editingList && !ratesFromQuote
                 return (
                   <section key={timberType.id} className={`price-group ${isExpanded ? 'open' : ''}`}>
                     <div className="price-group-head">
-                      <button type="button" className="price-group-toggle" onClick={() => toggleGroup(timberType.id)} aria-expanded={isExpanded}>
+                      <button type="button" className="price-group-toggle" onClick={() => toggleGroup(timberType.id)} aria-expanded={isExpanded}
+                        aria-label={editing ? `Show or hide ${timberType.name}` : undefined}>
                         <span className="chevron" aria-hidden="true" />
-                        {timberType.name}
+                        {!editing && timberType.name}
                       </button>
-                      <button type="button" className="text-btn" onClick={(e) => toggleCategoryLock(timberType.id, e)}>
-                        {categoryLocked ? 'Unlock all' : 'Lock all'}
-                      </button>
+                      {editing ? (
+                        <>
+                          <input type="text" className="type-name" value={timberType.name} maxLength={40}
+                            onChange={(e) => editList(renameType(prices, timberType.id, e.target.value))}
+                            aria-label="Timber name" data-type-name={timberType.id} />
+                          {confirmRemoveType === timberType.id ? (
+                            <span className="confirm">
+                              <button type="button" className="text-btn danger" onClick={() => handleRemoveType(timberType.id)}>Remove</button>
+                              <button type="button" className="text-btn" onClick={() => setConfirmRemoveType(null)}>Keep</button>
+                            </span>
+                          ) : (
+                            <button type="button" className="text-btn muted-btn" data-remove-type={timberType.id}
+                              onClick={() => setConfirmRemoveType(timberType.id)}>Remove</button>
+                          )}
+                        </>
+                      ) : (
+                        <button type="button" className="text-btn" onClick={(e) => toggleCategoryLock(timberType.id, e)}>
+                          {categoryLocked ? 'Unlock all' : 'Lock all'}
+                        </button>
+                      )}
                     </div>
                     <Reveal open={isExpanded}>
                       <div className="price-table">
                         {[['Boards', 'board', timberType.boardSizes, 'pricePerBoard'], ['Bearers', 'bearer', timberType.bearerSizes, 'pricePerBearer']].map(([title, kind, sizes, key]) => (
                           <div key={kind} className="price-subgroup">
                             <h3>{title}</h3>
+                            {sizes.length === 0 && !editing && <p className="hint">No {title.toLowerCase()} yet. Use Edit list to add some.</p>}
                             {sizes.map(size => {
                               const fieldId = `${timberType.id}-${kind}-${size.id}`
                               const isLocked = lockedFields.has(fieldId)
@@ -1952,10 +2055,33 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                                     />
                                     <span className="unit">/m</span>
                                   </span>
-                                  <LockIcon isLocked={isLocked} onClick={() => toggleLock(fieldId)} label={`${size.dimensions} price`} />
+                                  {editing ? (
+                                    <button type="button" className="icon-btn small" title={`Remove ${size.dimensions}`} aria-label={`Remove ${timberType.name} ${size.dimensions} ${kind}`}
+                                      onClick={() => editList(removeSize(prices, timberType.id, kind, size.id))}>
+                                      <Icon name="close" size={14} />
+                                    </button>
+                                  ) : (
+                                    <LockIcon isLocked={isLocked} onClick={() => toggleLock(fieldId)} label={`${size.dimensions} price`} />
+                                  )}
                                 </div>
                               )
                             })}
+                            {editing && (() => {
+                              const draft = newSize[draftKey(timberType.id, kind)] || {}
+                              const problem = addSizeProblem(timberType, kind)
+                              return (
+                                <form className="add-size" data-add-size={`${timberType.id}:${kind}`}
+                                  onSubmit={(e) => { e.preventDefault(); handleAddSize(timberType.id, kind) }}>
+                                  <input type="text" inputMode="numeric" placeholder="Width" value={draft.width || ''}
+                                    onChange={(e) => setDraft(timberType.id, kind, 'width', e.target.value)} aria-label={`New ${kind} width in mm`} />
+                                  <span aria-hidden="true">×</span>
+                                  <input type="text" inputMode="numeric" placeholder="Thick" value={draft.thickness || ''}
+                                    onChange={(e) => setDraft(timberType.id, kind, 'thickness', e.target.value)} aria-label={`New ${kind} thickness in mm`} />
+                                  <span className="add-size-unit">mm</span>
+                                  <button type="submit" className="text-btn" disabled={!!problem} title={problem || 'Add this size'}>Add</button>
+                                </form>
+                              )
+                            })()}
                           </div>
                         ))}
                       </div>
@@ -1963,6 +2089,24 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   </section>
                 )
               })}
+
+              {editingList && !ratesFromQuote && (
+                <div className="list-actions">
+                  <button type="button" className="same-timber" data-add-type onClick={handleAddType}>
+                    <Icon name="plus" size={14} />
+                    Add a timber type
+                  </button>
+                  {prices.listEdited && (confirmResetList ? (
+                    <span className="confirm">
+                      Back to the standard list?
+                      <button type="button" className="text-btn danger" onClick={handleResetList}>Reset</button>
+                      <button type="button" className="text-btn" onClick={() => setConfirmResetList(false)}>Keep mine</button>
+                    </span>
+                  ) : (
+                    <button type="button" className="text-btn muted-btn" onClick={() => setConfirmResetList(true)}>Reset to the standard list</button>
+                  ))}
+                </div>
+              )}
 
               <section className={`price-group ${expandedGroups.has('hardware') ? 'open' : ''}`}>
                 <div className="price-group-head">

@@ -2554,3 +2554,102 @@ html.dark-mode .status-tick {
     margin-top: 4px;
   }
 }
+
+/* ---------- Editing the timber list ---------- */
+
+.timber-head {
+  align-items: center;
+}
+
+.workbench input.type-name {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  margin: 8px 0;
+  font-size: 15px;
+  font-weight: 600;
+  background-color: var(--paper);
+}
+
+.price-group-head .confirm {
+  display: inline-flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.add-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rule-strong);
+  color: var(--ink-3);
+}
+
+.workbench .add-size input {
+  width: 74px;
+  height: 36px;
+  padding: 0 10px;
+  text-align: center;
+  background-color: var(--paper);
+}
+
+.add-size-unit {
+  font-size: 13px;
+  margin-right: auto;
+}
+
+.add-size .text-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 14px 0 6px;
+}
+
+.list-actions .same-timber {
+  margin-top: 0;
+}
+
+.list-actions .confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+/* Logo for the customer PDF */
+.logo-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: var(--control-h);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.logo-preview {
+  display: block;
+  max-height: 44px;
+  max-width: 150px;
+  object-fit: contain;
+}
+
+.logo-empty {
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+
+.workbench .logo-error {
+  color: var(--warn);
+}

@@ -84,7 +84,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 | Key | Holds |
 |---|---|
-| `timberPrices` | Saved timber prices, plus `pricing: { labourPerPallet, markupPercent, gstRate, showGst }` |
+| `timberPrices` | Saved timber prices and, once edited, the business's own timber list (`listEdited`), plus `pricing: { labourPerPallet, markupPercent, gstRate, showGst }` |
 | `palletPresets` | Saved pallet designs |
 | `palletBusiness` | Business details: name, ABN, phone, email, address, `validDays` |
 | `palletQuotes` | Quote history (see below) |
@@ -118,6 +118,10 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 **Quotes filter:** status chips (All, Draft, Sent, Accepted, Lost, each with a count) work together with the search box (`shownQuotes`).
 
 **Gross profit on the price card:** an eye button on the card shows or hides a "Gross profit $X · Y% margin" line (markup × quantity). It's off by default and remembered in `palletShowProfit`, because that card is the part of the screen most likely to be shown to a customer. The button only appears once a markup is set. It's gross profit: freight and overheads aren't in the cost yet.
+
+**Editable timber list:** the list of timber types and sizes is part of the price list (`prices.timberTypes`), not fixed. "Edit list" on the Prices tab lets a business add, rename and remove timber types and board or bearer sizes, and reset to the standard list. The rules live in `src/utils/priceList.js` (tested in `priceList.test.js`): an untouched list is the bundled `timber-prices.json` with saved prices laid over it; once edited (`listEdited: true`) it's kept exactly as saved. Edits are saved with "Save prices". If a chosen timber or size is removed, or a preset names one that no longer exists, an effect clears that choice. Quote snapshots carry their own list, so old quotes still open correctly.
+
+**Logo:** `business.logo` is a data URL (shrunk on upload by `readLogo`, under about 350 KB) stored in `palletBusiness` and shown beside the business name on the customer PDF, capped at 10 mm tall so the quote still fits one page.
 
 **Price lock:** timber and nail prices are locked against accidental edits, each with its own padlock. Labour, markup and GST share one padlock in their section head (lock id `pricing`). Everything starts locked on each visit.
 

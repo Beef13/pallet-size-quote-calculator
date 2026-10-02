@@ -83,11 +83,14 @@ function PrintableQuote({ quoteData, quantity = 1, variant = 'breakdown', quoteR
 
   const header = (
     <>
-      {isCustomer && (business.name || business.abn || contact.length > 0 || business.address) && (
+      {isCustomer && (business.logo || business.name || business.abn || contact.length > 0 || business.address) && (
         <div className="print-business">
-          <div>
-            {business.name && <strong>{business.name}</strong>}
-            {business.address && <span>{business.address}</span>}
+          <div className="print-business-left">
+            {business.logo && <img className="print-logo" src={business.logo} alt="" />}
+            <div>
+              {business.name && <strong>{business.name}</strong>}
+              {business.address && <span>{business.address}</span>}
+            </div>
           </div>
           <div className="print-business-right">
             {contact.map(c => <span key={c}>{c}</span>)}

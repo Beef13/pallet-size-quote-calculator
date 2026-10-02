@@ -90,6 +90,29 @@
     gap: 0.6mm;
   }
 
+  /* Logo beside the business name and address */
+  .print-business > .print-business-left {
+    flex-direction: row;
+    align-items: center;
+    gap: 4mm;
+  }
+
+  .print-business-left > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6mm;
+  }
+
+  .print-logo {
+    display: block;
+    /* No taller than the name and address beside it, so the quote still fits one page */
+    max-height: 10mm;
+    max-width: 40mm;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
   .print-business strong {
     font-size: 12pt;
     color: #000;
