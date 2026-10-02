@@ -136,7 +136,7 @@ function Stepper({ value, onChange, min = 1, max = 15, label, id, allowEmpty = f
   // Size the field to its digits so large numbers are never cropped
   const digits = Math.max(2, raw.length, String(max).length > 3 ? 3 : 2)
   return (
-    <div className="stepper" role="group" aria-labelledby={id}>
+    <div className="stepper" role="group" aria-labelledby={id} data-empty={allowEmpty && n === 0 ? '' : undefined}>
       <button type="button" className="stepper-btn" onClick={() => step(-1)}
         disabled={n !== 0 && n <= min} aria-label={`Fewer ${label}`}>
         <Icon name="minus" size={16} />
@@ -184,8 +184,23 @@ function Reveal({ open, id, className = '', children }) {
   )
 }
 
+// Small mark beside a section title: empty ring (nothing chosen), half ring (partly done), tick (done)
+const STATUS_TEXT = { todo: 'not started', partial: 'not finished', done: 'done' }
+function StatusMark({ status }) {
+  return (
+    <span className={`status-mark ${status}`} role="img" aria-label={STATUS_TEXT[status]} title={STATUS_TEXT[status].replace(/^./, c => c.toUpperCase())}>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <circle className="status-ring" cx="9" cy="9" r="7" />
+        <path className="status-half" d="M9 2a7 7 0 0 1 0 14z" />
+        <circle className="status-disc" cx="9" cy="9" r="8" />
+        <path className="status-tick" d="M5.4 9.3l2.4 2.4 4.8-5.1" />
+      </svg>
+    </span>
+  )
+}
+
 // A panel section that folds down to its heading and a one-line summary
-function Fold({ id, title, summary, cost, aside, open, onToggle, className = 'form-section', children }) {
+function Fold({ id, title, summary, cost, aside, status, open, onToggle, className = 'form-section', children }) {
   return (
     <section className={`${className} fold ${open ? 'open' : ''}`} aria-label={title} data-fold={id}>
       <div className="section-head fold-head">
@@ -194,6 +209,7 @@ function Fold({ id, title, summary, cost, aside, open, onToggle, className = 'fo
             <span className="chevron" aria-hidden="true" />
             {title}
           </button>
+          {status && <StatusMark status={status} />}
         </h2>
         <div className="fold-aside">
           {aside && <div className={`fold-aside-extra ${open ? 'shown' : ''}`} inert={open ? undefined : ''}>{aside}</div>}
@@ -1165,6 +1181,29 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const businessSummary = [business.name, business.phone || business.email].map(v => (v || '').trim()).filter(Boolean).join(' · ')
     || 'Add your details for customer quotes'
 
+  // How far along each part of the build is: 'todo', 'partial' or 'done'
+  const progress = (checks) => {
+    const done = checks.filter(Boolean).length
+    return done === 0 ? 'todo' : done === checks.length ? 'done' : 'partial'
+  }
+  const deckChecks = (type, size, count, leaders, leaderType, leaderSize) => [
+    !!type, !!size, (parseInt(count) || 0) > 0,
+    ...(leaders ? [!!leaderType, !!leaderSize] : [])
+  ]
+  const buildStatus = {
+    size: progress([Number(palletWidth) > 0, Number(palletLength) > 0]),
+    bottom: progress(deckChecks(selectedBottomBoardType, selectedBottomBoardSize, displayedBottomBoards, useCustomBottomLeaders, selectedBottomLeaderType, selectedBottomLeaderSize)),
+    top: progress(deckChecks(selectedTopBoardType, selectedTopBoardSize, displayedTopBoards, useCustomTopLeaders, selectedTopLeaderType, selectedTopLeaderSize)),
+    bearers: progress(deckChecks(selectedBearerType, selectedBearerSize, displayedBearers))
+  }
+  // Plain-English list of what's left, for the price card
+  const missingParts = [['size', 'pallet size'], ['bottom', 'bottom boards'], ['top', 'top boards'], ['bearers', 'bearers']]
+    .filter(([key]) => buildStatus[key] !== 'done').map(([, name]) => name)
+  const missingText = missingParts.length === 0 ? ''
+    : missingParts.length === 1 ? missingParts[0]
+    : `${missingParts.slice(0, -1).join(', ')} and ${missingParts[missingParts.length - 1]}`
+  const empty = (value) => (value ? undefined : '')
+
   // One deck of boards (top or bottom) - the two sections share the same controls
   const renderDeck = (deck) => {
     const isTop = deck === 'top'
@@ -1182,19 +1221,19 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       setLeaderSize: setSelectedBottomLeaderSize, leaderSizes: availableBottomLeaderSizes
     }
     return (
-      <Fold {...fold(deck)} title={isTop ? 'Top boards' : 'Bottom boards'} cost={sectionCosts[deck]}
+      <Fold {...fold(deck)} title={isTop ? 'Top boards' : 'Bottom boards'} cost={sectionCosts[deck]} status={buildStatus[deck]}
         summary={timberSummary({ count: p.count, noun: 'board', type: p.type, size: p.size, sizes: p.sizes, leaders: p.leaders, leaderSize: p.leaderSize, leaderSizes: p.leaderSizes })}>
         <div className="field-row">
           <label className="field">
             <span className="field-label">Timber</span>
-            <select value={p.type} onChange={(e) => p.setType(e.target.value)} data-field={`${deck}-type`}>
+            <select value={p.type} onChange={(e) => p.setType(e.target.value)} data-field={`${deck}-type`} data-empty={empty(p.type)}>
               <option value="">Choose timber</option>
               {timberOptions}
             </select>
           </label>
           <label className="field">
             <span className="field-label">Size</span>
-            <select value={p.size} onChange={(e) => p.setSize(e.target.value)} disabled={!p.type} data-field={`${deck}-size`}>
+            <select value={p.size} onChange={(e) => p.setSize(e.target.value)} disabled={!p.type} data-field={`${deck}-size`} data-empty={empty(p.size)}>
               <option value="">{p.type ? 'Choose size' : 'Choose timber first'}</option>
               {sizeOptions(p.sizes)}
             </select>
@@ -1213,14 +1252,14 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           <div className="field-row nested">
             <label className="field">
               <span className="field-label">Leader timber</span>
-              <select value={p.leaderType} onChange={(e) => p.setLeaderType(e.target.value)} data-field={`${deck}-leader-type`}>
+              <select value={p.leaderType} onChange={(e) => p.setLeaderType(e.target.value)} data-field={`${deck}-leader-type`} data-empty={empty(p.leaderType)}>
                 <option value="">Choose timber</option>
                 {timberOptions}
               </select>
             </label>
             <label className="field">
               <span className="field-label">Leader size</span>
-              <select value={p.leaderSize} onChange={(e) => p.setLeaderSize(e.target.value)} disabled={!p.leaderType} data-field={`${deck}-leader-size`}>
+              <select value={p.leaderSize} onChange={(e) => p.setLeaderSize(e.target.value)} disabled={!p.leaderType} data-field={`${deck}-leader-size`} data-empty={empty(p.leaderSize)}>
                 <option value="">{p.leaderType ? 'Choose size' : 'Choose timber first'}</option>
                 {sizeOptions(p.leaderSizes)}
               </select>
@@ -1363,7 +1402,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 )}
               </Fold>
 
-              <Fold {...fold('size')} title="Pallet size" summary={sizeSummary}>
+              <Fold {...fold('size')} title="Pallet size" summary={sizeSummary} status={buildStatus.size}>
                 <label className="field">
                   <span className="field-label">Start from</span>
                   <select
@@ -1399,7 +1438,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <label className="field">
                     <span className="field-label">Width</span>
                     <span className="input-unit">
-                      <input type="number" inputMode="numeric" min="0" value={palletWidth} data-field="width"
+                      <input type="number" inputMode="numeric" min="0" value={palletWidth} data-field="width" data-empty={empty(Number(palletWidth) > 0)}
                         onChange={(e) => setPalletWidth(e.target.value)} placeholder="1165" />
                       <span className="unit">mm</span>
                     </span>
@@ -1407,7 +1446,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <label className="field">
                     <span className="field-label">Length</span>
                     <span className="input-unit">
-                      <input type="number" inputMode="numeric" min="0" value={palletLength} data-field="length"
+                      <input type="number" inputMode="numeric" min="0" value={palletLength} data-field="length" data-empty={empty(Number(palletLength) > 0)}
                         onChange={(e) => setPalletLength(e.target.value)} placeholder="1165" />
                       <span className="unit">mm</span>
                     </span>
@@ -1419,19 +1458,19 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               {renderDeck('bottom')}
               {renderDeck('top')}
 
-              <Fold {...fold('bearers')} title="Bearers" cost={sectionCosts.bearers}
+              <Fold {...fold('bearers')} title="Bearers" cost={sectionCosts.bearers} status={buildStatus.bearers}
                 summary={timberSummary({ count: displayedBearers, noun: 'bearer', type: selectedBearerType, size: selectedBearerSize, sizes: availableBearerSizes })}>
                 <div className="field-row">
                   <label className="field">
                     <span className="field-label">Timber</span>
-                    <select value={selectedBearerType} onChange={(e) => changeBearerType(e.target.value)} data-field="bearer-type">
+                    <select value={selectedBearerType} onChange={(e) => changeBearerType(e.target.value)} data-field="bearer-type" data-empty={empty(selectedBearerType)}>
                       <option value="">Choose timber</option>
                       {timberOptions}
                     </select>
                   </label>
                   <label className="field">
                     <span className="field-label">Size</span>
-                    <select value={selectedBearerSize} onChange={(e) => setSelectedBearerSize(e.target.value)} disabled={!selectedBearerType} data-field="bearer-size">
+                    <select value={selectedBearerSize} onChange={(e) => setSelectedBearerSize(e.target.value)} disabled={!selectedBearerType} data-field="bearer-size" data-empty={empty(selectedBearerSize)}>
                       <option value="">{selectedBearerType ? 'Choose size' : 'Choose timber first'}</option>
                       {sizeOptions(availableBearerSizes)}
                     </select>
@@ -1905,6 +1944,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         <div className={`stamp ${liveQuote.isComplete ? 'complete' : ''} ${liveQuote.hasAnyPrice ? '' : 'empty'}`}>
           <span className="stamp-label">{liveQuote.hasAnyPrice ? totalLabel : 'No price yet'}</span>
           <span className="stamp-value"><Money value={(liveQuote.totalPrice || 0) * quantity} /></span>
+          {missingText && <p className="stamp-missing" data-missing>Still to choose: {missingText}</p>}
           <div className="stamp-qty">
             <span id="stage-qty-label">Pallets</span>
             <Stepper id="stage-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}

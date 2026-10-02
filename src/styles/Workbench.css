@@ -2259,3 +2259,114 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
     transition: none;
   }
 }
+
+/* ---------- Build progress: what's chosen and what isn't ---------- */
+
+.fold-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-mark {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.status-mark svg {
+  display: block;
+  overflow: visible;
+}
+
+.status-ring {
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+  opacity: 0.7;
+  transition: stroke 0.25s ease, opacity 0.25s ease;
+}
+
+.status-half {
+  fill: var(--ink-3);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.status-disc {
+  fill: var(--accent);
+  transform-origin: 9px 9px;
+  transform: scale(0);
+  transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.status-tick {
+  stroke: #fff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 11;
+  stroke-dashoffset: 11;
+  transition: stroke-dashoffset 0.25s ease 0.08s;
+}
+
+.status-mark.partial .status-half {
+  opacity: 0.7;
+}
+
+.status-mark.done .status-disc {
+  transform: scale(1);
+}
+
+.status-mark.done .status-tick {
+  stroke-dashoffset: 0;
+}
+
+.status-mark.done .status-ring {
+  opacity: 0;
+}
+
+/* A field with nothing chosen yet is hollow with a dashed outline; a chosen one is filled */
+.workbench .fold-body select[data-empty],
+.workbench .fold-body input[data-empty],
+.workbench .fold-body .stepper[data-empty] {
+  background-color: transparent;
+  border: 1px dashed var(--ink-3);
+}
+
+.workbench .fold-body select[data-empty] {
+  color: var(--ink-2);
+}
+
+.workbench .fold-body .stepper[data-empty] .stepper-value {
+  background-color: transparent;
+}
+
+/* Waiting on an earlier choice ("Choose timber first"): fainter than a field you can fill in now */
+.workbench .fold-body select[data-empty]:disabled {
+  border-color: var(--rule-strong);
+  color: var(--ink-3);
+}
+
+/* What's left to choose, on the price card */
+.stamp-missing {
+  margin: -4px 0 16px;
+  max-width: 260px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-ring,
+  .status-half,
+  .status-disc,
+  .status-tick {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .stamp-missing {
+    max-width: none;
+    margin-bottom: 0;
+  }
+}
