@@ -119,7 +119,9 @@ await step('an older change cannot overwrite a newer one', async () => {
 })
 
 await step('deleting online data removes it, and only for that person', async () => {
-  await createSupabaseRemote(alice).deleteMyData()
+  await bob.from('businesses').delete().eq('id', aliceBusiness) // must do nothing
+  assert.equal((await alice.from('quotes').select('id').is('deleted_at', null)).data.length, 1)
+  await createSupabaseRemote(alice).deleteBusiness(aliceBusiness)
   assert.deepEqual((await alice.from('quotes').select('id')).data, [])
   assert.deepEqual((await alice.from('documents').select('kind')).data, [])
   assert.equal((await bob.from('quotes').select('id')).data.length, 1)

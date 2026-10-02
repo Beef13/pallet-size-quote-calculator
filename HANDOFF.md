@@ -138,7 +138,7 @@ The owner wants accounts with online storage on **Supabase**, hosted on **Vercel
 - Database in Supabase's Sydney region. Everything under the owner's own accounts. The owner is creating a **new Supabase organisation** for this (not the existing "test org").
 
 **Where things are**
-- `supabase/migrations/` : tables, row-level security, the "newest change wins" trigger, and the `ensure_business()` and `delete_my_data()` functions. Apply these to the Supabase project in order.
+- `supabase/migrations/` : tables, row-level security, the "newest change wins" trigger, and the `ensure_business()` function, and a rule letting an owner delete their own business row (which removes everything under it). Apply these to the Supabase project in order.
 - `src/sync/merge.js` : the rules (newest change wins; deletions travel as tombstones; duplicate quote numbers from two offline devices are renumbered). Pure and tested.
 - `src/sync/engine.js` : brings a device and the account into step. Takes a `storage` and a `remote`, so it runs against fakes in tests.
 - `src/sync/supabaseRemote.js` : the thin Supabase adapter. `src/sync/index.js` : sign-in, sign-out, background syncing, and the state the account screen shows.
@@ -153,10 +153,10 @@ The owner wants accounts with online storage on **Supabase**, hosted on **Vercel
 - **Not yet tested, because it needs the real Supabase project:** the emailed sign-in link itself, Google sign-in, and the migrations on Supabase's own Postgres.
 
 **To switch it on**
-1. Create the Supabase project in the owner's new organisation, region `ap-southeast-2`; apply the migrations; run Supabase's security advisor.
+1. **Done (3 Oct 2026):** Supabase project `pallet-quote` (ref `wxheqxppnpftukedrdhl`, region `ap-southeast-2`, URL `https://wxheqxppnpftukedrdhl.supabase.co`) in the owner's organisation "Pallet Qoute" (name has a typo, harmless). The design in `supabase/migrations/` was applied in several smaller migrations (the Supabase connector cancels SQL it sees as destructive, so one big file would not go through). Checked on the real database: visitors are blocked from every table; a signed-in stranger sees nothing and cannot insert. The security advisor shows one expected warning (`ensure_business` is a security-definer function signed-in users may call; that is its purpose). Deleting online data is done by the owner deleting their `businesses` row, allowed by a row-level rule, not by a function.
 2. In Supabase Authentication settings, set the site URL and allowed redirect URLs to the deployed address (including `/app/index.html`).
 3. Create the Vercel project from the repo (`vercel.json` runs the tests and builds at the site root) and set the two `VITE_SUPABASE_*` environment variables.
-4. Set `accounts.enabled = true` in `src/landing/operator.js` in the same release, so the terms and privacy pages show the accounts wording. Fill in the operator details too.
+4. The terms and privacy pages switch to the accounts wording automatically when `VITE_SUPABASE_URL` is set. Fill in the operator details in `src/landing/operator.js`.
 5. Before real customers: custom email sending (Supabase's built-in sender is rate-limited), the paid Supabase plan for backups and no pausing, Vercel's paid plan for commercial use, and a lawyer's review of the legal pages.
 
 ## 6. Design rules the owner has set

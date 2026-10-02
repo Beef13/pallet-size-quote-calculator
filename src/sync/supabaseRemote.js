@@ -41,8 +41,10 @@ export function createSupabaseRemote(supabase) {
         .upsert(rows.map(r => ({ business_id: businessId, ...r })), { onConflict: 'business_id,id' }))
     },
 
-    async deleteMyData() {
-      check(await supabase.rpc('delete_my_data'))
+    // Removing the business row removes everything stored under it. The database only
+    // lets its owner do this.
+    async deleteBusiness(businessId) {
+      check(await supabase.from('businesses').delete().eq('id', businessId))
     }
   }
 }

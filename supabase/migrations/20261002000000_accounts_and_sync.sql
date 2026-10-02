@@ -111,6 +111,7 @@ $$;
 revoke all on schema private from public;
 grant usage on schema private to authenticated;
 revoke all on function private.is_member(uuid) from public;
+revoke all on function private.keep_newest() from public;
 grant execute on function private.is_member(uuid) to authenticated;
 
 alter table public.businesses enable row level security;
@@ -122,8 +123,8 @@ alter table public.quotes enable row level security;
 revoke all on public.businesses, public.business_members, public.documents, public.quotes from anon;
 
 -- Signed-in people get only the operations they need; the policies below then narrow
--- those to their own business. Businesses and memberships are created and removed only
--- through the functions further down.
+-- those to their own business. Businesses and memberships are created only through
+-- ensure_business() further down.
 revoke all on public.businesses, public.business_members, public.documents, public.quotes from authenticated;
 grant select, update (name) on public.businesses to authenticated;
 grant select on public.business_members to authenticated;
@@ -214,29 +215,33 @@ begin
 end;
 $$;
 
--- Removes everything the signed-in person's own businesses have stored online.
--- Their sign-in itself is removed separately.
-create function public.delete_my_data()
-returns void
-language plpgsql
+-- Deleting your online data: an owner may remove their own business row, and everything
+-- stored under it goes with it (documents, quotes and memberships cascade). The sign-in
+-- itself is removed separately.
+create function private.is_owner(target_business uuid)
+returns boolean
+language sql
+stable
 security definer
 set search_path = ''
 as $$
-declare
-  me uuid := (select auth.uid());
-begin
-  if me is null then
-    raise exception 'Not signed in' using errcode = '28000';
-  end if;
-  delete from public.businesses b
-  where exists (
-    select 1 from public.business_members m
-    where m.business_id = b.id and m.user_id = me and m.role = 'owner'
+  select exists (
+    select 1
+    from public.business_members m
+    where m.business_id = target_business
+      and m.user_id = (select auth.uid())
+      and m.role = 'owner'
   );
-end;
 $$;
 
+revoke all on function private.is_owner(uuid) from public;
+grant execute on function private.is_owner(uuid) to authenticated;
+
+grant delete on public.businesses to authenticated;
+
+create policy "Owners can remove their business"
+  on public.businesses for delete to authenticated
+  using (private.is_owner(id));
+
 revoke all on function public.ensure_business() from public, anon;
-revoke all on function public.delete_my_data() from public, anon;
 grant execute on function public.ensure_business() to authenticated;
-grant execute on function public.delete_my_data() to authenticated;

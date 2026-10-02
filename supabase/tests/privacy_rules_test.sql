@@ -53,6 +53,17 @@ commit;
 -- 3. Bob cannot read, change, delete or add to Alice's data
 begin;
 select pg_temp.sign_in('bob');
+do $$ begin
+  -- a blanket delete as bob must touch only bob's business; run it in a sub-block and undo it
+  declare n int; alice_business uuid := (select business from ids where who = 'alice');
+  begin
+    delete from public.businesses where id = alice_business;
+    get diagnostics n = row_count; assert n = 0, 'bob deleted alice''s business';
+    delete from public.businesses;
+    get diagnostics n = row_count; assert n = 1, 'a blanket delete should remove only bob''s own business';
+    raise exception 'undo';
+  exception when raise_exception then null; end;
+end $$;
 do $$
 declare
   alice_business uuid := (select business from ids where who = 'alice');
@@ -103,7 +114,7 @@ do $$ begin
   exception when insufficient_privilege then null; end;
   begin perform public.ensure_business(); raise exception 'a visitor can create a business';
   exception when insufficient_privilege then null; end;
-  begin perform public.delete_my_data(); raise exception 'a visitor can call delete_my_data';
+  begin delete from public.businesses; raise exception 'a visitor can delete businesses';
   exception when insufficient_privilege then null; end;
 end $$;
 commit;
@@ -135,11 +146,11 @@ commit;
 -- 6. Deleting your data removes yours and nobody else's
 begin;
 select pg_temp.sign_in('alice');
-select public.delete_my_data();
+delete from public.businesses where id = (select business from ids where who = 'alice');
 commit;
 
 do $$ begin
-  assert (select count(*) from public.businesses) = 1, 'delete_my_data should leave only bob''s business';
+  assert (select count(*) from public.businesses) = 1, 'deleting alice''s business should leave only bob''s';
   assert (select count(*) from public.quotes) = 1, 'bob''s quote should survive';
   assert (select count(*) from public.documents) = 0, 'alice''s documents should be gone';
   assert (select created_by from public.businesses) = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'the wrong business was deleted';
