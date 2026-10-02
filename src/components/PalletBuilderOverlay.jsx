@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import timberData from '../data/timber-prices.json'
 import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, formatCurrency, formatDimension } from '../utils/calculations'
@@ -184,13 +184,34 @@ function Reveal({ open, id, className = '', children }) {
   )
 }
 
-// Short line beside a section title that fills as the section is completed:
-// empty track (nothing chosen), part filled (partly done), full and green (done)
+// Status mark on a section heading. A thin line fills as the section is completed; when it's
+// done the line swells into a bright green pill with a tick, and pulses once to catch the eye.
 const STATUS_TEXT = { todo: 'not started', partial: 'not finished', done: 'done' }
 function StatusMark({ status, ratio = 0 }) {
+  // Pulse only at the moment a section becomes complete, not every time the tab is shown
+  const previous = useRef(status)
+  const [justDone, setJustDone] = useState(false)
+  useEffect(() => {
+    const becameDone = status === 'done' && previous.current !== 'done'
+    previous.current = status
+    if (!becameDone) {
+      if (status !== 'done') setJustDone(false)
+      return
+    }
+    setJustDone(true)
+    const timer = setTimeout(() => setJustDone(false), 1600)
+    return () => clearTimeout(timer)
+  }, [status])
+
   return (
-    <span className={`status-mark ${status}`} role="img" aria-label={STATUS_TEXT[status]} title={STATUS_TEXT[status].replace(/^./, c => c.toUpperCase())}>
-      <span className="status-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
+    <span className={`status-mark ${status} ${justDone ? 'just-done' : ''}`} role="img" aria-label={STATUS_TEXT[status]}
+      title={STATUS_TEXT[status].replace(/^./, c => c.toUpperCase())}>
+      <span className="status-track">
+        <span className="status-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
+        <svg className="status-tick" width="12" height="10" viewBox="0 0 12 10" fill="none" aria-hidden="true">
+          <path d="M1.5 5.2l3 3 6-6.4" />
+        </svg>
+      </span>
     </span>
   )
 }

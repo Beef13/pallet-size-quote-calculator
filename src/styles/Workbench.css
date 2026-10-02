@@ -2271,14 +2271,30 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
   gap: 10px;
 }
 
+/* Fixed-size box so the heading row never shifts when the line swells into the tick pill */
 .status-mark {
+  --done: #0fb866;
   position: relative;
   flex-shrink: 0;
-  width: 26px;
+  width: 28px;
+  height: 18px;
+}
+
+html.dark-mode .status-mark {
+  --done: #2fdc8b;
+}
+
+.status-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
   height: 4px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--ink) 14%, transparent);
   overflow: hidden;
+  transform: translateY(-50%);
+  transition: height 0.3s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
 .status-fill {
@@ -2290,8 +2306,50 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
   transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease;
 }
 
+.status-tick {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+}
+
+.status-tick path {
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  transition: stroke-dashoffset 0.01s linear;
+}
+
+html.dark-mode .status-tick path {
+  stroke: #06301c;
+}
+
+/* Done: full, bright green, swollen into a pill, tick drawn in */
+.status-mark.done .status-track {
+  height: 18px;
+}
+
 .status-mark.done .status-fill {
-  background: var(--accent);
+  background: var(--done);
+}
+
+.status-mark.done .status-tick path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.28s ease 0.2s;
+}
+
+/* One-off attention pulse at the moment of completion */
+.status-mark.just-done .status-track {
+  animation: status-pulse 0.75s ease-out 0.15s 2;
+}
+
+@keyframes status-pulse {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--done) 60%, transparent); }
+  to { box-shadow: 0 0 0 9px color-mix(in srgb, var(--done) 0%, transparent); }
 }
 
 /* A field with nothing chosen yet is hollow with a dashed outline; a chosen one is filled */
@@ -2326,8 +2384,15 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .status-fill {
+  .status-fill,
+  .status-track,
+  .status-tick path,
+  .status-mark.done .status-tick path {
     transition: none;
+  }
+
+  .status-mark.just-done .status-track {
+    animation: none;
   }
 }
 
