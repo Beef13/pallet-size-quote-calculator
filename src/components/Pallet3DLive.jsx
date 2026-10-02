@@ -263,8 +263,11 @@ function GhostBoard({ position, size, dark }) {
   return (
     <mesh position={position} layers={GHOST_LAYER}>
       <boxGeometry args={size} />
-      <meshBasicMaterial color={dark ? '#aeb8bf' : '#56616b'} transparent opacity={dark ? 0.06 : 0.05} depthWrite={false} />
-      <Edges layers={GHOST_LAYER} color={dark ? '#6f7a82' : '#9aa2aa'} />
+      {/* Kept very faint: a hint of what's still to choose, not something to look at */}
+      <meshBasicMaterial color={dark ? '#aeb8bf' : '#56616b'} transparent opacity={dark ? 0.025 : 0.02} depthWrite={false} />
+      <Edges layers={GHOST_LAYER}>
+        <lineBasicMaterial color={dark ? '#8b959c' : '#7d868e'} transparent opacity={dark ? 0.22 : 0.2} depthWrite={false} />
+      </Edges>
     </mesh>
   )
 }
