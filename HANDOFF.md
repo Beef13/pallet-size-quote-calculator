@@ -67,7 +67,7 @@ The old Markdown guides in the root (`PROJECT_SUMMARY.md`, `IMPLEMENTATION_GUIDE
 
 ## 5. How the app works
 
-**Tabs:** Build, Quote, Quotes (history) and Prices.
+**Tabs:** Build, Quote, History (saved quotes) and Prices.
 
 **Pricing model** (`liveQuote` in `PalletBuilderOverlay.jsx`):
 ```
@@ -115,7 +115,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 **Same-timber shortcut:** while a Build section has no timber, it offers a one-click "Use X, same as bottom boards" button (`sameTimberButton`).
 
-**Quotes filter:** status chips (All, Draft, Sent, Accepted, Lost, each with a count) work together with the search box (`shownQuotes`).
+**History filter:** status chips (All, Draft, Sent, Accepted, Lost, each with a count) work together with the search box (`shownQuotes`).
 
 **Gross profit on the price card:** an eye button on the card shows or hides a "Gross profit $X · Y% margin" line (markup × quantity). It's off by default and remembered in `palletShowProfit`, because that card is the part of the screen most likely to be shown to a customer. The button only appears once a markup is set. It's gross profit: freight and overheads aren't in the cost yet.
 

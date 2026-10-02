@@ -1231,7 +1231,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Profit can only be shown once there is a price with a markup on it
   const canShowProfit = liveQuote.hasAnyPrice && (liveQuote.markupPerPallet || 0) > 0
 
-  // Quotes tab: search text and status chip together
+  // History tab: search text and status chip together
   const shownQuotes = quotes.filter(q => {
     if (historyStatus !== 'all' && q.status !== historyStatus) return false
     const term = historySearch.trim().toLowerCase()
@@ -1428,7 +1428,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const tabs = [
     { id: 'calculator', label: 'Build' },
     { id: 'quote', label: 'Quote' },
-    { id: 'history', label: 'Quotes' },
+    { id: 'history', label: 'History' },
     { id: 'prices', label: 'Prices' }
   ]
 
