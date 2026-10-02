@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+
+# Local settings, including Supabase keys for development
+.env
+.env.local
+.env.*.local

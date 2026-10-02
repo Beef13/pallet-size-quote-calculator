@@ -7,5 +7,13 @@ export const operator = {
   state: ''     // Australian state or territory whose law applies, e.g. "Victoria"
 }
 
+// Set to true in the same release that switches accounts on (VITE_SUPABASE_URL is set).
+// The Terms and Privacy pages then show the wording about accounts and online storage in
+// place of the "nothing leaves your device" wording. `dataRegion` is where the database is.
+export const accounts = {
+  enabled: false,
+  dataRegion: 'Sydney, Australia'
+}
+
 // Shown at the top of both pages. Change it whenever the wording changes.
 export const lastUpdated = '2 October 2026'

@@ -1,7 +1,13 @@
 import '@fontsource-variable/outfit'
 import './landing.css'
 import './legal.css'
-import { operator, lastUpdated } from './operator'
+import { operator, lastUpdated, accounts } from './operator'
+
+// Two versions of some passages: one for when accounts exist, one for when they don't
+for (const node of document.querySelectorAll('[data-accounts]')) {
+  if ((node.dataset.accounts === 'on') !== accounts.enabled) node.remove()
+}
+for (const node of document.querySelectorAll('[data-region]')) node.textContent = accounts.dataRegion
 
 // Fill in the operator's details wherever the page asks for them
 for (const node of document.querySelectorAll('[data-op]')) {

@@ -32,8 +32,10 @@
         <div class="legal-summary">
           <h2>The short version</h2>
           <ul>
-            <li>There are no accounts, and we don't collect what you type into Pallet Quote.</li>
-            <li>Your prices, quotes and customer names are stored in the browser on your own device.</li>
+            <li data-accounts="off">There are no accounts, and we don't collect what you type into Pallet Quote.</li>
+            <li data-accounts="off">Your prices, quotes and customer names are stored in the browser on your own device.</li>
+            <li data-accounts="on">You can use Pallet Quote without an account. If you don't sign in, everything you enter stays in the browser on your own device.</li>
+            <li data-accounts="on">If you sign in, your prices, quotes and business details are also stored in your account so they are backed up and available on your other devices.</li>
             <li>We don't use advertising or analytics trackers.</li>
             <li>The company that hosts the website keeps standard technical logs, such as IP addresses.</li>
           </ul>
@@ -51,11 +53,19 @@
           <li>your saved quotes, including any customer names and references you type in</li>
           <li>display choices, such as dark mode and which sections are folded</li>
         </ul>
-        <p>None of this is sent to us or to anyone else. We can't see it, and we can't restore it if it is lost.</p>
+        <p data-accounts="off">None of this is sent to us or to anyone else. We can't see it, and we can't restore it if it is lost.</p>
+        <p data-accounts="on">If you are not signed in, none of this is sent to us or to anyone else. We can't see it, and we can't restore it if it is lost.</p>
+
+        <h2 data-accounts="on">If you sign in</h2>
+        <p data-accounts="on">Signing in is optional. If you do, we collect your email address so we can send you a sign-in link and recognise your account. We don't ask for or store a password.</p>
+        <p data-accounts="on">While you are signed in, the information listed above (other than display choices) is copied to your account so it is backed up and kept in step across the devices you sign in on. This includes any customer names and references on your saved quotes.</p>
+        <p data-accounts="on">Account information is stored with Supabase, our database provider, in <span data-region></span>. It is protected so that each account can only read and change its own information. We access it only when needed to run and fix the service, or when the law requires it. We don't sell it or use it for advertising.</p>
+        <p data-accounts="on">You can remove everything stored in your account at any time using "Delete my online data" on the account screen. To have your sign-in removed as well, email us at the address below.</p>
 
         <h2>3. What we don't do</h2>
         <ul>
-          <li>We don't ask you to create an account.</li>
+          <li data-accounts="off">We don't ask you to create an account.</li>
+          <li data-accounts="on">We don't require an account to use Pallet Quote.</li>
           <li>We don't use cookies to track you.</li>
           <li>We don't use analytics or advertising services.</li>
           <li>We don't sell or share personal information.</li>
@@ -74,7 +84,7 @@
         <p>If you enter a customer's name or reference on a quote, that information is stored on your device and appears on the PDFs you create. You decide what to enter, and you are responsible for handling your customers' information in line with the privacy laws that apply to your business.</p>
 
         <h2>8. Removing your information</h2>
-        <p>You can delete individual quotes and presets inside Pallet Quote. To remove everything, clear the site's data in your browser settings. Because the information is only on your device, there is nothing for us to delete.</p>
+        <p>You can delete individual quotes and presets inside Pallet Quote. To remove everything from a device, clear the site's data in your browser settings. <span data-accounts="off">Because the information is only on your device, there is nothing for us to delete.</span><span data-accounts="on">If you have signed in, also use "Delete my online data" on the account screen to remove what is stored in your account.</span></p>
 
         <h2>9. If you contact us</h2>
         <p>If you email us, we will use your email address and what you send us to reply and to deal with your question. We keep that correspondence only as long as we need it.</p>

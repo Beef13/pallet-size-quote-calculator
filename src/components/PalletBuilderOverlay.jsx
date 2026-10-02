@@ -7,6 +7,10 @@ import LockIcon from './LockIcon'
 import PrintableQuote from './PrintableQuote'
 import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
 import { quoteAttention } from '../utils/quotes'
+import {
+  accountsEnabled, googleSignInEnabled, initAccounts, subscribeAccount, getAccountState, setOnApplied,
+  noteLocalChange, noteQuoteDeleted, signInWithEmail, signInWithGoogle, signOut, syncNow, deleteOnlineData, dismissNotice
+} from '../sync'
 import '../styles/Workbench.css'
 
 // Saved or imported prices laid over the standard list (or the business's own edited list)
@@ -68,10 +72,24 @@ function readStorage(key) {
 function writeStorage(key, value) {
   try {
     localStorage.setItem(key, value)
-    return true
   } catch (e) {
     return false
   }
+  // Lets a signed-in account know there is something new to sync (does nothing otherwise)
+  noteLocalChange(key)
+  return true
+}
+
+// "2 minutes ago", for the account screen
+function timeAgo(iso) {
+  const then = Date.parse(iso || '')
+  if (!Number.isFinite(then)) return ''
+  const minutes = Math.round((Date.now() - then) / 60000)
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  return new Date(then).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 const STATUS_LABELS = { draft: 'Draft', sent: 'Sent', accepted: 'Accepted', lost: 'Lost' }
@@ -86,6 +104,7 @@ function Icon({ name, size = 18 }) {
     close: <path d="M6 6l12 12M18 6L6 18" />,
     minus: <path d="M6 12h12" />,
     plus: <path d="M12 6v12M6 12h12" />,
+    user: <><circle cx="12" cy="8.5" r="3.5" /><path d="M5 19.5c1.2-3.2 3.8-4.8 7-4.8s5.8 1.6 7 4.8" /></>,
     eye: <><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>,
     'eye-off': <><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.5 6.6C3.6 8.5 2 12 2 12s3.6 7 10 7a10.6 10.6 0 0 0 5.4-1.5" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /><path d="M3 3l18 18" /></>
   }
@@ -366,6 +385,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     }
   })
   const [currentQuoteId, setCurrentQuoteId] = useState(null)
+
+  // ----- Account (only when accounts are switched on for this build) -----
+  const [account, setAccount] = useState(getAccountState)
+  const [showAccount, setShowAccount] = useState(false)
+  const [signInEmail, setSignInEmail] = useState('')
+  const [signInState, setSignInState] = useState({ busy: false, sent: false, error: '' })
+  const [confirmDeleteOnline, setConfirmDeleteOnline] = useState(false)
   // When an old quote is opened, its saved rates are used instead of today's
   const [ratesFromQuote, setRatesFromQuote] = useState(null)
   const [historyNotice, setHistoryNotice] = useState('')
@@ -1025,6 +1051,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   }
 
   const deleteQuote = (id) => {
+    noteQuoteDeleted(id)
     persistQuotes(quotes.filter(q => q.id !== id))
     if (id === currentQuoteId) setCurrentQuoteId(null)
     setConfirmDeleteId(null)
@@ -1211,6 +1238,65 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setPrices(prev => ({ ...prev, pricing: { ...(prev.pricing || DEFAULT_PRICING), [key]: v } }))
     setPricesSaved(false)
   }
+
+  // ----- Accounts: start up, and reload the screens when synced data lands on this device -----
+  const pricesSavedRef = useRef(pricesSaved)
+  pricesSavedRef.current = pricesSaved
+  useEffect(() => {
+    if (!accountsEnabled) return undefined
+    const parseStored = (key, fallback) => {
+      try { return JSON.parse(readStorage(key) ?? 'null') ?? fallback } catch (e) { return fallback }
+    }
+    setOnApplied((kinds) => {
+      // Unsaved price edits on screen are left alone; saving them makes them the newest change
+      if (kinds.includes('prices') && pricesSavedRef.current) setPrices(mergeSaved(parseStored('timberPrices', null)))
+      if (kinds.includes('presets')) {
+        const presets = parseStored('palletPresets', [])
+        setSavedPresets(Array.isArray(presets) ? presets : [])
+      }
+      if (kinds.includes('business')) setBusiness({ ...DEFAULT_BUSINESS, ...(parseStored('palletBusiness', {}) || {}) })
+      if (kinds.includes('quotes')) {
+        const list = parseStored('palletQuotes', [])
+        const next = Array.isArray(list) ? list : []
+        setQuotes(next)
+        setCurrentQuoteId(id => (id && next.some(q => q.id === id) ? id : null))
+      }
+    })
+    const stop = subscribeAccount(setAccount)
+    initAccounts()
+    return () => { stop(); setOnApplied(null) }
+  }, [])
+
+  const handleSignIn = async (e) => {
+    e.preventDefault()
+    if (!signInEmail.trim() || signInState.busy) return
+    setSignInState({ busy: true, sent: false, error: '' })
+    try {
+      await signInWithEmail(signInEmail)
+      setSignInState({ busy: false, sent: true, error: '' })
+    } catch (err) {
+      setSignInState({ busy: false, sent: false, error: err.message || 'The sign-in link could not be sent.' })
+    }
+  }
+  const handleGoogleSignIn = async () => {
+    try { await signInWithGoogle() } catch (err) { setSignInState({ busy: false, sent: false, error: err.message }) }
+  }
+  const handleDeleteOnline = async () => {
+    try {
+      await deleteOnlineData()
+      setConfirmDeleteOnline(false)
+      setShowAccount(false)
+    } catch (err) {
+      setSignInState({ busy: false, sent: false, error: err.message || 'The online data could not be deleted.' })
+    }
+  }
+  const signedIn = account.status !== 'signed-out' && !!account.email
+  const accountStatusText = {
+    syncing: 'Syncing…',
+    synced: account.lastSyncedAt ? `Everything is in step. Last synced ${timeAgo(account.lastSyncedAt)}.` : 'Everything is in step.',
+    offline: 'You\'re offline. Changes will sync when you\'re back online.',
+    error: account.error || 'Syncing didn\'t work just now. It will try again.'
+  }[account.status] || ''
 
   const handleSavePrices = () => {
     const cleaned = mergeSaved(prices)
@@ -1468,6 +1554,15 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             <strong><Money value={(liveQuote.totalPrice || 0) * quantity} /></strong>
           </div>
           <div className="header-actions">
+            {accountsEnabled && (
+              <button type="button" className={`icon-btn account-btn ${signedIn ? `is-${account.status}` : ''}`} data-account-button
+                onClick={() => { setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
+                title={signedIn ? `Signed in as ${account.email}` : 'Sign in to back up and sync'}
+                aria-label={signedIn ? `Account, signed in as ${account.email}` : 'Sign in to back up and sync'}>
+                <Icon name="user" />
+                {signedIn && <span className="account-dot" aria-hidden="true" />}
+              </button>
+            )}
             <button type="button" className="icon-btn" onClick={() => setIsDarkMode(!isDarkMode)}
               title={isDarkMode ? 'Use light theme' : 'Use dark theme'} aria-label={isDarkMode ? 'Use light theme' : 'Use dark theme'}>
               <Icon name={isDarkMode ? 'sun' : 'moon'} />
@@ -2191,6 +2286,83 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           </>
         )}
       </aside>
+
+      {accountsEnabled && showAccount && (
+        <div className="modal-overlay" onClick={() => setShowAccount(false)}>
+          <div className="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="account-title" data-account-modal
+            onClick={e => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setShowAccount(false) }}>
+            {signedIn ? (
+              <>
+                <h3 id="account-title">Your account</h3>
+                <p className="account-email">{account.email}</p>
+                <p className={`account-status is-${account.status}`} aria-live="polite" data-account-status>{accountStatusText}</p>
+                {account.notice && (
+                  <p className="account-notice">
+                    {account.notice}
+                    <button type="button" className="text-btn" onClick={dismissNotice}>OK</button>
+                  </p>
+                )}
+                <p>Your prices, presets, business details and saved quotes are stored in your account and kept in step across the devices you sign in on.</p>
+                {signInState.error && <p className="account-error" role="alert">{signInState.error}</p>}
+                {confirmDeleteOnline ? (
+                  <div className="account-danger">
+                    <p>This removes everything stored in your account and signs you out. What's on this device stays here. It can't be undone.</p>
+                    <div className="modal-actions">
+                      <button type="button" className="btn btn-quiet" onClick={() => setConfirmDeleteOnline(false)}>Keep it</button>
+                      <button type="button" className="btn btn-danger" onClick={handleDeleteOnline}>Delete online data</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="modal-actions">
+                      <button type="button" className="btn btn-quiet" onClick={() => { signOut(); setShowAccount(false) }}>Sign out</button>
+                      <button type="button" className="btn btn-secondary" onClick={syncNow} disabled={account.status === 'syncing'}>Sync now</button>
+                      <button type="button" className="btn btn-primary" onClick={() => setShowAccount(false)}>Done</button>
+                    </div>
+                    <button type="button" className="text-btn muted-btn account-delete" onClick={() => setConfirmDeleteOnline(true)}>Delete my online data</button>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <h3 id="account-title">Sign in to back up and sync</h3>
+                <p>Your prices, presets and quotes are saved to your account and kept in step across your devices. Pallet Quote still works without signing in.</p>
+                {signInState.sent ? (
+                  <>
+                    <p className="account-sent" role="status">Check your inbox at <strong>{signInEmail.trim()}</strong> for a sign-in link. Open it on this device to finish.</p>
+                    <div className="modal-actions">
+                      <button type="button" className="btn btn-quiet" onClick={() => setSignInState({ busy: false, sent: false, error: '' })}>Use a different email</button>
+                      <button type="button" className="btn btn-primary" onClick={() => setShowAccount(false)}>Done</button>
+                    </div>
+                  </>
+                ) : (
+                  <form onSubmit={handleSignIn} className="account-form">
+                    <label className="field">
+                      <span className="field-label">Email</span>
+                      <input type="email" value={signInEmail} onChange={(e) => setSignInEmail(e.target.value)} placeholder="you@yourbusiness.com.au"
+                        autoComplete="email" required autoFocus data-field="account-email" />
+                    </label>
+                    {signInState.error && <p className="account-error" role="alert">{signInState.error}</p>}
+                    {!account.ready && <p className="account-status">Loading…</p>}
+                    <div className="modal-actions">
+                      <button type="button" className="btn btn-quiet" onClick={() => setShowAccount(false)}>Not now</button>
+                      <button type="submit" className="btn btn-primary" disabled={!signInEmail.trim() || signInState.busy || !account.ready}>
+                        {signInState.busy ? 'Sending…' : 'Email me a sign-in link'}
+                      </button>
+                    </div>
+                    {googleSignInEnabled && (
+                      <button type="button" className="btn btn-secondary account-google" onClick={handleGoogleSignIn} disabled={!account.ready}>Sign in with Google</button>
+                    )}
+                    <p className="account-legal">
+                      No password needed. By signing in you agree to the <a href="../terms/index.html" target="_blank" rel="noopener">terms</a> and <a href="../privacy/index.html" target="_blank" rel="noopener">privacy policy</a>.
+                    </p>
+                  </form>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Right - 3D pallet */}
       <main className="stage">

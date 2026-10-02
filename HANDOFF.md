@@ -127,6 +127,38 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 **Price lock:** timber and nail prices are locked against accidental edits, each with its own padlock. Labour, markup and GST share one padlock in their section head (lock id `pricing`). Everything starts locked on each visit.
 
+## 5a. Accounts and online storage (built, not switched on)
+
+The owner wants accounts with online storage on **Supabase**, hosted on **Vercel**, starting on the free plans. The code is complete on the working branch and is **off by default**: with no `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at build time (see `.env.example`) there is no account button, the Supabase library is never downloaded, and the app is local-only exactly as before. The GitHub Pages build has no such settings.
+
+**Decisions made with the owner**
+- Sign-in by emailed link, with Google sign-in to be added (`VITE_AUTH_GOOGLE=1` shows the button once Google is set up in Supabase). No passwords.
+- Signing in is optional. The app stays local-first and works offline; an account adds backup and syncing.
+- Data belongs to a **business**, not a person (`businesses` + `business_members`), so staff can be added later. For now each person gets one business and is its owner.
+- Database in Supabase's Sydney region. Everything under the owner's own accounts. The owner is creating a **new Supabase organisation** for this (not the existing "test org").
+
+**Where things are**
+- `supabase/migrations/` : tables, row-level security, the "newest change wins" trigger, and the `ensure_business()` and `delete_my_data()` functions. Apply these to the Supabase project in order.
+- `src/sync/merge.js` : the rules (newest change wins; deletions travel as tombstones; duplicate quote numbers from two offline devices are renumbered). Pure and tested.
+- `src/sync/engine.js` : brings a device and the account into step. Takes a `storage` and a `remote`, so it runs against fakes in tests.
+- `src/sync/supabaseRemote.js` : the thin Supabase adapter. `src/sync/index.js` : sign-in, sign-out, background syncing, and the state the account screen shows.
+- The app calls `noteLocalChange(key)` from `writeStorage` and `noteQuoteDeleted(id)` when a quote is deleted; `setOnApplied` reloads React state after synced data lands.
+- Extra storage keys: `palletSyncMeta` (link to the account, per-document change times, pending deletions) and `palletPreSyncBackup` (what was on a device before an account's data first replaced it).
+
+**How it was tested**
+- `npm test` : 62 tests, including two simulated devices syncing through a fake online side.
+- `supabase/tests/run_local.sh` : applies the migrations to a throwaway local Postgres and tries to break the privacy rules as another signed-in person and as a visitor.
+- `supabase/tests/run_api_local.sh` : the same through PostgREST (the data API Supabase uses) with the real `supabase-js` client and the real sync engine.
+- Two real browsers signed in to one account against that local API: data, a status change and a deletion all travelled between them.
+- **Not yet tested, because it needs the real Supabase project:** the emailed sign-in link itself, Google sign-in, and the migrations on Supabase's own Postgres.
+
+**To switch it on**
+1. Create the Supabase project in the owner's new organisation, region `ap-southeast-2`; apply the migrations; run Supabase's security advisor.
+2. In Supabase Authentication settings, set the site URL and allowed redirect URLs to the deployed address (including `/app/index.html`).
+3. Create the Vercel project from the repo (`vercel.json` runs the tests and builds at the site root) and set the two `VITE_SUPABASE_*` environment variables.
+4. Set `accounts.enabled = true` in `src/landing/operator.js` in the same release, so the terms and privacy pages show the accounts wording. Fill in the operator details too.
+5. Before real customers: custom email sending (Supabase's built-in sender is rate-limited), the paid Supabase plan for backups and no pausing, Vercel's paid plan for commercial use, and a lawyer's review of the legal pages.
+
 ## 6. Design rules the owner has set
 
 - Clean, sleek look that doesn't read as AI-made: soft grey canvas, white rounded cards, pill tabs and buttons, green accent `#178a52`, Outfit font. The owner rejected a stencil font as "tacky".
