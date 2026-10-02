@@ -19,14 +19,10 @@ The app is local-first: there's no backend and no accounts. All data is stored i
 
 | Branch | State |
 |---|---|
-| `main` | The **old** app. Pushing to `main` deploys GitHub Pages (`.github/workflows/deploy.yml`) at https://beef13.github.io/pallet-size-quote-calculator/. **Don't push or merge to `main` without the owner's explicit OK.** |
-| `fix/quote-calculator-bugs` | **All current work.** It's about 14 commits ahead of `main` and pushed to origin. No pull request is open. |
+| `main` | **Live.** Pushing to `main` runs the price tests, builds and deploys GitHub Pages (`.github/workflows/deploy.yml`) at https://beef13.github.io/pallet-size-quote-calculator/ (landing page) and `/app/` (calculator). **Don't push or merge to `main` without the owner's explicit OK each time.** |
+| `fix/quote-calculator-bugs` | **Working branch.** Do new work here, then ask the owner before fast-forwarding `main` to it. |
 
-**Why it hasn't been merged:** this branch changes how timber is priced, and the owner hasn't confirmed the change.
-- On `main`, each board costs a flat `pricePerBoard × count`, even though the UI calls the price "per metre".
-- On this branch, cost is the price per lineal metre × the real length: boards are cut to the pallet length, and bearers to the pallet width (`timberCost()` in `src/utils/calculations.js`).
-
-Confirm with the owner that per-metre pricing is how they price timber before merging. Until the merge happens, `/app/` on the live site returns a 404, because `main` has no landing page or `/app/` route. That's why the "Open the calculator" button in the shareable landing HTML currently goes nowhere.
+On 2 October 2026 the owner said they had tested the app and approved the first merge, so everything up to the price tests (`c84ee92`) is live. That merge made per-metre timber pricing live: cost is the price per lineal metre × the real length, with boards cut to the pallet length and bearers to the pallet width (`timberCost()` in `src/utils/calculations.js`). The old `main` charged a flat price per board.
 
 ## 3. Run, build, test
 
@@ -134,7 +130,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 ## 7. Known gaps and the recommended next steps
 
-1. **Get the owner's sign-off on per-metre pricing, then merge to `main`.** This is the only thing blocking a release.
+1. **Done:** per-metre pricing is live on `main`. The owner now wants to get the product ready to sell, bit by bit: an editable timber list and logo on the PDF, freight and other cost extras, terms and a privacy page, then accounts with online storage and payments.
 2. Use the app on about 10 real quotes alongside the current method, and record time taken and price differences.
 3. Likely gaps, to be confirmed with the owner before building:
    - freight (per load or per pallet)
