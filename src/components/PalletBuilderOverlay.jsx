@@ -185,11 +185,11 @@ function Reveal({ open, id, className = '', children }) {
 }
 
 // Status mark on a section heading. The outline of a circle fills as the section is completed;
-// when it's done it becomes a bright green ticked circle that blinks briefly to catch the eye.
+// when it's done it becomes a bright green ticked circle, with the same click-and-ripple as the padlock.
 const STATUS_TEXT = { todo: 'not started', partial: 'not finished', done: 'done' }
 const RING_LENGTH = 2 * Math.PI * 8 // circumference of the r=8 outline
 function StatusMark({ status, ratio = 0 }) {
-  // Blink only at the moment a section becomes complete, not every time the tab is shown
+  // Play the completion animation only at the moment a section becomes complete, not every time the tab is shown
   const previous = useRef(status)
   const [justDone, setJustDone] = useState(false)
   useEffect(() => {
@@ -200,7 +200,7 @@ function StatusMark({ status, ratio = 0 }) {
       return
     }
     setJustDone(true)
-    const timer = setTimeout(() => setJustDone(false), 2000)
+    const timer = setTimeout(() => setJustDone(false), 1200)
     return () => clearTimeout(timer)
   }, [status])
 

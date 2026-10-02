@@ -2273,6 +2273,7 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
 
 .status-mark {
   --done: #0fb866;
+  position: relative;
   display: inline-flex;
   flex-shrink: 0;
 }
@@ -2308,7 +2309,8 @@ html.dark-mode .status-mark {
   fill: var(--done);
   transform-origin: 10px 10px;
   transform: scale(0);
-  transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1) 0.25s;
+  /* Same spring as the padlock's shackle */
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s;
 }
 
 .status-tick {
@@ -2339,15 +2341,36 @@ html.dark-mode .status-tick {
   transition-delay: 0s;
 }
 
-/* Short blink at the moment of completion, then it holds steady */
+/* Completion uses the same motion as unlocking a price (LockIcon.css): a small "click"
+   squash and one soft ring rippling out. Same timings and curves, played once. */
 .status-mark.just-done svg {
-  animation: status-blink 0.42s ease-in-out 0.75s 3;
+  transform-origin: center bottom;
+  animation: status-click 0.32s ease-out 0.3s;
 }
 
-@keyframes status-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.25; }
+@keyframes status-click {
+  0% { transform: scale(1, 1); }
+  35% { transform: scale(1.08, 0.88); }
+  70% { transform: scale(0.97, 1.04); }
+  100% { transform: scale(1, 1); }
 }
+
+.status-mark.just-done::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 2px solid var(--done);
+  opacity: 0;
+  pointer-events: none;
+  animation: status-ring 0.5s ease-out 0.3s;
+}
+
+@keyframes status-ring {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
 
 /* A field with nothing chosen yet is hollow with a dashed outline; a chosen one is filled */
 .workbench .fold-body select[data-empty],
@@ -2388,7 +2411,8 @@ html.dark-mode .status-tick {
     transition: none;
   }
 
-  .status-mark.just-done svg {
+  .status-mark.just-done svg,
+  .status-mark.just-done::after {
     animation: none;
   }
 }
