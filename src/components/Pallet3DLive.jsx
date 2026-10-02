@@ -1,7 +1,7 @@
 import React, { useRef, useMemo, useEffect, Suspense } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
 import { Vector3, Quaternion } from 'three'
-import { OrbitControls, Text, Line, Billboard, ContactShadows } from '@react-three/drei'
+import { OrbitControls, Text, Line, Billboard, ContactShadows, Edges } from '@react-three/drei'
 // Bundled locally so labels work offline (drei's default font is fetched from Google)
 import labelFont from '../assets/fonts/outfit-latin-500-normal.woff'
 import '../styles/Pallet3DLive.css'
@@ -255,8 +255,23 @@ function DimensionLine({ start, end, offset = 0.5, label, color = '#3d4852', tex
   )
 }
 
+// Ghosts live on their own layer: the camera sees them, the ground shadow doesn't
+const GHOST_LAYER = 1
+
+// A part that hasn't been chosen yet: a faint see-through block with an outline
+function GhostBoard({ position, size, dark }) {
+  return (
+    <mesh position={position} layers={GHOST_LAYER}>
+      <boxGeometry args={size} />
+      <meshBasicMaterial color={dark ? '#aeb8bf' : '#56616b'} transparent opacity={dark ? 0.06 : 0.05} depthWrite={false} />
+      <Edges layers={GHOST_LAYER} color={dark ? '#6f7a82' : '#9aa2aa'} />
+    </mesh>
+  )
+}
+
 // Single board component with wood-like appearance
-function Board({ position, size, color = '#d4a574' }) {
+function Board({ position, size, color = '#d4a574', ghost = false, dark = false }) {
+  if (ghost) return <GhostBoard position={position} size={size} dark={dark} />
   return (
     <mesh position={position} castShadow receiveShadow>
       <boxGeometry args={size} />
@@ -373,6 +388,7 @@ function PalletStructure({ previewData, dark = false }) {
     })
   }, [previewData.numberOfBearers, palletDepth, bearerDepth])
 
+  const hasSize = palletWidth > 0 && palletDepth > 0
   const hasComponents = previewData.numberOfTopBoards > 0 || 
                        previewData.numberOfBottomBoards > 0 || 
                        previewData.numberOfBearers > 0
@@ -386,6 +402,8 @@ function PalletStructure({ previewData, dark = false }) {
           position={[board.xPos, bearerStandingHeight / 2 + board.thickness / 2, 0]}
           size={[board.width, board.thickness, palletDepth]}
           color={board.isLeader ? "#d4c4a7" : "#e8d5b7"}
+          ghost={!previewData.topChosen}
+          dark={dark}
         />
       ))}
       
@@ -396,6 +414,8 @@ function PalletStructure({ previewData, dark = false }) {
           position={[0, 0, zPos]}
           size={[palletWidth, bearerStandingHeight, bearerDepth]}
           color="#c9a66b"
+          ghost={!previewData.bearerChosen}
+          dark={dark}
         />
       ))}
       
@@ -406,11 +426,13 @@ function PalletStructure({ previewData, dark = false }) {
           position={[board.xPos, -bearerStandingHeight / 2 - board.thickness / 2, 0]}
           size={[board.width, board.thickness, palletDepth]}
           color={board.isLeader ? "#c4a886" : "#d4b896"}
+          ghost={!previewData.bottomChosen}
+          dark={dark}
         />
       ))}
       
       {/* Nails for top boards - positioned so nail head sticks up 0.03 units above board */}
-      {topBoardData.map((board, boardIdx) => 
+      {previewData.topChosen && topBoardData.map((board, boardIdx) => 
         bearerPositions.map((bearerZ, bearerIdx) => {
           const boardTopSurface = bearerStandingHeight / 2 + board.thickness
           const nailHeight = 0.2
@@ -427,7 +449,7 @@ function PalletStructure({ previewData, dark = false }) {
       )}
       
       {/* Nails for bottom boards - positioned so nail point sticks down 0.03 units below board */}
-      {bottomBoardData.map((board, boardIdx) => 
+      {previewData.bottomChosen && bottomBoardData.map((board, boardIdx) => 
         bearerPositions.map((bearerZ, bearerIdx) => {
           const boardBottomSurface = -bearerStandingHeight / 2 - board.thickness
           const nailHeight = 0.2
@@ -443,18 +465,22 @@ function PalletStructure({ previewData, dark = false }) {
         })
       )}
 
-      {/* Ghost outline when no components */}
-      {!hasComponents && palletWidth > 0 && palletDepth > 0 && (
-        <mesh position={[0, 0, 0]}>
-          <boxGeometry args={[palletWidth, bearerStandingHeight + topBoardThickness + bottomBoardThickness, palletDepth]} />
-          <meshStandardMaterial 
-            color="#999999" 
-            transparent 
-            opacity={0.15}
-            wireframe
-          />
-        </mesh>
+      {/* Placeholders for parts with no boards yet, so the pallet shows what's still to choose */}
+      {hasSize && previewData.numberOfTopBoards === 0 && (
+        <GhostBoard dark={dark}
+          position={[0, bearerStandingHeight / 2 + topBoardThickness / 2, 0]}
+          size={[palletWidth, topBoardThickness, palletDepth]} />
       )}
+      {hasSize && previewData.numberOfBottomBoards === 0 && (
+        <GhostBoard dark={dark}
+          position={[0, -bearerStandingHeight / 2 - bottomBoardThickness / 2, 0]}
+          size={[palletWidth, bottomBoardThickness, palletDepth]} />
+      )}
+      {hasSize && previewData.numberOfBearers === 0 && [-1, 0, 1].map(i => (
+        <GhostBoard key={`ghost-bearer-${i}`} dark={dark}
+          position={[0, 0, i * (palletDepth - bearerDepth) / 2]}
+          size={[palletWidth, bearerStandingHeight, bearerDepth]} />
+      ))}
 
       {/* Dimension Lines - only show when relevant components are selected */}
       {/* Suspense keeps the pallet visible while the label font loads */}
@@ -539,6 +565,7 @@ function Pallet3DLive({ previewData, dark = false }) {
         camera={{ position: [14, 10, 14], fov: 40 }}
         shadows
         dpr={[1, 2]}
+        onCreated={({ camera }) => camera.layers.enable(GHOST_LAYER)}
       >
         {/* Ambient lighting */}
         <ambientLight intensity={0.6} />

@@ -113,6 +113,12 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 **Build progress:** each Build section heading carries a `StatusMark` (far right of the heading row: a circle whose outline fills clockwise as the section is completed, then becomes a bright green ticked circle; completion plays the same click-and-ripple as the padlock in `LockIcon.css`, so keep the two in step), driven by `buildProgress`. Fields with nothing chosen get `data-empty` and render hollow with a dashed outline. The price card lists what's left ("Still to choose: top boards and bearers"). Bottom boards count as required, matching `liveQuote.isComplete`; the owner hasn't confirmed whether some pallets have none.
 
+**3D ghosts:** in `Pallet3DLive.jsx`, any part without a timber size yet is drawn as a faint see-through block with an outline (`GhostBoard`): boards with a count but no size, a slab where a deck has no boards, and three bearers where none are set. Ghosts sit on their own three.js layer so the ground shadow ignores them.
+
+**Same-timber shortcut:** while a Build section has no timber, it offers a one-click "Use X, same as bottom boards" button (`sameTimberButton`).
+
+**Quotes filter:** status chips (All, Draft, Sent, Accepted, Lost, each with a count) work together with the search box (`shownQuotes`).
+
 **Price lock:** timber and nail prices are locked against accidental edits, each with its own padlock. Labour, markup and GST share one padlock in their section head (lock id `pricing`). Everything starts locked on each visit.
 
 ## 6. Design rules the owner has set

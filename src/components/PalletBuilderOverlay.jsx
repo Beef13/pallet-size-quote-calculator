@@ -346,6 +346,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [ratesFromQuote, setRatesFromQuote] = useState(null)
   const [historyNotice, setHistoryNotice] = useState('')
   const [historySearch, setHistorySearch] = useState('')
+  const [historyStatus, setHistoryStatus] = useState('all')
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
   // Available sizes - derived from the selected timber type
@@ -706,6 +707,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       numberOfTopBoards: topBoards,
       numberOfBottomBoards: bottomBoards,
       numberOfBearers: bearers,
+      // Parts without a timber size yet are drawn as faint ghosts
+      topChosen: !!topBoardDims,
+      bottomChosen: !!bottomBoardDims,
+      bearerChosen: !!bearerDims,
       topGapSize: Math.max(0, topGap),
       bottomGapSize: Math.max(0, bottomGap)
     }
@@ -1158,6 +1163,14 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     bearers: liveQuote.bearersTotal
   }
 
+  // Quotes tab: search text and status chip together
+  const shownQuotes = quotes.filter(q => {
+    if (historyStatus !== 'all' && q.status !== historyStatus) return false
+    const term = historySearch.trim().toLowerCase()
+    if (!term) return true
+    return [q.number, q.customerName, q.customerRef, q.summary?.size].filter(Boolean).join(' ').toLowerCase().includes(term)
+  })
+
   const timberOptions = timberData.timberTypes.map(type => (
     <option key={type.id} value={type.id} title={type.name}>{type.shortName || type.name}</option>
   ))
@@ -1224,6 +1237,25 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     : `${missingParts.slice(0, -1).join(', ')} and ${missingParts[missingParts.length - 1]}`
   const empty = (value) => (value ? undefined : '')
 
+  // Shortcut for the usual case of one timber throughout: while a section has no timber,
+  // offer the timber already chosen in another section.
+  const chosenTimbers = [
+    ['bottom', 'bottom boards', selectedBottomBoardType],
+    ['top', 'top boards', selectedTopBoardType],
+    ['bearers', 'bearers', selectedBearerType]
+  ]
+  const sameTimberButton = (self, currentType, setType) => {
+    if (currentType) return null
+    const source = chosenTimbers.find(([key, , type]) => key !== self && type)
+    if (!source) return null
+    return (
+      <button type="button" className="same-timber" data-same-timber={self} onClick={() => setType(source[2])}>
+        <Icon name="plus" size={14} />
+        Use {timberName(source[2])}, same as {source[1]}
+      </button>
+    )
+  }
+
   // One deck of boards (top or bottom) - the two sections share the same controls
   const renderDeck = (deck) => {
     const isTop = deck === 'top'
@@ -1259,6 +1291,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             </select>
           </label>
         </div>
+        {sameTimberButton(deck, p.type, p.setType)}
         <div className="field field-inline">
           <span className="field-label" id={`${deck}-count-label`}>Boards {maxNote(p.max)}</span>
           <Stepper id={`${deck}-count-label`} label={`${deck} boards`} value={p.count} onChange={p.setCount} max={p.maxUI} allowEmpty />
@@ -1496,6 +1529,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     </select>
                   </label>
                 </div>
+                {sameTimberButton('bearers', selectedBearerType, changeBearerType)}
                 <div className="field field-inline">
                   <span className="field-label" id="bearer-count-label">Bearers {maxNote(maxBearersAllowed)}</span>
                   <Stepper id="bearer-count-label" label="bearers" value={displayedBearers} onChange={setNumberOfBearers} max={maxBearersForUI} allowEmpty />
@@ -1694,6 +1728,21 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               <div className="history-head">
                 <input type="text" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)}
                   placeholder="Search by customer, number or size" aria-label="Search saved quotes" data-field="history-search" />
+                {quotes.length > 0 && (
+                  <div className="status-filter" role="group" aria-label="Show quotes by status">
+                    {[['all', 'All'], ...Object.entries(STATUS_LABELS)].map(([value, label]) => {
+                      const count = value === 'all' ? quotes.length : quotes.filter(q => q.status === value).length
+                      return (
+                        <button key={value} type="button" data-status-filter={value}
+                          className={`chip ${historyStatus === value ? 'active' : ''}`} aria-pressed={historyStatus === value}
+                          disabled={count === 0 && historyStatus !== value}
+                          onClick={() => setHistoryStatus(value)}>
+                          {label}<span className="chip-count">{count}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
               {quotes.length === 0 ? (
                 <div className="empty">
@@ -1701,15 +1750,15 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <p>Quotes are saved here when you export a PDF or press Save quote. Each one keeps the rates it was priced on.</p>
                   <button type="button" onClick={() => setActiveTab('calculator')} className="btn btn-secondary">Start a quote</button>
                 </div>
+              ) : shownQuotes.length === 0 ? (
+                <div className="empty">
+                  <h2>No quotes match</h2>
+                  <p>Nothing fits that search or status.</p>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setHistorySearch(''); setHistoryStatus('all') }}>Show all quotes</button>
+                </div>
               ) : (
                 <ul className="quote-list">
-                  {quotes
-                    .filter(q => {
-                      const term = historySearch.trim().toLowerCase()
-                      if (!term) return true
-                      return [q.number, q.customerName, q.customerRef, q.summary?.size].filter(Boolean).join(' ').toLowerCase().includes(term)
-                    })
-                    .map(q => (
+                  {shownQuotes.map(q => (
                       <li key={q.id} className={q.id === currentQuoteId ? 'current' : ''}>
                         <div className="quote-row-top">
                           <span className="quote-number">{q.number}</span>
@@ -1974,9 +2023,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
         <Pallet3DLive previewData={livePreviewData} dark={isDarkMode} />
 
-        {!(livePreviewData.numberOfTopBoards || livePreviewData.numberOfBottomBoards || livePreviewData.numberOfBearers) && (
+        {!(livePreviewData.palletWidth > 0 && livePreviewData.palletLength > 0) && (
           <div className="stage-empty">
-            <p>Enter a size and choose some boards to see the pallet take shape.</p>
+            <p>Enter a size to see the pallet take shape.</p>
           </div>
         )}
 
