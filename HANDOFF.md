@@ -109,7 +109,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 **Backup:** export and import a v2.0 JSON file containing prices, presets, business details and quotes. On import, quotes are merged by number, and business details are only filled in if they're empty.
 
-**Folding sections:** the Build tab sections (Saved presets, Pallet size, Bottom boards, Top boards, Bearers) and "Your business" on the Prices tab use the `Fold` component. Each folds to its heading plus a one-line summary, and the choice is remembered. Defaults: everything open, except presets when none are saved and business details once they're filled in. Saved presets sit at the top of the Build tab.
+**Folding sections:** the Build tab sections (Saved presets, Pallet size, Bottom boards, Top boards, Bearers) and "Your business" on the Prices tab use the `Fold` component. Each folds to its heading plus a one-line summary, and the choice is remembered. Defaults: everything open, except presets when none are saved and business details once they're filled in. Saved presets sit at the top of the Build tab. Open/close is animated by the `Reveal` wrapper (CSS grid row `0fr` to `1fr`, content stays mounted, hidden content is `inert`); the timber price groups use it too. Keep spacing inside the sliding part (`--fold-gap`), not on the section, or the layout jumps when a section toggles.
 
 **Price lock:** timber and nail prices are locked against accidental edits, each with its own padlock. Labour, markup and GST share one padlock in their section head (lock id `pricing`). Everything starts locked on each visit.
 

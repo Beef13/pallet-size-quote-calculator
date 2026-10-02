@@ -2105,9 +2105,58 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
 
 /* ---------- Folding sections ---------- */
 
+/* Height animation: a one-row grid going 0fr -> 1fr. The content keeps its natural height
+   the whole time, so there is no measuring, no max-height guess and no jump at either end. */
+.reveal {
+  /* Eases in as well as out, so the first frame is a small step, not a lurch */
+  --fold-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.3s var(--fold-ease),
+    opacity 0.2s ease;
+}
+
+.reveal.shown {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 0.3s var(--fold-ease),
+    opacity 0.26s ease 0.06s;
+}
+
+/* Clips the content while it slides. The side padding (cancelled by the negative margin)
+   leaves room for focus rings and soft shadows so they aren't cut off. */
+.reveal-clip {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  margin: 0 -10px;
+  padding: 0 10px;
+  visibility: hidden;
+  transition: visibility 0s linear 0.3s;
+}
+
+.reveal.shown > .reveal-clip {
+  visibility: visible;
+  transition: visibility 0s;
+}
+
+/* The section's own gap would double up now that summary and body are both always present,
+   so spacing lives inside the parts that slide. */
+.fold {
+  --fold-gap: 14px;
+  gap: 0;
+}
+
+.settings-group.fold {
+  --fold-gap: 12px;
+}
+
 .fold-head {
   align-items: center;
-  min-height: 28px;
+  min-height: 30px;
 }
 
 .fold-head h2 {
@@ -2134,6 +2183,10 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
   background: color-mix(in srgb, var(--ink) 5%, transparent);
 }
 
+.fold > .fold-head .chevron {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .fold.open > .fold-head .chevron {
   transform: rotate(45deg) translate(-2px, -1px);
 }
@@ -2145,17 +2198,40 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
   flex-shrink: 0;
 }
 
-/* Keeps the same spacing the section had before it could fold */
+.fold-aside-extra {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.fold-aside-extra.shown {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.26s ease 0.06s, visibility 0s;
+}
+
 .fold-body {
   display: flex;
   flex-direction: column;
-  gap: inherit;
+  gap: var(--fold-gap);
   min-width: 0;
+  /* top: space under the heading; bottom: room for control shadows */
+  padding: var(--fold-gap) 0 4px;
+}
+
+.form-section.fold {
+  padding-bottom: 20px;
+}
+
+.settings-group.fold .fold-body {
+  padding-bottom: 0;
 }
 
 .fold-summary {
-  margin: -6px 0 0;
-  padding: 0 0 0 18px;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 6px 0 2px 18px;
   border: 0;
   background: none;
   color: var(--ink-2);
@@ -2167,7 +2243,19 @@ html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
   overflow-wrap: anywhere;
 }
 
-.form-section.fold:not(.open) {
-  padding-top: 16px;
-  padding-bottom: 16px;
+/* Timber price groups use the same slide */
+.price-group .chevron {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.shown,
+  .reveal-clip,
+  .fold-aside-extra,
+  .fold-aside-extra.shown,
+  .fold > .fold-head .chevron,
+  .price-group .chevron {
+    transition: none;
+  }
 }

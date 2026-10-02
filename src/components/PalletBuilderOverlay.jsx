@@ -173,6 +173,17 @@ function Money({ value }) {
   return <>{whole}<span className="cents">.{cents}</span></>
 }
 
+// Animated open/close wrapper. The content stays mounted and its height is animated with a
+// grid row going from 0fr to 1fr, so nothing around it jumps. Hidden content can't be
+// focused or read by screen readers.
+function Reveal({ open, id, className = '', children }) {
+  return (
+    <div className={`reveal ${open ? 'shown' : ''} ${className}`} id={id} inert={open ? undefined : ''} aria-hidden={open ? undefined : true}>
+      <div className="reveal-clip">{children}</div>
+    </div>
+  )
+}
+
 // A panel section that folds down to its heading and a one-line summary
 function Fold({ id, title, summary, cost, aside, open, onToggle, className = 'form-section', children }) {
   return (
@@ -185,13 +196,16 @@ function Fold({ id, title, summary, cost, aside, open, onToggle, className = 'fo
           </button>
         </h2>
         <div className="fold-aside">
-          {open && aside}
+          {aside && <div className={`fold-aside-extra ${open ? 'shown' : ''}`} inert={open ? undefined : ''}>{aside}</div>}
           {cost > 0 && <span className="section-cost">{formatCurrency(cost)}</span>}
         </div>
       </div>
-      {open
-        ? <div className="fold-body" id={`fold-${id}`}>{children}</div>
-        : summary && <button type="button" className="fold-summary" tabIndex={-1} onClick={() => onToggle(id)}>{summary}</button>}
+      <Reveal open={!open}>
+        <button type="button" className="fold-summary" tabIndex={-1} onClick={() => onToggle(id)}>{summary}</button>
+      </Reveal>
+      <Reveal open={open} id={`fold-${id}`}>
+        <div className="fold-body">{children}</div>
+      </Reveal>
     </section>
   )
 }
@@ -1799,7 +1813,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                         {categoryLocked ? 'Unlock all' : 'Lock all'}
                       </button>
                     </div>
-                    {isExpanded && (
+                    <Reveal open={isExpanded}>
                       <div className="price-table">
                         {[['Boards', 'board', timberType.boardSizes, 'pricePerBoard'], ['Bearers', 'bearer', timberType.bearerSizes, 'pricePerBearer']].map(([title, kind, sizes, key]) => (
                           <div key={kind} className="price-subgroup">
@@ -1830,7 +1844,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           </div>
                         ))}
                       </div>
-                    )}
+                    </Reveal>
                   </section>
                 )
               })}
@@ -1845,7 +1859,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     {isCategoryLocked('hardware') ? 'Unlock all' : 'Lock all'}
                   </button>
                 </div>
-                {expandedGroups.has('hardware') && (
+                <Reveal open={expandedGroups.has('hardware')}>
                   <div className="price-table">
                     <div className={`price-row ${lockedFields.has('nails') ? 'locked' : ''}`}>
                       <span className="price-size">Nails</span>
@@ -1865,7 +1879,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       <LockIcon isLocked={lockedFields.has('nails')} onClick={() => toggleLock('nails')} label="nail price" />
                     </div>
                   </div>
-                )}
+                </Reveal>
               </section>
             </div>
             <footer className="panel-footer">
