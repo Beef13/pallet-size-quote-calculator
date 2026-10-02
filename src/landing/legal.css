@@ -85,3 +85,14 @@
 .legal-nav .btn {
   margin-left: auto;
 }
+
+/* Shown while operator details are still placeholders */
+.legal .legal-draft {
+  margin: 18px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fdf0d5;
+  color: #8a5a00;
+  font-size: 0.95rem;
+  font-weight: 500;
+}

@@ -23,3 +23,12 @@ for (const node of document.querySelectorAll('[data-op]')) {
     node.textContent = value
   }
 }
+
+// While any required detail is still a placeholder, say so plainly at the top of the page
+if (document.querySelector('.todo')) {
+  const banner = document.createElement('p')
+  banner.className = 'legal-draft'
+  banner.setAttribute('role', 'note')
+  banner.textContent = 'Draft. Some details on this page are placeholders and will be filled in before it takes effect.'
+  document.querySelector('.legal-meta')?.after(banner)
+}
