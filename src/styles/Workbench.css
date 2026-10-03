@@ -2,7 +2,7 @@
    Pallet quote - workbench layout
    A docked panel on the left, the 3D pallet on a soft grey stage
    on the right, both as rounded cards on a soft grey canvas.
-   One typeface (Outfit), one green accent, pill-shaped controls.
+   One typeface (Outfit), one blue accent (green is kept for status and money), pill-shaped controls.
    ------------------------------------------------------------------ */
 
 :root {
@@ -16,14 +16,15 @@
   --ink-3: #a1a5ab;
   --rule: #efeff1;
   --rule-strong: #e2e3e6;
-  --accent: #178a52;
-  --accent-hover: #127444;
+  --accent: #2563d9;
+  --accent-hover: #1c4fb8;
   --accent-ink: #ffffff;
-  --accent-soft: #e5f3eb;
-  --accent-tint: #8fc4a6;
+  --accent-soft: #e7eefc;
+  --accent-tint: #9dbcf0;
   --warn: #b4441f;
   --warn-soft: #fbece6;
   --ready: #178a52;
+  --ready-soft: #e5f3eb;
 
   --font-ui: 'Outfit Variable', 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
@@ -46,14 +47,15 @@ html.dark-mode {
   --ink-3: #6a7076;
   --rule: #26292c;
   --rule-strong: #303438;
-  --accent: #34b273;
-  --accent-hover: #46c584;
-  --accent-ink: #06150d;
-  --accent-soft: #173226;
-  --accent-tint: #2a6b4a;
+  --accent: #6ea3f7;
+  --accent-hover: #8ab6fa;
+  --accent-ink: #06122a;
+  --accent-soft: #172844;
+  --accent-tint: #2f4f85;
   --warn: #f0a07f;
   --warn-soft: #3a231b;
   --ready: #34b273;
+  --ready-soft: #173226;
   color-scheme: dark;
 }
 
@@ -1273,8 +1275,8 @@ html.dark-mode .tab.active {
 .section-cost {
   padding: 3px 10px;
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--ready-soft);
+  color: var(--ready);
   font-size: 13px;
   font-weight: 600;
 }
@@ -1930,7 +1932,7 @@ html.dark-mode .totals .stepper {
 }
 
 .status-sent { background: #e6eefb; color: #2453a6; }
-.status-accepted { background: var(--accent-soft); color: var(--accent); }
+.status-accepted { background: var(--ready-soft); color: var(--ready); }
 .status-lost { background: var(--warn-soft); color: var(--warn); }
 
 html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
@@ -2538,7 +2540,7 @@ html.dark-mode .status-tick {
 
 .stamp-profit strong {
   font-weight: 600;
-  color: var(--accent);
+  color: var(--ready);
 }
 
 .stamp .stamp-profit + .stamp-missing {
@@ -2839,7 +2841,7 @@ html.dark-mode .status-pill.attention-follow-up {
   height: 9px;
   border-radius: 50%;
   border: 2px solid var(--paper);
-  background: var(--accent);
+  background: var(--ready);
   box-sizing: content-box;
 }
 
@@ -2873,7 +2875,7 @@ html.dark-mode .status-pill.attention-follow-up {
 }
 
 .workbench .account-status.is-synced {
-  color: var(--accent);
+  color: var(--ready);
 }
 
 .workbench .account-status.is-error,

@@ -164,7 +164,7 @@ The owner wants accounts with online storage on **Supabase**, hosted on **Vercel
 
 ## 6. Design rules the owner has set
 
-- Clean, sleek look that doesn't read as AI-made: soft grey canvas, white rounded cards, pill tabs and buttons, green accent `#178a52`, Outfit font. The owner rejected a stencil font as "tacky".
+- Clean, sleek look that doesn't read as AI-made: soft grey canvas, white rounded cards, pill tabs and buttons, blue accent (`--accent` `#2563d9`, dark mode `#6ea3f7`), Outfit font. Green is reserved for status and money (`--ready` / `--ready-soft`: completed ticks, cost badges, profit, accepted status, synced marker); don't use it for buttons or links. The owner rejected a stencil font as "tacky".
 - No text clipping anywhere, and every count must be typeable as well as steppable.
 - Shop drawings should look like real drafting: line weights that show hierarchy, third-angle projection, a standard scale, and a red rounded-rectangle detail callout.
 - Landing copy must not overclaim. Use "in minutes", not "in a minute", and don't claim features that don't exist. Freight isn't included.
