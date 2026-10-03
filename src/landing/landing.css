@@ -1,11 +1,13 @@
 /* ------------------------------------------------------------------
    Pallet Quote landing page
-   White page, a bright blue gradient panel with a faint grid and glass
-   blocks behind the headline, white cards with a soft pale-blue ring,
-   pill buttons, Outfit. The headline keeps its dimension line, drawn in
-   white like a blueprint.
-   Motion happens once, on load: the dimension line draws, then the
-   demo comes up. Nothing else moves unless you touch it.
+   White page, a bright blue gradient panel with a faint grid behind the
+   headline and the closing call, white cards with a soft pale-blue
+   ring, pill buttons, Outfit. The headline keeps its dimension line,
+   drawn in white like a blueprint.
+   The calculator is shown through screenshots taken from it, in light
+   and dark. Motion is transform and opacity only: sections rise in as
+   they are reached, the hero screenshot settles as it scrolls up, and
+   the workflow keeps one screen in view while its steps scroll past.
    ------------------------------------------------------------------ */
 
 :root {
@@ -91,7 +93,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 24px;
+  scroll-padding-top: 88px;
 }
 
 body {
@@ -228,8 +230,38 @@ a {
 
 /* ---------- Navigation (shared with the terms and privacy pages) ---------- */
 
+/* The bar stays in view on the landing page only; the legal pages scroll it away */
+.sheet .nav {
+  position: sticky;
+  top: 0;
+}
+
 .nav {
-  padding-block: 16px;
+  position: relative;
+  z-index: 40;
+  padding-block: 14px;
+  transition: padding 0.35s var(--ease);
+}
+
+.nav::before {
+  content: '';
+  position: absolute;
+  inset: 0 calc(50% - 50vw);
+  z-index: -1;
+  background: color-mix(in srgb, var(--canvas) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom: 1px solid var(--rule);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.nav.scrolled {
+  padding-block: 9px;
+}
+
+.nav.scrolled::before {
+  opacity: 1;
 }
 
 .nav-inner {
@@ -362,11 +394,10 @@ html.accounts-on .sheet [data-accounts="off"] {
 }
 
 /* A white card with a pale blue ring round it */
-.more-list li,
 .covers-card,
 .doc-sheet,
 .faq details,
-.demo {
+.frame {
   border: 1px solid var(--rule);
   background: var(--paper);
   box-shadow: 0 0 0 5px var(--ring), var(--shadow);
@@ -547,91 +578,376 @@ html.accounts-on .sheet [data-accounts="off"] {
   white-space: nowrap;
 }
 
-/* The demo: the calculator being used */
-.demo {
-  margin-top: clamp(32px, 5vw, 60px);
+/* A screenshot in its frame: white card, pale ring */
+.frame {
   overflow: hidden;
   border-radius: clamp(12px, 1.8vw, 22px);
-  aspect-ratio: 1600 / 826;
+}
+
+.frame img {
+  width: 100%;
+}
+
+/* Light and dark versions of each screenshot: only the one matching the theme shows */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .on-dark { display: none; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .on-light { display: none; }
+}
+
+:root[data-theme="dark"] .on-light,
+:root[data-theme="light"] .on-dark {
+  display: none;
+}
+
+/* Wide screens show the whole calculator, phones just its panel, which stays readable */
+@media (min-width: 641px) { .phone { display: none; } }
+@media (max-width: 640px) { .wide { display: none; } }
+
+/* The hero screenshot hangs over the bottom edge of the blue panel */
+.hero-shot {
+  margin-top: clamp(32px, 5vw, 60px);
+  transform: translateY(var(--rise, 0px)) scale(var(--scale, 1));
+  transform-origin: 50% 0;
+  will-change: transform;
+}
+
+.hero-shot .frame {
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.35), 0 40px 80px -40px rgba(16, 40, 110, 0.6);
-  animation: arrive 0.9s var(--ease) 0.55s backwards;
+  animation: arrive 1s var(--ease) 0.5s backwards;
 }
 
-.demo {
-  position: relative;
+@keyframes arrive {
+  from { opacity: 0; transform: translateY(36px); }
 }
 
-/* Pause and play for the demonstration */
-.demo-toggle {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(16, 24, 40, 0.62);
-  color: #fff;
-  cursor: pointer;
-  opacity: 0.85;
-  transition: opacity 0.2s ease, transform 0.2s var(--ease);
+/* ---------- Reveals ---------- */
+
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.8s var(--ease), transform 0.9s var(--ease);
+  transition-delay: calc(var(--d, 0) * 90ms);
 }
 
-.demo-toggle:hover {
+.js [data-reveal="scale"] {
+  transform: translateY(16px) scale(0.975);
+}
+
+.js [data-reveal].in {
   opacity: 1;
-  transform: scale(1.06);
+  transform: none;
 }
 
-.demo-toggle svg {
-  width: 18px;
-  height: 18px;
+/* ---------- Section headings ---------- */
+
+.section-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: clamp(26px, 3.6vw, 44px);
+  text-align: center;
+}
+
+.section-title {
+  font-size: var(--step-3);
+  font-weight: 500;
+}
+
+.section-title em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.section-intro {
+  max-width: 36em;
+  color: var(--ink-2);
+}
+
+/* ---------- At a glance ---------- */
+
+.glance {
+  padding: clamp(36px, 5vw, 64px) var(--pad) 0;
+}
+
+.glance-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 24px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.glance-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.glance-list svg {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 11px;
+  border-radius: 14px;
+  background: var(--accent-soft);
   fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
+  stroke: var(--accent);
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.demo-toggle .play {
-  fill: currentColor;
-  stroke-width: 1.5;
+.glance-list strong {
+  display: block;
+  font-weight: 500;
+  line-height: 1.3;
 }
 
-.demo-toggle .play,
-.demo-toggle[data-paused] .pause {
+.glance-list span {
+  display: block;
+  font-size: var(--step--1);
+  color: var(--ink-2);
+  line-height: 1.35;
+}
+
+/* ---------- How it works ---------- */
+
+.flow {
+  padding: clamp(64px, 9vw, 120px) var(--pad) 0;
+}
+
+.flow-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: start;
+}
+
+.flow-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each step is tall enough that its screen has time on stage as the page scrolls */
+.flow-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 18px;
+  align-content: center;
+  min-height: min(58vh, 520px);
+  opacity: 0.38;
+  transition: opacity 0.5s var(--ease);
+}
+
+.flow-step:first-child {
+  align-content: start;
+  min-height: min(44vh, 400px);
+  padding-top: 40px;
+}
+
+.flow-step:last-child {
+  align-content: end;
+  min-height: min(44vh, 400px);
+  padding-bottom: 40px;
+}
+
+.flow-step.on {
+  opacity: 1;
+}
+
+/* A line joins the step numbers */
+.flow-step::before {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--rule);
+}
+
+.flow-step:first-child::before { top: 60px; }
+.flow-step:last-child::before { bottom: 60px; }
+
+.flow-num {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 2px var(--rule);
+  color: var(--ink-2);
+  font-weight: 600;
+  transition: background 0.45s var(--ease), color 0.45s var(--ease), box-shadow 0.45s var(--ease), transform 0.6s var(--ease);
+}
+
+.flow-step.on .flow-num {
+  background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
+  box-shadow: 0 0 0 6px var(--accent-soft);
+  color: #fff;
+  transform: scale(1.06);
+}
+
+.flow-text {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.flow-text h3 {
+  font-size: var(--step-2);
+  font-weight: 500;
+}
+
+.flow-text p {
+  color: var(--ink-2);
+}
+
+/* Only phones show a picture inside each step; wide screens use the stage */
+.flow-inline {
   display: none;
 }
 
-.demo-toggle[data-paused] .play {
-  display: block;
+.flow-stage {
+  position: sticky;
+  top: max(96px, calc(50vh - 240px));
 }
 
-.demo video {
+.flow-screen {
+  position: relative;
+  aspect-ratio: 1600 / 1000;
+  box-shadow: 0 0 0 6px var(--ring), 0 40px 80px -44px rgba(27, 87, 220, 0.55);
+}
+
+.flow-shot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.025);
+  transition: opacity 0.6s var(--ease), transform 0.9s var(--ease);
+}
+
+.flow-shot.on {
+  opacity: 1;
+  transform: none;
+}
+
+.flow-shot img {
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+}
+
+/* The last step shows the two PDFs, fanned like sheets on a desk */
+.flow-papers {
+  background: linear-gradient(160deg, var(--blue-top), var(--blue-mid) 55%, var(--blue-low));
+}
+
+.flow-papers img {
+  position: absolute;
+  top: 9%;
+  width: 37%;
+  height: auto;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 24px 50px -22px rgba(6, 20, 70, 0.7);
+  transition: transform 0.9s var(--ease) 0.1s;
+}
+
+.flow-papers img:first-child {
+  left: 13%;
+  transform: rotate(-9deg) translateX(20px);
+}
+
+.flow-papers img:last-child {
+  left: 48%;
+  transform: rotate(8deg) translateX(-20px);
+}
+
+.flow-papers.on img:first-child { transform: rotate(-5deg); }
+.flow-papers.on img:last-child { transform: rotate(4deg); }
+
+/* ---------- Features ---------- */
+
+.features {
+  padding: clamp(64px, 9vw, 120px) var(--pad) 0;
+}
+
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 28px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: clamp(12px, 1.4vw, 16px) clamp(12px, 1.4vw, 16px) clamp(18px, 2vw, 24px);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: 0 0 0 5px var(--ring), var(--shadow);
+}
+
+.feat:hover {
+  box-shadow: 0 0 0 5px var(--ring), 0 30px 54px -28px rgba(27, 87, 220, 0.55);
+}
+
+.feat-shot {
+  aspect-ratio: 880 / 600;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--field);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+.feat-shot img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: top;
+  object-position: top left;
+  transition: transform 1.2s var(--ease);
 }
 
-@keyframes arrive {
-  from { opacity: 0; transform: translateY(28px); }
+.feat:hover .feat-shot img {
+  transform: scale(1.045);
+}
+
+.feat h3,
+.feat p {
+  padding-inline: 6px;
+}
+
+.feat h3 {
+  font-size: var(--step-1);
+  font-weight: 500;
+}
+
+.feat p {
+  color: var(--ink-2);
+  font-size: 0.98rem;
 }
 
 /* ---------- The two documents ---------- */
 
 .docs {
-  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
-}
-
-.docs-intro {
-  max-width: 36em;
-  margin: calc(clamp(24px, 3.4vw, 40px) * -0.5) auto clamp(24px, 3.4vw, 40px);
-  text-align: center;
-  color: var(--ink-2);
+  padding: clamp(64px, 9vw, 120px) var(--pad) 0;
 }
 
 .docs-grid {
@@ -896,74 +1212,6 @@ html:has(dialog[open]) {
   margin-top: auto;
 }
 
-/* ---------- More features ---------- */
-
-.more {
-  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
-}
-
-.more h2,
-.covers h2,
-.docs h2,
-.faq h2 {
-  margin-bottom: clamp(24px, 3.4vw, 40px);
-  text-align: center;
-  font-size: var(--step-3);
-  font-weight: 500;
-}
-
-.more h2 em,
-.covers h2 em,
-.docs h2 em,
-.faq h2 em {
-  font-style: normal;
-  color: var(--accent);
-}
-
-.more-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(16px, 2.4vw, 28px);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.more-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: clamp(18px, 2vw, 24px);
-  border-radius: var(--radius);
-}
-
-/* Round blue icon, as on the question toggles */
-.more-list svg {
-  flex: none;
-  width: 44px;
-  height: 44px;
-  padding: 11px;
-  border-radius: 50%;
-  background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
-  box-shadow: 0 0 0 4px var(--accent-soft);
-  fill: none;
-  stroke: #fff;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.more-list h3 {
-  margin-bottom: 6px;
-  font-size: var(--step-1);
-  font-weight: 500;
-}
-
-.more-list p {
-  color: var(--ink-2);
-  font-size: 0.98rem;
-}
-
 /* ---------- Questions ---------- */
 
 .faq {
@@ -1130,16 +1378,68 @@ html:has(dialog[open]) {
 
 /* ---------- Responsive ---------- */
 
-@media (max-width: 1040px) and (min-width: 821px) {
-  .more-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 980px) {
+@media (max-width: 1080px) {
   .nav-links {
     display: none;
   }
+}
+
+@media (max-width: 900px) {
+  .glance-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .feat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* No stage on narrow screens: each step carries its own picture */
+  .flow-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .flow-stage {
+    display: none;
+  }
+
+  .flow-step,
+  .flow-step:first-child,
+  .flow-step:last-child {
+    min-height: 0;
+    padding-block: 0 44px;
+    opacity: 1;
+    align-content: start;
+  }
+
+  .flow-step:last-child {
+    padding-bottom: 0;
+  }
+
+  .flow-step::before,
+  .flow-step:first-child::before {
+    top: 46px;
+  }
+
+  .flow-step:last-child::before {
+    display: none;
+  }
+
+  .flow-inline {
+    display: block;
+    grid-column: 2;
+    max-width: 420px;
+    margin: 6px 0 0;
+  }
+
+  .flow-inline.flow-papers {
+    position: relative;
+    aspect-ratio: 1.25;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .flow-inline.flow-papers img:first-child { transform: rotate(-5deg); }
+  .flow-inline.flow-papers img:last-child { transform: rotate(4deg); }
 }
 
 @media (max-width: 820px) {
@@ -1156,21 +1456,10 @@ html:has(dialog[open]) {
     display: none;
   }
 
-  .more-list {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
 }
 
 @media (max-width: 640px) {
-  /* Phones get the recording made at phone size, shown as a handset */
-  .demo {
-    width: min(300px, 82%);
-    margin-inline: auto;
-    aspect-ratio: 720 / 1292;
-    border-radius: 30px;
-  }
-
   /* The two sample pages show their top half; the full page opens in the viewer */
   .doc-sheet {
     max-height: 300px;
@@ -1192,6 +1481,35 @@ html:has(dialog[open]) {
 }
 
 @media (max-width: 560px) {
+  .feat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The phone hero shows the top of the calculator's panel, like a handset */
+  .hero-shot .frame {
+    max-height: 430px;
+    border-radius: 24px;
+  }
+
+  .flow-inline:not(.flow-papers) {
+    max-height: 420px;
+  }
+
+  .flow-step {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .flow-num {
+    width: 40px;
+    height: 40px;
+  }
+
+  .flow-step::before,
+  .flow-step:first-child::before {
+    left: 19px;
+    top: 40px;
+  }
   .measured {
     font-size: clamp(1.9rem, 8.6vw, 3rem);
   }
@@ -1247,5 +1565,14 @@ html:has(dialog[open]) {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+
+  .hero-shot {
+    transform: none;
   }
 }

@@ -16,7 +16,7 @@
     <meta name="theme-color" content="#2563d9" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
     <link rel="apple-touch-icon" href="/icons/icon.svg" />
-    <script>try{var t=localStorage.getItem('palletDarkMode');if(t==='true'||t==='false')document.documentElement.dataset.theme=t==='true'?'dark':'light'}catch(e){}</script>
+    <script>document.documentElement.classList.add('js');try{var t=localStorage.getItem('palletDarkMode');if(t==='true'||t==='false')document.documentElement.dataset.theme=t==='true'?'dark':'light'}catch(e){}</script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
@@ -31,9 +31,10 @@
             Pallet Quote
           </a>
           <nav class="nav-links" aria-label="Sections">
+            <a href="#how">How it works</a>
+            <a href="#features">Features</a>
             <a href="#sample">Documents</a>
             <a href="#covers">Pricing</a>
-            <a href="#features">Features</a>
             <a href="#questions">Questions</a>
           </nav>
           <div class="nav-actions">
@@ -68,22 +69,177 @@
             </div>
           </div>
 
-          <div class="demo">
-            <video id="hero-video" muted loop playsinline preload="none" width="1600" height="826"
-              poster="/src/landing/img/app-demo-poster-light.webp"
-              aria-label="Screen recording of a 1165 by 1165 pallet being built and priced in Pallet Quote, ending on the quote for 250 pallets"></video>
-            <button type="button" class="demo-toggle" id="demo-toggle" aria-label="Pause the demonstration" title="Pause">
-              <svg class="pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
-              <svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>
-            </button>
+          <div class="hero-shot" id="hero-shot">
+            <div class="frame">
+              <img class="on-light wide" src="/src/landing/img/shot-hero-light.webp" width="2000" height="1250" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
+              <img class="on-dark wide" src="/src/landing/img/shot-hero-dark.webp" width="2000" height="1250" loading="lazy" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
+              <img class="on-light phone" src="/src/landing/img/shot-hero-panel-light.webp" width="880" height="1544" loading="lazy" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
+              <img class="on-dark phone" src="/src/landing/img/shot-hero-panel-dark.webp" width="880" height="1544" loading="lazy" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
+            </div>
           </div>
         </section>
 
+        <section class="glance" aria-label="At a glance">
+          <ul class="glance-list" data-reveal>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 21h8M12 18v3"/></svg>
+              <div><strong>Runs in the browser</strong><span>No installation required</span></div>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0"/><path d="M3 3l18 18"/></svg>
+              <div><strong>Works offline</strong><span>No connection needed once loaded</span></div>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+              <div><strong>Any device</strong><span>Phone, tablet or computer</span></div>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></svg>
+              <div><strong>Free at present</strong><span>No account required</span></div>
+            </li>
+          </ul>
+        </section>
+
+        <section class="flow" id="how" aria-labelledby="how-title">
+          <div class="section-head" data-reveal>
+            <h2 id="how-title" class="section-title">From your rates to a sent <em>quote</em></h2>
+            <p class="section-intro">Four steps, and the first is only done once.</p>
+          </div>
+          <div class="flow-grid">
+            <ol class="flow-steps" id="flow-steps">
+              <li class="flow-step on" data-step="0">
+                <span class="flow-num">1</span>
+                <div class="flow-text">
+                  <h3>Set your rates once</h3>
+                  <p>Enter your price per metre for each timber size, your labour per pallet and your markup. Rates stay locked until you choose to change them.</p>
+                </div>
+                <figure class="flow-inline frame">
+                  <img class="on-light" src="/src/landing/img/shot-step-rates-panel-light.webp" width="880" height="1544" loading="lazy" alt="The Prices tab with labour, markup and GST settings above the price per metre for each timber size" />
+                  <img class="on-dark" src="/src/landing/img/shot-step-rates-panel-dark.webp" width="880" height="1544" loading="lazy" alt="The Prices tab with labour, markup and GST settings above the price per metre for each timber size" />
+                </figure>
+              </li>
+              <li class="flow-step" data-step="1">
+                <span class="flow-num">2</span>
+                <div class="flow-text">
+                  <h3>Enter the size and select the timber</h3>
+                  <p>Type the pallet dimensions, then choose the boards and bearers. The pallet is modelled in 3D as you go, and the running total updates with every change.</p>
+                </div>
+                <figure class="flow-inline frame">
+                  <img class="on-light" src="/src/landing/img/shot-step-build-panel-light.webp" width="880" height="1544" loading="lazy" alt="The Build tab with a pallet size entered and bottom boards chosen, beside the 3D pallet" />
+                  <img class="on-dark" src="/src/landing/img/shot-step-build-panel-dark.webp" width="880" height="1544" loading="lazy" alt="The Build tab with a pallet size entered and bottom boards chosen, beside the 3D pallet" />
+                </figure>
+              </li>
+              <li class="flow-step" data-step="2">
+                <span class="flow-num">3</span>
+                <div class="flow-text">
+                  <h3>Review the price</h3>
+                  <p>Each component is itemised, followed by materials, labour, markup, GST and the total for the quantity. The markup is shown beside the gross margin it produces.</p>
+                </div>
+                <figure class="flow-inline frame">
+                  <img class="on-light" src="/src/landing/img/shot-step-price-panel-light.webp" width="880" height="1544" loading="lazy" alt="The Quote tab listing materials, labour, markup, GST and the total for 250 pallets" />
+                  <img class="on-dark" src="/src/landing/img/shot-step-price-panel-dark.webp" width="880" height="1544" loading="lazy" alt="The Quote tab listing materials, labour, markup, GST and the total for 250 pallets" />
+                </figure>
+              </li>
+              <li class="flow-step" data-step="3">
+                <span class="flow-num">4</span>
+                <div class="flow-text">
+                  <h3>Send the quote</h3>
+                  <p>Export a customer PDF with the scaled drawing and the total, and keep a cost breakdown for your records. Both carry the same quote number.</p>
+                </div>
+                <figure class="flow-inline flow-papers">
+                  <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy" alt="Cost breakdown PDF kept for your records" />
+                  <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy" alt="Customer quote PDF with the scaled drawing and total" />
+                </figure>
+              </li>
+            </ol>
+            <!-- On wide screens one screen stays in view and changes with the step being read -->
+            <div class="flow-stage" aria-hidden="true">
+              <div class="flow-screen frame" id="flow-screen">
+                <div class="flow-shot on" data-shot="0">
+                  <img class="on-light" src="/src/landing/img/shot-step-rates-light.webp" width="1600" height="1000" loading="lazy" alt="" />
+                  <img class="on-dark" src="/src/landing/img/shot-step-rates-dark.webp" width="1600" height="1000" loading="lazy" alt="" />
+                </div>
+                <div class="flow-shot" data-shot="1">
+                  <img class="on-light" src="/src/landing/img/shot-step-build-light.webp" width="1600" height="1000" loading="lazy" alt="" />
+                  <img class="on-dark" src="/src/landing/img/shot-step-build-dark.webp" width="1600" height="1000" loading="lazy" alt="" />
+                </div>
+                <div class="flow-shot" data-shot="2">
+                  <img class="on-light" src="/src/landing/img/shot-step-price-light.webp" width="1600" height="1000" loading="lazy" alt="" />
+                  <img class="on-dark" src="/src/landing/img/shot-step-price-dark.webp" width="1600" height="1000" loading="lazy" alt="" />
+                </div>
+                <div class="flow-shot flow-papers" data-shot="3">
+                  <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy" alt="" />
+                  <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy" alt="" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="features" id="features" aria-labelledby="features-title">
+          <div class="section-head" data-reveal>
+            <h2 id="features-title" class="section-title">Built for pallet <em>manufacturers</em></h2>
+            <p class="section-intro">Each of these is taken from the calculator as it runs today.</p>
+          </div>
+          <ul class="feat-grid">
+            <li class="feat" data-reveal style="--d: 0">
+              <div class="feat-shot">
+                <img class="on-light" src="/src/landing/img/shot-feat-3d-light.webp" width="880" height="600" loading="lazy" alt="A 3D model of a pallet with its dimensions and gaps marked" />
+                <img class="on-dark" src="/src/landing/img/shot-feat-3d-dark.webp" width="880" height="600" loading="lazy" alt="A 3D model of a pallet with its dimensions and gaps marked" />
+              </div>
+              <h3>Live 3D model</h3>
+              <p>The pallet is modelled to scale as each component is selected, and the board count cannot exceed what the width allows.</p>
+            </li>
+            <li class="feat" data-reveal style="--d: 1">
+              <div class="feat-shot">
+                <img class="on-light" src="/src/landing/img/shot-feat-leader-light.webp" width="880" height="600" loading="lazy" alt="The top boards section with leader boards switched on and a wider leader size chosen" />
+                <img class="on-dark" src="/src/landing/img/shot-feat-leader-dark.webp" width="880" height="600" loading="lazy" alt="The top boards section with leader boards switched on and a wider leader size chosen" />
+              </div>
+              <h3>Leader boards</h3>
+              <p>Specify wider or thicker boards on the outside edges. The gaps are recalculated and each size is costed on its own line.</p>
+            </li>
+            <li class="feat" data-reveal style="--d: 2">
+              <div class="feat-shot">
+                <img class="on-light" src="/src/landing/img/shot-feat-markup-light.webp" width="880" height="600" loading="lazy" alt="Labour and markup settings stating that a 25 percent markup gives a 20 percent gross margin" />
+                <img class="on-dark" src="/src/landing/img/shot-feat-markup-dark.webp" width="880" height="600" loading="lazy" alt="Labour and markup settings stating that a 25 percent markup gives a 20 percent gross margin" />
+              </div>
+              <h3>Markup and margin</h3>
+              <p>Markup is displayed alongside the gross margin it produces, so the two are never confused.</p>
+            </li>
+            <li class="feat" data-reveal style="--d: 0">
+              <div class="feat-shot">
+                <img class="on-light" src="/src/landing/img/shot-feat-locks-light.webp" width="880" height="600" loading="lazy" alt="A list of timber sizes, each with a price per metre and a closed padlock" />
+                <img class="on-dark" src="/src/landing/img/shot-feat-locks-dark.webp" width="880" height="600" loading="lazy" alt="A list of timber sizes, each with a price per metre and a closed padlock" />
+              </div>
+              <h3>Protected pricing</h3>
+              <p>Rates remain locked until you choose to edit them, which prevents accidental changes.</p>
+            </li>
+            <li class="feat" data-reveal style="--d: 1">
+              <div class="feat-shot">
+                <img class="on-light" src="/src/landing/img/shot-feat-presets-light.webp" width="880" height="600" loading="lazy" alt="Three saved pallet presets listed by name and size" />
+                <img class="on-dark" src="/src/landing/img/shot-feat-presets-dark.webp" width="880" height="600" loading="lazy" alt="Three saved pallet presets listed by name and size" />
+              </div>
+              <h3>Saved presets</h3>
+              <p>Store the pallets you quote regularly and reuse them with a new quantity.</p>
+            </li>
+            <li class="feat" data-reveal style="--d: 2">
+              <div class="feat-shot">
+                <img class="on-light" src="/src/landing/img/shot-feat-history-light.webp" width="880" height="600" loading="lazy" alt="A list of saved quotes marked accepted, lost, sent and draft" />
+                <img class="on-dark" src="/src/landing/img/shot-feat-history-dark.webp" width="880" height="600" loading="lazy" alt="A list of saved quotes marked accepted, lost, sent and draft" />
+              </div>
+              <h3>Quote history</h3>
+              <p>Each quote is numbered and stored with the rates it was priced on. Record it as sent, accepted or lost, or duplicate it for a repeat order.</p>
+            </li>
+          </ul>
+        </section>
+
         <section class="docs" id="sample" aria-labelledby="docs-title">
-          <h2 id="docs-title">One quote, two <em>documents</em></h2>
-          <p class="docs-intro">Both are produced from the same figures and carry the same quote number. Select either document to view it in full.</p>
+          <div class="section-head" data-reveal>
+            <h2 id="docs-title" class="section-title">One quote, two <em>documents</em></h2>
+            <p class="section-intro">Both are produced from the same figures and carry the same quote number. Select either document to view it in full.</p>
+          </div>
           <div class="docs-grid">
-            <article class="doc">
+            <article class="doc" data-reveal style="--d: 0">
               <a class="doc-sheet" href="./sample-quote.pdf" data-doc="customer" aria-label="View the sample customer copy">
                 <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy"
                   alt="Sample customer quote: business details, a scaled shop drawing of a 1165 by 1165 pallet, the specification table and the total including GST" />
@@ -100,7 +256,7 @@
                 <li>Does not show your rates, labour or markup</li>
               </ul>
             </article>
-            <article class="doc">
+            <article class="doc" data-reveal style="--d: 1">
               <a class="doc-sheet" href="./sample-breakdown.pdf" data-doc="breakdown" aria-label="View the sample cost breakdown">
                 <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy"
                   alt="Sample cost breakdown: the same drawing, each component with its rate per metre and cost, then materials, labour, markup, margin and gross profit" />
@@ -120,8 +276,10 @@
         </section>
 
         <section class="covers" id="covers" aria-labelledby="covers-title">
-          <h2 id="covers-title">What the price <em>includes</em></h2>
-          <div class="covers-grid">
+          <div class="section-head" data-reveal>
+            <h2 id="covers-title" class="section-title">What the price <em>includes</em></h2>
+          </div>
+          <div class="covers-grid" data-reveal>
             <div class="covers-card">
               <h3>Included</h3>
               <ul class="ticks">
@@ -145,57 +303,11 @@
           </div>
         </section>
 
-        <section class="more" id="features" aria-labelledby="more-title">
-          <h2 id="more-title">Built for pallet <em>manufacturers</em></h2>
-          <ul class="more-list">
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>
-              <div>
-                <h3>Live 3D model</h3>
-                <p>The pallet is modelled to scale as each component is selected, and the board count cannot exceed what the width allows.</p>
-              </div>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19L19 5"/><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
-              <div>
-                <h3>Markup and margin</h3>
-                <p>Markup is displayed alongside the gross margin it produces, so the two are never confused.</p>
-              </div>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-              <div>
-                <h3>Protected pricing</h3>
-                <p>Rates remain locked until you choose to edit them, which prevents accidental changes.</p>
-              </div>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
-              <div>
-                <h3>Saved presets</h3>
-                <p>Store the pallets you quote regularly and reuse them with a new quantity.</p>
-              </div>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2.5"/></svg>
-              <div>
-                <h3>Quote history</h3>
-                <p>Each quote is numbered and stored with the rates it was priced on. Record it as sent, accepted or lost, or duplicate it for a repeat order.</p>
-              </div>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M3 15h18M7 9v6M17 9v6"/></svg>
-              <div>
-                <h3>Leader boards</h3>
-                <p>Specify wider or thicker boards on the outside edges. The gaps are recalculated and each size is costed on its own line.</p>
-              </div>
-            </li>
-          </ul>
-        </section>
-
         <section class="faq" id="questions" aria-labelledby="faq-title">
-          <h2 id="faq-title">Frequently asked <em>questions</em></h2>
-          <div class="faq-list">
+          <div class="section-head" data-reveal>
+            <h2 id="faq-title" class="section-title">Frequently asked <em>questions</em></h2>
+          </div>
+          <div class="faq-list" data-reveal>
             <details>
               <summary>Is any installation required?</summary>
               <p>No. Pallet Quote runs in the browser on a phone, tablet or computer, and continues to work offline once loaded.</p>
@@ -217,7 +329,7 @@
         </section>
 
         <!-- Closing call -->
-        <section class="final" aria-labelledby="final-title">
+        <section class="final" aria-labelledby="final-title" data-reveal="scale">
           <h2 id="final-title">Prepare your next quote with Pallet Quote.</h2>
           <ul class="facts">
             <li>Free at present</li>

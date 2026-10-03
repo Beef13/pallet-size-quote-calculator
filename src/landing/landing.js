@@ -1,82 +1,74 @@
 import '@fontsource-variable/outfit'
 import './landing.css'
-import { isDark, onThemeChange } from './theme'
-import demoLight from './img/app-demo-light.mp4'
-import demoDark from './img/app-demo-dark.mp4'
-import demoLightWebm from './img/app-demo-light.webm'
-import demoDarkWebm from './img/app-demo-dark.webm'
-import posterLight from './img/app-demo-poster-light.webp'
-import posterDark from './img/app-demo-poster-dark.webp'
-import phoneLight from './img/app-demo-phone-light.mp4'
-import phoneDark from './img/app-demo-phone-dark.mp4'
-import phoneLightWebm from './img/app-demo-phone-light.webm'
-import phoneDarkWebm from './img/app-demo-phone-dark.webm'
-import phonePosterLight from './img/app-demo-phone-poster-light.webp'
-import phonePosterDark from './img/app-demo-phone-poster-dark.webp'
+import './theme'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const root = document.documentElement
 
 // Passages that differ depending on whether this build has accounts switched on
 const accountsOn = Boolean(import.meta.env.VITE_SUPABASE_URL)
-document.documentElement.classList.toggle('accounts-on', accountsOn)
+root.classList.toggle('accounts-on', accountsOn)
 for (const node of document.querySelectorAll('[data-accounts]')) {
   if ((node.dataset.accounts === 'on') !== accountsOn) node.remove()
 }
 
-/* Demo video: a recording of the calculator in use, in the light or dark
-   version to match the page. It plays muted on a loop while it is on
-   screen, with a pause button. Phones get the recording made at phone size.
-   With reduced motion it starts paused on its poster. */
-const video = document.getElementById('hero-video')
-if (video) {
-  const phone = window.matchMedia('(max-width: 640px)')
-  const toggle = document.getElementById('demo-toggle')
-  let onScreen = true
-  // Paused by the visitor, or held on its poster because they asked for reduced motion
-  let held = reduceMotion
+/* ------------------------------------------------------------------
+   Motion. Everything animates transform and opacity only, so it stays
+   smooth, and all of it is skipped for people who ask for less motion.
+   ------------------------------------------------------------------ */
 
-  const sources = {
-    wide: { light: [demoLight, demoLightWebm, posterLight], dark: [demoDark, demoDarkWebm, posterDark] },
-    phone: { light: [phoneLight, phoneLightWebm, phonePosterLight], dark: [phoneDark, phoneDarkWebm, phonePosterDark] }
+// Sections rise into place the first time they come into view
+const reveals = document.querySelectorAll('[data-reveal]')
+if (reduceMotion || !('IntersectionObserver' in window)) {
+  reveals.forEach(node => node.classList.add('in'))
+} else {
+  const seen = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue
+      seen.unobserve(entry.target)
+      entry.target.classList.add('in')
+    }
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.06 })
+  reveals.forEach(node => seen.observe(node))
+}
+
+// The top bar gains a backdrop once the page has scrolled, and the hero screenshot
+// lifts and settles as it comes up the screen
+const nav = document.getElementById('top')
+const heroShot = document.getElementById('hero-shot')
+let queued = false
+const onScroll = () => {
+  queued = false
+  nav?.classList.toggle('scrolled', window.scrollY > 12)
+  if (heroShot && !reduceMotion) {
+    const rect = heroShot.getBoundingClientRect()
+    // 0 while the screenshot is low on the screen, 1 once its top reaches the upper third
+    const p = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight * 0.85)))
+    heroShot.style.setProperty('--rise', `${(1 - p) * 36}px`)
+    heroShot.style.setProperty('--scale', String(0.965 + p * 0.035))
   }
+}
+window.addEventListener('scroll', () => {
+  if (!queued) { queued = true; requestAnimationFrame(onScroll) }
+}, { passive: true })
+window.addEventListener('resize', onScroll)
+onScroll()
 
-  const showState = () => {
-    if (!toggle) return
-    const label = held ? 'Play the demonstration' : 'Pause the demonstration'
-    toggle.toggleAttribute('data-paused', held)
-    toggle.setAttribute('aria-label', label)
-    toggle.title = held ? 'Play' : 'Pause'
+/* How it works: on wide screens one screen stays in view while the steps scroll
+   past it, changing to match the step nearest the middle of the window. */
+const steps = [...document.querySelectorAll('.flow-step')]
+const shots = [...document.querySelectorAll('.flow-shot')]
+if (steps.length && 'IntersectionObserver' in window) {
+  const show = (index) => {
+    steps.forEach((step, i) => step.classList.toggle('on', i === index))
+    shots.forEach((shot, i) => shot.classList.toggle('on', i === index))
   }
-  const play = () => { if (!held && onScreen) video.play().catch(() => {}) }
-
-  const load = () => {
-    const [mp4Src, webmSrc, poster] = sources[phone.matches ? 'phone' : 'wide'][isDark() ? 'dark' : 'light']
-    video.poster = poster
-    // MP4 wherever the browser can play it, WebM otherwise
-    const webm = video.canPlayType('video/webm; codecs="vp9"') !== ''
-    const mp4 = video.canPlayType('video/mp4; codecs="avc1.64001f"') !== ''
-    video.src = mp4 || !webm ? mp4Src : webmSrc
-    play()
-  }
-
-  toggle?.addEventListener('click', () => {
-    held = !held
-    if (held) video.pause()
-    else play()
-    showState()
-  })
-
-  load()
-  showState()
-  onThemeChange(load)
-  phone.addEventListener?.('change', load)
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(([entry]) => {
-      onScreen = entry.isIntersecting
-      if (onScreen) play()
-      else video.pause()
-    }).observe(video)
-  }
+  const watcher = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) show(Number(entry.target.dataset.step))
+    }
+  }, { rootMargin: '-45% 0px -45% 0px' })
+  steps.forEach(step => watcher.observe(step))
 }
 
 /* Sample documents open in a popup over the page rather than a new tab.
