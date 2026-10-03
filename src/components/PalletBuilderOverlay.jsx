@@ -2435,6 +2435,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             />
           </label>
           ) : <span />}
+          <span className="stage-hint">Drag to turn, scroll or pinch to zoom</span>
           <div className={`range outline-control ${outlines.on ? 'on' : ''}`}>
             <label className="switch">
               <input type="checkbox" checked={outlines.on} onChange={(e) => changeOutlines({ on: e.target.checked })} data-field="outlines" />
@@ -2456,7 +2457,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               </label>
             </Reveal>
           </div>
-          <span className="stage-hint">Drag to turn, scroll or pinch to zoom</span>
         </div>
       </main>
 
