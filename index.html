@@ -72,11 +72,11 @@
             <div class="hero-pdfs">
               <a class="hero-pdf hero-pdf-back" href="./sample-breakdown.pdf" data-doc="breakdown" aria-label="View the sample cost breakdown, the copy you keep">
                 <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" alt="Sample cost breakdown: each component with its rate per metre and cost, then materials, labour, markup, margin and gross profit" />
-                <span class="hero-pdf-tag" aria-hidden="true">View the cost breakdown</span>
+                <span class="hero-pdf-tag" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></span>
               </a>
               <a class="hero-pdf hero-pdf-front" href="./sample-quote.pdf" data-doc="customer" aria-label="View the sample customer quote in full">
                 <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" alt="Sample customer quote: business details, a scaled shop drawing of a 1165 by 1165 pallet, the specification table and the total including GST" />
-                <span class="hero-pdf-tag" aria-hidden="true">View a sample quote</span>
+                <span class="hero-pdf-tag" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></span>
               </a>
             </div>
           </div>
@@ -456,18 +456,21 @@
     <!-- Sample documents, opened over the page -->
     <dialog class="viewer" id="viewer" aria-label="Sample documents">
       <div class="viewer-bar">
-        <div class="viewer-tabs" role="tablist" aria-label="Document">
-          <button type="button" role="tab" data-doc="customer" aria-selected="true">Customer copy</button>
-          <button type="button" role="tab" data-doc="breakdown" aria-selected="false">Your copy</button>
-        </div>
         <a class="viewer-dl" id="viewer-dl" href="./sample-quote.pdf" download>Download<span> PDF</span></a>
         <button type="button" class="viewer-close" id="viewer-close" aria-label="Close and return to the page">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
       </div>
-      <div class="viewer-body" id="viewer-body">
-        <img data-doc="customer" src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy" alt="Sample customer quote, full page" />
-        <img data-doc="breakdown" src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy" alt="Sample cost breakdown, full page" hidden />
+      <!-- Both pages, whole and in view: one in front, the other smaller behind it. Pressing the one behind brings it forward. -->
+      <div class="viewer-stage" id="viewer-body">
+        <button type="button" class="viewer-page is-front" data-doc="customer" aria-pressed="true">
+          <span class="viewer-title">For your customer</span>
+          <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy" alt="Sample customer quote, full page: business details, the shop drawing, the specification and the total including GST" />
+        </button>
+        <button type="button" class="viewer-page" data-doc="breakdown" aria-pressed="false">
+          <span class="viewer-title">Your breakdown</span>
+          <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy" alt="Sample cost breakdown, full page: each component's rate and cost, then materials, labour, markup, margin and profit" />
+        </button>
       </div>
     </dialog>
 

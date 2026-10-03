@@ -267,16 +267,18 @@ if (steps.length && 'IntersectionObserver' in window) {
 const viewer = document.getElementById('viewer')
 if (viewer && typeof viewer.showModal === 'function') {
   const files = { customer: './sample-quote.pdf', breakdown: './sample-breakdown.pdf' }
-  const tabs = [...viewer.querySelectorAll('[role="tab"]')]
-  const pages = [...viewer.querySelectorAll('img[data-doc]')]
+  const pages = [...viewer.querySelectorAll('.viewer-page')]
   const download = document.getElementById('viewer-dl')
-  const body = document.getElementById('viewer-body')
+  const stage = document.getElementById('viewer-body')
 
+  // One page in front, the other behind it; the download follows the one in front
   const show = (doc) => {
-    tabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.doc === doc)))
-    pages.forEach(page => { page.hidden = page.dataset.doc !== doc })
+    pages.forEach(page => {
+      const front = page.dataset.doc === doc
+      page.classList.toggle('is-front', front)
+      page.setAttribute('aria-pressed', String(front))
+    })
     download.href = files[doc]
-    body.scrollTop = 0
   }
 
   for (const link of document.querySelectorAll('a[data-doc]')) {
@@ -286,8 +288,13 @@ if (viewer && typeof viewer.showModal === 'function') {
       viewer.showModal()
     })
   }
-  tabs.forEach(tab => tab.addEventListener('click', () => show(tab.dataset.doc)))
+  pages.forEach(page => page.addEventListener('click', () => show(page.dataset.doc)))
+  viewer.addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    const behind = pages.find(page => !page.classList.contains('is-front'))
+    if (behind) { show(behind.dataset.doc); behind.focus() }
+  })
   document.getElementById('viewer-close').addEventListener('click', () => viewer.close())
   // A click on the dimmed area outside the sheet closes it; Escape does too
-  viewer.addEventListener('click', (event) => { if (event.target === viewer) viewer.close() })
+  viewer.addEventListener('click', (event) => { if (event.target === viewer || event.target === stage) viewer.close() })
 }

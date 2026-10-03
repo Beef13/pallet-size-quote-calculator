@@ -578,77 +578,95 @@ html.accounts-on .sheet [data-accounts="off"] {
 
 .hero-pdf {
   position: absolute;
+  z-index: 1;
   display: block;
   width: 72%;
   padding: 4px;
   border-radius: 6px;
   background: #fff;
   box-shadow: 0 24px 44px -22px rgba(6, 20, 70, 0.75);
-  transition: transform 0.4s var(--ease);
+  transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease);
 }
 
 .hero-pdf img {
   width: 100%;
   border-radius: 3px;
+  transition: filter 0.25s ease;
 }
 
 .hero-pdf-back {
   left: 0;
   top: 0;
   transform: rotate(-7deg);
+  transform-origin: 30% 35%;
 }
 
 .hero-pdf-front {
+  z-index: 2;
   right: 0;
   bottom: 0;
   transform: rotate(4deg);
+  transform-origin: 80% 55%;
 }
 
-.hero-pdfs:hover .hero-pdf-back {
-  transform: rotate(-10deg) translateX(-8px);
+/* Whichever page the pointer is on comes to the front, straightens and grows; the
+   other draws back behind it */
+.hero-pdf:hover,
+.hero-pdf:focus-visible {
+  z-index: 5;
+  transform: rotate(0deg) scale(1.42);
+  box-shadow: 0 50px 90px -30px rgba(6, 20, 70, 0.85);
 }
 
-.hero-pdfs:hover .hero-pdf-front {
-  transform: rotate(5deg) translateX(6px);
+.hero-pdfs:has(.hero-pdf-front:hover) .hero-pdf-back,
+.hero-pdfs:has(.hero-pdf-front:focus-visible) .hero-pdf-back {
+  transform: rotate(-11deg) translateX(-10%) scale(0.92);
 }
 
-/* The way in appears on hover or keyboard focus, over the page it opens */
+.hero-pdfs:has(.hero-pdf-back:hover) .hero-pdf-front,
+.hero-pdfs:has(.hero-pdf-back:focus-visible) .hero-pdf-front {
+  transform: rotate(8deg) translateX(10%) scale(0.92);
+}
+
+/* An expand mark in the middle of the page under the pointer: pressing opens it in full */
 .hero-pdf-tag {
   position: absolute;
   left: 50%;
   top: 50%;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
   translate: -50% -50%;
-  padding: 9px 16px;
-  border-radius: 999px;
+  border-radius: 50%;
   background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 10px 24px -10px rgba(6, 20, 70, 0.6);
-  color: #fff;
-  font-size: 0.85rem;
-  font-weight: 500;
-  white-space: nowrap;
   opacity: 0;
-  scale: 0.94;
+  scale: 0.7;
   pointer-events: none;
-  transition: opacity 0.2s ease, scale 0.25s var(--ease);
+  transition: opacity 0.2s ease, scale 0.3s var(--ease);
 }
 
-.hero-pdf-back .hero-pdf-tag {
-  top: 9%;
+.hero-pdf-tag svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .hero-pdf:hover .hero-pdf-tag,
 .hero-pdf:focus-visible .hero-pdf-tag {
   opacity: 1;
-  scale: 1;
+  /* Kept the same size on screen while the page itself grows */
+  scale: 0.72;
 }
 
 .hero-pdf:hover img,
 .hero-pdf:focus-visible img {
-  filter: brightness(0.93);
-}
-
-.hero-pdf img {
-  transition: filter 0.2s ease;
+  filter: brightness(0.95);
 }
 
 /* Where there is no room for the pages, a plain link to the sample instead */
@@ -1469,30 +1487,31 @@ html:has(dialog[open]) {
   overflow: hidden;
 }
 
+/* The whole window: both pages shown in full, with no scrolling. The one in front is
+   as tall as the window allows; the other sits behind it, smaller, and comes forward
+   when pressed. */
 .viewer {
-  width: min(900px, calc(100vw - 20px));
-  height: calc(100dvh - 20px);
+  width: 100vw;
+  height: 100dvh;
   max-width: none;
   max-height: none;
+  margin: 0;
   padding: 0;
   border: 0;
-  border-radius: var(--radius);
-  background: var(--paper);
-  color: var(--ink);
-  box-shadow: 0 40px 100px -30px rgba(6, 18, 60, 0.7);
+  background: none;
+  color: #fff;
   overflow: hidden;
 }
 
 .viewer[open] {
-  display: flex;
-  flex-direction: column;
+  display: block;
   animation: viewer-in 0.3s var(--ease);
 }
 
 .viewer::backdrop {
-  background: rgba(8, 20, 60, 0.62);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(8, 20, 60, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 @keyframes viewer-in {
@@ -1500,50 +1519,20 @@ html:has(dialog[open]) {
 }
 
 .viewer-bar {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  right: 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--rule);
-}
-
-.viewer-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--field);
-}
-
-.viewer-tabs button {
-  height: 38px;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 999px;
-  background: none;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.viewer-tabs button[aria-selected="true"] {
-  background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
-  color: #fff;
+  gap: 14px;
 }
 
 .viewer-dl {
-  margin-left: auto;
-  color: var(--accent);
+  color: #fff;
   font-size: 0.95rem;
   font-weight: 500;
-  text-decoration: none;
   white-space: nowrap;
-}
-
-.viewer-dl:hover {
-  text-decoration: underline;
 }
 
 .viewer-close {
@@ -1555,13 +1544,13 @@ html:has(dialog[open]) {
   height: 42px;
   border: 0;
   border-radius: 50%;
-  background: var(--field);
-  color: var(--ink);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
   cursor: pointer;
 }
 
 .viewer-close:hover {
-  background: var(--accent-soft);
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .viewer-close svg {
@@ -1573,19 +1562,90 @@ html:has(dialog[open]) {
   stroke-linecap: round;
 }
 
-.viewer-body {
-  flex: 1;
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding: clamp(8px, 2vw, 20px);
-  background: var(--field);
+.viewer-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
 }
 
-.viewer-body img {
+/* A page: its title above it, the sheet below. Sized so the whole sheet fits the
+   window's height (or its width, on a narrow screen). */
+.viewer-page {
+  --sheet: min(calc(100dvh - 118px), calc((100vw - 150px) * 1.4145));
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  width: calc(var(--sheet) / 1.4145);
+  margin-top: 26px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  /* Behind: smaller, to one side, dimmed */
+  transform: translateX(38%) scale(0.86);
+  transition: transform 0.5s var(--ease), filter 0.4s ease;
+  filter: brightness(0.72);
+}
+
+.viewer-page.is-front {
+  z-index: 2;
+  transform: translateX(-24%);
+  filter: none;
+  cursor: default;
+}
+
+.viewer-page:not(.is-front):hover {
+  filter: brightness(0.88);
+  transform: translateX(41%) scale(0.88);
+}
+
+.viewer-title {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.viewer-page.is-front .viewer-title {
+  background: #fff;
+  color: var(--blue-top);
+}
+
+/* The title of the page behind sits at its outer corner, where it stays in view */
+.viewer-page:not(.is-front) .viewer-title {
+  align-self: flex-end;
+}
+
+.viewer-page img {
   width: 100%;
+  height: auto;
   border-radius: 6px;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+  box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.7);
+}
+
+@media (max-width: 760px) {
+  .viewer-page {
+    --sheet: min(calc(100dvh - 128px), calc((100vw - 56px) * 1.4145));
+    margin-top: 44px;
+    transform: translate(9%, -34px) scale(0.92);
+  }
+
+  .viewer-page.is-front {
+    transform: translate(-5%, 0);
+  }
+
+  .viewer-page:not(.is-front):hover {
+    transform: translate(9%, -34px) scale(0.92);
+  }
 }
 
 /* Tick lists */
@@ -2099,16 +2159,6 @@ html:has(dialog[open]) {
   .covers-grid,
   .docs-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .viewer-bar {
-    gap: 8px;
-    padding: 8px;
-  }
-
-  .viewer-tabs button {
-    padding: 0 11px;
-    font-size: 0.88rem;
   }
 
   .viewer-dl span {
