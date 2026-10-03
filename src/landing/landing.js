@@ -157,6 +157,7 @@ const heroShot = document.getElementById('hero-shot')
 const devices = document.querySelector('.devices')
 let opened = false
 let started = false
+let home = null
 let queued = false
 const onScroll = () => {
   queued = false
@@ -168,31 +169,38 @@ const onScroll = () => {
     heroShot.style.setProperty('--rise', `${(1 - p) * 36}px`)
     heroShot.style.setProperty('--scale', String(0.965 + p * 0.035))
   }
-  // The laptop opens as it comes up the screen, then the phone steps in beside it.
-  // Once open it stays open, so the demonstration is never shut on someone using it.
+  // The desk scene: a shut laptop and a phone seen from above. The first scroll makes
+  // the phone ring; scrolling on tips the view to the front as the lid opens, the ringing
+  // phone goes, and the phone showing the calculator comes in. It runs both ways with
+  // the scroll until someone starts the demonstration, then it stays open.
   if (devices && !reduceMotion && !opened) {
-    const top = devices.getBoundingClientRect().top
     const vh = window.innerHeight
-    const p = Math.max(0, Math.min(1, (vh * 0.8 - top) / (vh * 0.6)))
-    // Already well up the screen on arrival (a tall window): open it on a timer instead
-    if (!started && p > 0.35) {
+    const top = devices.getBoundingClientRect().top
+    if (home === null) home = top + window.scrollY
+    const set = (view, lid, call, phone) => {
+      devices.style.setProperty('--view', view.toFixed(3))
+      devices.style.setProperty('--lid', lid.toFixed(3))
+      devices.style.setProperty('--call', call.toFixed(3))
+      devices.style.setProperty('--phone', phone.toFixed(3))
+    }
+    // A window tall enough to show it all without scrolling: play it through on a timer
+    if (!started && home < vh * 0.3) {
       opened = true
-      devices.style.setProperty('--open', '0')
-      devices.style.setProperty('--phone', '0')
+      set(0, 0, 1, 0)
       devices.classList.add('auto-open')
-      setTimeout(() => {
-        devices.style.setProperty('--open', '1')
-        devices.style.setProperty('--phone', '1')
-      }, 700)
+      setTimeout(() => devices.classList.add('ringing'), 500)
+      setTimeout(() => set(1, 1, 0, 1), 1900)
+      setTimeout(() => devices.classList.remove('ringing'), 2600)
       return
     }
     started = true
-    const ease = (t) => 1 - Math.pow(1 - t, 3)
-    const lid = ease(Math.min(1, p / 0.8))
-    const phone = ease(Math.max(0, (p - 0.7) / 0.3))
-    devices.style.setProperty('--open', lid.toFixed(3))
-    devices.style.setProperty('--phone', phone.toFixed(3))
-    if (p >= 1) opened = true
+    if (devices.querySelector('.demo.live')) { opened = true; set(1, 1, 0, 1); return }
+    const span = Math.max(home - vh * 0.16, vh * 0.45)
+    const p = Math.max(0, Math.min(1, window.scrollY / span))
+    const part = (from, to) => Math.max(0, Math.min(1, (p - from) / (to - from)))
+    const ease = (t) => t * t * (3 - 2 * t)
+    devices.classList.toggle('ringing', window.scrollY > 2 && p < 0.4)
+    set(ease(part(0.16, 0.8)), ease(part(0.22, 0.86)), 1 - part(0.2, 0.4), ease(part(0.84, 1)))
   }
 }
 window.addEventListener('scroll', () => {
