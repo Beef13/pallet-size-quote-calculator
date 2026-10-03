@@ -33,8 +33,17 @@ function apply() {
 
 for (const button of document.querySelectorAll('[data-theme-toggle]')) {
   button.addEventListener('click', () => {
-    try { localStorage.setItem(KEY, String(!isDark())) } catch (e) { /* private browsing: nothing to remember */ }
-    apply()
+    const change = () => {
+      try { localStorage.setItem(KEY, String(!isDark())) } catch (e) { /* private browsing: nothing to remember */ }
+      apply()
+    }
+    // Where supported, the new theme spreads out from the switch
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!document.startViewTransition || calm) return change()
+    const rect = button.getBoundingClientRect()
+    root.style.setProperty('--vt-x', `${rect.left + rect.width / 2}px`)
+    root.style.setProperty('--vt-y', `${rect.top + rect.height / 2}px`)
+    document.startViewTransition(change)
   })
 }
 media.addEventListener?.('change', apply)
