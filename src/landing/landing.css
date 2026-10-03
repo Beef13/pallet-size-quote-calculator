@@ -477,7 +477,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 .measured {
   position: relative;
   justify-self: start;
-  font-size: clamp(2.5rem, 0.9rem + 5.6vw, 5.1rem);
+  font-size: clamp(2.5rem, 0.9rem + 4.6vw, 4.4rem);
   font-weight: 500;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -571,9 +571,8 @@ html.accounts-on .sheet [data-accounts="off"] {
   position: relative;
   grid-column: 2;
   grid-row: 1 / span 2;
-  width: clamp(210px, 21vw, 270px);
+  width: clamp(270px, 27vw, 370px);
   aspect-ratio: 1 / 1.2;
-  margin-bottom: 52px;
   animation: arrive 0.9s var(--ease) 0.35s backwards;
 }
 
@@ -613,21 +612,43 @@ html.accounts-on .sheet [data-accounts="off"] {
   transform: rotate(5deg) translateX(6px);
 }
 
+/* The way in appears on hover or keyboard focus, over the page it opens */
 .hero-pdf-tag {
   position: absolute;
-  /* Below the page, clear of the quote itself, and level despite the page's tilt */
   left: 50%;
-  top: calc(100% + 16px);
-  translate: -50% 0;
-  rotate: -4deg;
-  padding: 6px 12px;
+  top: 50%;
+  translate: -50% -50%;
+  padding: 9px 16px;
   border-radius: 999px;
   background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 10px 24px -10px rgba(6, 20, 70, 0.6);
   color: #fff;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 500;
   white-space: nowrap;
+  opacity: 0;
+  scale: 0.94;
+  pointer-events: none;
+  transition: opacity 0.2s ease, scale 0.25s var(--ease);
+}
+
+.hero-pdf-back .hero-pdf-tag {
+  top: 9%;
+}
+
+.hero-pdf:hover .hero-pdf-tag,
+.hero-pdf:focus-visible .hero-pdf-tag {
+  opacity: 1;
+  scale: 1;
+}
+
+.hero-pdf:hover img,
+.hero-pdf:focus-visible img {
+  filter: brightness(0.93);
+}
+
+.hero-pdf img {
+  transition: filter 0.2s ease;
 }
 
 /* Where there is no room for the pages, a plain link to the sample instead */
