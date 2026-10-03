@@ -61,7 +61,23 @@ function readLogo(file) {
   })
 }
 
+/* Demonstration mode (/app/?demo=1): the calculator as it is embedded in the landing page.
+   Everything works, but nothing is kept: it never reads or writes the visitor's saved data,
+   accounts are off, and saving a quote, exporting a PDF and exporting a backup are switched off. */
+const DEMO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo')
+const demoStore = new Map()
+const accountsLive = accountsEnabled && !DEMO
+
 function readStorage(key) {
+  if (DEMO) {
+    if (demoStore.has(key)) return demoStore.get(key)
+    // The page that embeds the demonstration says which theme it is in
+    if (key === 'palletDarkMode') {
+      const theme = new URLSearchParams(window.location.search).get('theme')
+      return theme === 'dark' ? 'true' : theme === 'light' ? 'false' : null
+    }
+    return null
+  }
   try {
     return localStorage.getItem(key)
   } catch (e) {
@@ -70,6 +86,10 @@ function readStorage(key) {
 }
 
 function writeStorage(key, value) {
+  if (DEMO) {
+    demoStore.set(key, value)
+    return true
+  }
   try {
     localStorage.setItem(key, value)
   } catch (e) {
@@ -409,7 +429,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [accountMode, setAccountMode] = useState('signin')
   // The landing page's Sign in and Sign up buttons arrive here as #signin or #signup
   useEffect(() => {
-    if (!accountsEnabled) return
+    if (!accountsLive) return
     const hash = window.location.hash
     if (hash !== '#signin' && hash !== '#signup') return
     setAccountMode(hash === '#signup' ? 'signup' : 'signin')
@@ -583,11 +603,25 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     })
     setPalletQuantity('250')
   }
-  // The landing page's "See an example" button arrives here as #example
+  // The landing page's "See an example" button arrives here as #example.
+  // The demonstration always opens on the example, so there is something to look at straight away.
   useEffect(() => {
+    if (DEMO) { loadExample(); return }
     if (window.location.hash !== '#example') return
     loadExample()
     window.history.replaceState(null, '', window.location.pathname + window.location.search)
+  }, [])
+
+  // Demonstration: what is switched off, and following the theme of the page it is embedded in
+  const [demoNotice, setDemoNotice] = useState(false)
+  useEffect(() => {
+    if (!DEMO) return undefined
+    const onMessage = (event) => {
+      if (event.origin !== window.location.origin || event.data?.type !== 'pallet-theme') return
+      setIsDarkMode(Boolean(event.data.dark))
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
   }, [])
 
   // Delete a saved preset
@@ -599,6 +633,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   // Export presets to JSON file
   const exportPresets = () => {
+    if (DEMO) { setDemoNotice(true); return }
     // Always export today's saved prices, even while an old quote is open
     let savedPrices = prices
     try { savedPrices = mergeSaved(JSON.parse(readStorage('timberPrices') || 'null')) } catch (e) { /* keep current */ }
@@ -1009,6 +1044,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Save the current quote. Drafts are updated in place; a quote that has
   // already been sent keeps its record and the changes get a new number.
   const saveQuote = ({ markSent = false } = {}) => {
+    if (DEMO) { setDemoNotice(true); return null }
     if (!liveQuote.hasAnyPrice) return null
     const now = new Date().toISOString()
     const record = {
@@ -1109,6 +1145,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [printVariant, setPrintVariant] = useState('customer')
   const [quoteRef, setQuoteRef] = useState('')
   const exportPdf = (variant) => {
+    if (DEMO) { setDemoNotice(true); return }
     const saved = saveQuote({ markSent: variant === 'customer' })
     const ref = saved?.number || ''
     flushSync(() => {
@@ -1288,7 +1325,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const pricesSavedRef = useRef(pricesSaved)
   pricesSavedRef.current = pricesSaved
   useEffect(() => {
-    if (!accountsEnabled) return undefined
+    if (!accountsLive) return undefined
     const parseStored = (key, fallback) => {
       try { return JSON.parse(readStorage(key) ?? 'null') ?? fallback } catch (e) { return fallback }
     }
@@ -1599,7 +1636,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             <strong><Money value={(liveQuote.totalPrice || 0) * quantity} /></strong>
           </div>
           <div className="header-actions">
-            {accountsEnabled && (
+            {accountsLive && (
               <button type="button" className={`icon-btn account-btn ${signedIn ? `is-${account.status}` : ''}`} data-account-button
                 onClick={() => { setAccountMode('signin'); setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
                 title={signedIn ? `Logged in as ${account.email}` : 'Log in to back up and sync'}
@@ -2335,7 +2372,21 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         )}
       </aside>
 
-      {accountsEnabled && showAccount && (
+      {DEMO && demoNotice && (
+        <div className="modal-overlay" onClick={() => setDemoNotice(false)}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="demo-title" data-demo-notice
+            onClick={e => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setDemoNotice(false) }}>
+            <h3 id="demo-title">This is a demonstration</h3>
+            <p>Saving a quote and exporting PDFs are switched off here. Open the calculator to create, save and send your own quotes.</p>
+            <div className="modal-actions">
+              <button type="button" onClick={() => setDemoNotice(false)} className="btn btn-quiet" autoFocus>Keep looking</button>
+              <a className="btn btn-primary" href="./index.html" target="_top">Open the calculator</a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {accountsLive && showAccount && (
         <div className="modal-overlay" onClick={() => setShowAccount(false)}>
           <div className="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="account-title" data-account-modal
             onClick={e => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setShowAccount(false) }}>

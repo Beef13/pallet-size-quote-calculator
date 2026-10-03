@@ -25,7 +25,8 @@
     
     <!-- Service Worker Registration -->
     <script>
-      if ('serviceWorker' in navigator) {
+      // Not for the demonstration embedded in the landing page: that page has nothing to keep offline
+      if ('serviceWorker' in navigator && !new URLSearchParams(window.location.search).has('demo')) {
         window.addEventListener('load', () => {
           // The service worker lives at the site root, one level above /app/
           const swPath = new URL('../sw.js', window.location.href).pathname;

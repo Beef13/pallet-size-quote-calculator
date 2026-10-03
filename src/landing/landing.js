@@ -35,14 +35,22 @@ for (const node of document.querySelectorAll('[data-interest]')) {
   node.href = `mailto:${operator.email}?subject=${encodeURIComponent('Pallet Quote for a team')}`
 }
 
-/* Demo video: a recording of the calculator in use, in the light or dark
-   version to match the page. It plays muted on a loop while it is on
-   screen, with a pause button. Phones get the recording made at phone size.
-   With reduced motion it starts paused on its poster. */
+/* The hero picture.
+   Wide screens: the calculator itself, running in demonstration mode inside a frame.
+   It is drawn at 1280 x 800 and scaled to fit, loads once the page is idle, and only
+   takes clicks and scrolling after "Try it here" is pressed, so it never traps the
+   page's own scrolling. It goes quiet again when it leaves the screen.
+   Narrower screens: a recording of the calculator in use (phone-sized on phones),
+   muted, looping while on screen, with a pause button; held on its poster for
+   reduced motion. */
 const video = document.getElementById('hero-video')
 if (video) {
-  const phone = window.matchMedia('(max-width: 560px)')
+  const demo = video.parentElement
+  const frame = document.getElementById('hero-app')
+  const start = document.getElementById('demo-start')
   const toggle = document.getElementById('demo-toggle')
+  const phone = window.matchMedia('(max-width: 560px)')
+  const live = window.matchMedia('(min-width: 900px)')
   let onScreen = true
   // Paused by the visitor, or held on its poster because they asked for reduced motion
   let held = reduceMotion
@@ -59,11 +67,41 @@ if (video) {
     toggle.setAttribute('aria-label', label)
     toggle.title = held ? 'Play' : 'Pause'
   }
-  const play = () => { if (!held && onScreen) video.play().catch(() => {}) }
+  const play = () => { if (!held && onScreen && !live.matches) video.play().catch(() => {}) }
+
+  // The calculator: fetched once, when the page has finished loading and is idle
+  let asked = false
+  const fit = () => { frame.style.transform = `scale(${demo.clientWidth / 1280})` }
+  const quiet = () => { demo.classList.remove('live'); frame.tabIndex = -1 }
+  const loadApp = () => {
+    if (asked || !frame) return
+    asked = true
+    frame.addEventListener('load', () => { demo.classList.add('loaded'); start.hidden = false }, { once: true })
+    frame.hidden = false
+    frame.src = `./app/index.html?demo=1&theme=${isDark() ? 'dark' : 'light'}`
+    fit()
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(demo)
+  }
+  start?.addEventListener('click', () => {
+    demo.classList.add('live')
+    frame.tabIndex = 0
+    frame.focus()
+  })
 
   const load = () => {
     const [mp4Src, webmSrc, poster] = sources[phone.matches ? 'phone' : 'wide'][isDark() ? 'dark' : 'light']
     video.poster = poster
+    demo.classList.toggle('with-app', live.matches && Boolean(frame))
+    if (live.matches && frame) {
+      // The poster stands in until the calculator is ready
+      video.pause()
+      video.removeAttribute('src')
+      if (asked) frame.contentWindow?.postMessage({ type: 'pallet-theme', dark: isDark() }, window.location.origin)
+      else if (document.readyState === 'complete') (window.requestIdleCallback || setTimeout)(loadApp)
+      else window.addEventListener('load', () => (window.requestIdleCallback || setTimeout)(loadApp), { once: true })
+      return
+    }
+    quiet()
     // MP4 wherever the browser can play it, WebM otherwise
     const webm = video.canPlayType('video/webm; codecs="vp9"') !== ''
     const mp4 = video.canPlayType('video/mp4; codecs="avc1.64001f"') !== ''
@@ -82,12 +120,13 @@ if (video) {
   showState()
   onThemeChange(load)
   phone.addEventListener?.('change', load)
+  live.addEventListener?.('change', load)
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(([entry]) => {
       onScreen = entry.isIntersecting
       if (onScreen) play()
-      else video.pause()
-    }).observe(video)
+      else { video.pause(); quiet() }
+    }).observe(demo)
   }
 }
 

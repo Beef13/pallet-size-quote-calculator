@@ -3066,3 +3066,8 @@ html.dark-mode .status-pill.attention-follow-up {
     text-align: center;
   }
 }
+
+/* A link dressed as a button, as in the demonstration notice */
+a.btn {
+  text-decoration: none;
+}

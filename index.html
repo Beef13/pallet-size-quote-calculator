@@ -85,6 +85,12 @@
               <video id="hero-video" muted loop playsinline preload="none" width="1600" height="1000"
                 poster="/src/landing/img/app-demo-poster-light.webp"
                 aria-label="Screen recording of a 1165 by 1165 pallet being built and priced in Pallet Quote, ending on the quote for 250 pallets"></video>
+              <!-- Wide screens: the calculator itself, in demonstration mode, loaded here by script -->
+              <iframe id="hero-app" title="Pallet Quote calculator, a working demonstration" tabindex="-1" hidden></iframe>
+              <button type="button" class="demo-start" id="demo-start" hidden>
+                <span class="demo-start-pill">Try it here</span>
+                <span class="demo-start-note">A working demonstration. Saving and PDF export are switched off.</span>
+              </button>
               <button type="button" class="demo-toggle" id="demo-toggle" aria-label="Pause the demonstration" title="Pause">
                 <svg class="pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
                 <svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>
