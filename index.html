@@ -69,23 +69,44 @@
           </article>
         </section>
 
-        <section class="sample" id="sample" aria-labelledby="sample-title">
-          <div class="sample-copy">
-            <h2 id="sample-title">What your customer <em>receives</em></h2>
-            <p>A single page, produced from the same figures as your costing, that sets out exactly what is being quoted.</p>
-            <ul class="ticks">
-              <li>Your business details, quote number and validity date</li>
-              <li>Plan, elevations, isometric view and end detail, drawn to scale</li>
-              <li>Lettered components matched to the specification table</li>
-              <li>Price per pallet, quantity, GST and total</li>
-            </ul>
-            <a class="btn btn-primary" href="./sample-quote.pdf" target="_blank" rel="noopener">View the sample quote (PDF)</a>
-            <p class="fine">Produced by Pallet Quote using placeholder business details.</p>
+        <section class="docs" id="sample" aria-labelledby="docs-title">
+          <h2 id="docs-title">One quote, two <em>documents</em></h2>
+          <p class="docs-intro">Both are produced from the same figures and carry the same quote number. Select either document to view it in full.</p>
+          <div class="docs-grid">
+            <article class="doc">
+              <a class="doc-sheet" href="./sample-quote.pdf" data-doc="customer" aria-label="View the sample customer copy">
+                <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy"
+                  alt="Sample customer quote: business details, a scaled shop drawing of a 1165 by 1165 pallet, the specification table and the total including GST" />
+                <span class="doc-open">View</span>
+              </a>
+              <h3>Customer copy</h3>
+              <p>The quotation you send for approval.</p>
+              <ul class="ticks">
+                <li>Your business details, quote number and validity date</li>
+                <li>Scaled shop drawing and specification table</li>
+                <li>Price per pallet, quantity, GST and total</li>
+              </ul>
+              <ul class="ticks ticks-no">
+                <li>Does not show your rates, labour or markup</li>
+              </ul>
+            </article>
+            <article class="doc">
+              <a class="doc-sheet" href="./sample-breakdown.pdf" data-doc="breakdown" aria-label="View the sample cost breakdown">
+                <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy"
+                  alt="Sample cost breakdown: the same drawing, each component with its rate per metre and cost, then materials, labour, markup, margin and gross profit" />
+                <span class="doc-open">View</span>
+              </a>
+              <h3>Your copy</h3>
+              <p>The cost breakdown kept for your own records.</p>
+              <ul class="ticks">
+                <li>Rate per metre and cost of every component</li>
+                <li>Materials, labour and cost per pallet</li>
+                <li>Markup, margin and gross profit on the quote</li>
+                <li>Marked as an internal record, with the date the rates applied</li>
+              </ul>
+            </article>
           </div>
-          <a class="sample-sheet" href="./sample-quote.pdf" target="_blank" rel="noopener" aria-label="Open the sample quote PDF">
-            <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy"
-              alt="Sample customer quote: business details, a scaled shop drawing of a 1165 by 1165 pallet, the specification table and the total including GST" />
-          </a>
+          <p class="fine docs-note">Produced by Pallet Quote using placeholder business details.</p>
         </section>
 
         <section class="covers" aria-labelledby="covers-title">
@@ -216,6 +237,24 @@
         </nav>
       </div>
     </footer>
+
+    <!-- Sample documents, opened over the page -->
+    <dialog class="viewer" id="viewer" aria-label="Sample documents">
+      <div class="viewer-bar">
+        <div class="viewer-tabs" role="tablist" aria-label="Document">
+          <button type="button" role="tab" data-doc="customer" aria-selected="true">Customer copy</button>
+          <button type="button" role="tab" data-doc="breakdown" aria-selected="false">Your copy</button>
+        </div>
+        <a class="viewer-dl" id="viewer-dl" href="./sample-quote.pdf" download>Download<span> PDF</span></a>
+        <button type="button" class="viewer-close" id="viewer-close" aria-label="Close and return to the page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="viewer-body" id="viewer-body">
+        <img data-doc="customer" src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy" alt="Sample customer quote, full page" />
+        <img data-doc="breakdown" src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy" alt="Sample cost breakdown, full page" hidden />
+      </div>
+    </dialog>
 
     <script type="module" src="/src/landing/landing.js"></script>
   </body>

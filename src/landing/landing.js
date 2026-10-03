@@ -42,3 +42,33 @@ if (video) {
     }).observe(video)
   }
 }
+
+/* Sample documents open in a popup over the page rather than a new tab.
+   Without script, the links still open the PDFs directly. */
+const viewer = document.getElementById('viewer')
+if (viewer && typeof viewer.showModal === 'function') {
+  const files = { customer: './sample-quote.pdf', breakdown: './sample-breakdown.pdf' }
+  const tabs = [...viewer.querySelectorAll('[role="tab"]')]
+  const pages = [...viewer.querySelectorAll('img[data-doc]')]
+  const download = document.getElementById('viewer-dl')
+  const body = document.getElementById('viewer-body')
+
+  const show = (doc) => {
+    tabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.doc === doc)))
+    pages.forEach(page => { page.hidden = page.dataset.doc !== doc })
+    download.href = files[doc]
+    body.scrollTop = 0
+  }
+
+  for (const link of document.querySelectorAll('a[data-doc]')) {
+    link.addEventListener('click', (event) => {
+      event.preventDefault()
+      show(link.dataset.doc)
+      viewer.showModal()
+    })
+  }
+  tabs.forEach(tab => tab.addEventListener('click', () => show(tab.dataset.doc)))
+  document.getElementById('viewer-close').addEventListener('click', () => viewer.close())
+  // A click on the dimmed area outside the sheet closes it; Escape does too
+  viewer.addEventListener('click', (event) => { if (event.target === viewer) viewer.close() })
+}

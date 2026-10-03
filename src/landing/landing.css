@@ -113,6 +113,11 @@ video {
   height: auto;
 }
 
+/* display: block above would otherwise override the hidden attribute */
+[hidden] {
+  display: none !important;
+}
+
 h1, h2, h3, p {
   margin: 0;
 }
@@ -275,7 +280,7 @@ a {
 .gets article,
 .more-list li,
 .covers-card,
-.sample-sheet,
+.doc-sheet,
 .faq details,
 .demo {
   border: 1px solid var(--rule);
@@ -518,40 +523,50 @@ a {
   color: var(--ink-2);
 }
 
-/* ---------- Sample quote ---------- */
+/* ---------- The two documents ---------- */
 
-.sample {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  align-items: center;
-  gap: clamp(28px, 5vw, 72px);
+.docs {
   padding: clamp(56px, 8vw, 104px) var(--pad) 0;
 }
 
-.sample-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 20px;
+.docs-intro {
+  max-width: 36em;
+  margin: calc(clamp(24px, 3.4vw, 40px) * -0.5) auto clamp(24px, 3.4vw, 40px);
+  text-align: center;
+  color: var(--ink-2);
 }
 
-.sample h2 {
-  font-size: var(--step-3);
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(20px, 3.4vw, 44px);
+  max-width: 1000px;
+  margin-inline: auto;
+}
+
+.doc {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.doc h3 {
+  margin-top: 12px;
+  font-size: var(--step-2);
   font-weight: 500;
 }
 
-.sample-copy > p {
+.doc > p {
   color: var(--ink-2);
 }
 
-.fine,
-.sample-copy > p.fine {
-  font-size: var(--step--1);
-  color: var(--ink-2);
+.doc .ticks {
+  margin-top: 6px;
 }
 
-/* The page itself, large enough to read, linking to the PDF */
-.sample-sheet {
+/* The page itself; selecting it opens the popup */
+.doc-sheet {
+  position: relative;
   display: block;
   padding: clamp(6px, 1vw, 12px);
   border-radius: var(--radius);
@@ -559,13 +574,161 @@ a {
   transition: transform 0.3s var(--ease);
 }
 
-.sample-sheet:hover {
+.doc-sheet:hover {
   transform: translateY(-4px);
 }
 
-.sample-sheet img {
+.doc-sheet img {
   width: 100%;
   border-radius: 8px;
+}
+
+.doc-open {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.85), 0 10px 22px -10px var(--blue-top);
+}
+
+.docs-note {
+  margin-top: clamp(20px, 3vw, 32px);
+  text-align: center;
+}
+
+.fine {
+  font-size: var(--step--1);
+  color: var(--ink-2);
+}
+
+/* ---------- Popup viewer ---------- */
+
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+.viewer {
+  width: min(900px, calc(100vw - 20px));
+  height: calc(100dvh - 20px);
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 40px 100px -30px rgba(6, 18, 60, 0.7);
+  overflow: hidden;
+}
+
+.viewer[open] {
+  display: flex;
+  flex-direction: column;
+  animation: viewer-in 0.3s var(--ease);
+}
+
+.viewer::backdrop {
+  background: rgba(8, 20, 60, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+@keyframes viewer-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+}
+
+.viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.viewer-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--field);
+}
+
+.viewer-tabs button {
+  height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.viewer-tabs button[aria-selected="true"] {
+  background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
+  color: #fff;
+}
+
+.viewer-dl {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.viewer-dl:hover {
+  text-decoration: underline;
+}
+
+.viewer-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--field);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.viewer-close:hover {
+  background: var(--accent-soft);
+}
+
+.viewer-close svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.viewer-body {
+  flex: 1;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: clamp(8px, 2vw, 20px);
+  background: var(--field);
+}
+
+.viewer-body img {
+  width: 100%;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
 }
 
 /* Tick lists */
@@ -643,6 +806,7 @@ a {
 
 .more h2,
 .covers h2,
+.docs h2,
 .faq h2 {
   margin-bottom: clamp(24px, 3.4vw, 40px);
   text-align: center;
@@ -652,7 +816,7 @@ a {
 
 .more h2 em,
 .covers h2 em,
-.sample h2 em,
+.docs h2 em,
 .faq h2 em {
   font-style: normal;
   color: var(--accent);
@@ -888,8 +1052,7 @@ a {
   }
 
   .gets,
-  .more-list,
-  .sample {
+  .more-list {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -919,13 +1082,27 @@ a {
     font-size: clamp(1.9rem, 8.6vw, 3rem);
   }
 
-  .hero-actions .btn,
-  .sample-copy .btn {
+  .hero-actions .btn {
     width: 100%;
   }
 
-  .covers-grid {
+  .covers-grid,
+  .docs-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .viewer-bar {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .viewer-tabs button {
+    padding: 0 11px;
+    font-size: 0.88rem;
+  }
+
+  .viewer-dl span {
+    display: none;
   }
 
   .sheet .nav .btn {
