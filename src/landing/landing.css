@@ -274,6 +274,8 @@ a {
 /* A white card with a pale blue ring round it */
 .gets article,
 .more-list li,
+.covers-card,
+.sample-sheet,
 .faq details,
 .demo {
   border: 1px solid var(--rule);
@@ -516,6 +518,123 @@ a {
   color: var(--ink-2);
 }
 
+/* ---------- Sample quote ---------- */
+
+.sample {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 72px);
+  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
+}
+
+.sample-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.sample h2 {
+  font-size: var(--step-3);
+  font-weight: 500;
+}
+
+.sample-copy > p {
+  color: var(--ink-2);
+}
+
+.fine,
+.sample-copy > p.fine {
+  font-size: var(--step--1);
+  color: var(--ink-2);
+}
+
+/* The page itself, large enough to read, linking to the PDF */
+.sample-sheet {
+  display: block;
+  padding: clamp(6px, 1vw, 12px);
+  border-radius: var(--radius);
+  background: #fff;
+  transition: transform 0.3s var(--ease);
+}
+
+.sample-sheet:hover {
+  transform: translateY(-4px);
+}
+
+.sample-sheet img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+/* Tick lists */
+.ticks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ticks li {
+  position: relative;
+  padding-left: 34px;
+}
+
+.ticks li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.12em;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5l2.3 2.3L9.5 3.8'/%3E%3C/svg%3E") center no-repeat,
+    linear-gradient(180deg, var(--blue-mid), var(--blue-top));
+}
+
+/* Items that are not covered get a grey dash instead of a tick */
+.ticks-no li::before {
+  background:
+    linear-gradient(var(--ink-2), var(--ink-2)) center / 10px 2px no-repeat,
+    var(--field);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+/* ---------- What the price includes ---------- */
+
+.covers {
+  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
+}
+
+.covers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 28px);
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+.covers-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: clamp(20px, 2.6vw, 30px);
+  border-radius: var(--radius);
+}
+
+.covers-card h3 {
+  font-size: var(--step-1);
+  font-weight: 500;
+}
+
+.covers-card .fine {
+  margin-top: auto;
+}
+
 /* ---------- More features ---------- */
 
 .more {
@@ -523,6 +642,7 @@ a {
 }
 
 .more h2,
+.covers h2,
 .faq h2 {
   margin-bottom: clamp(24px, 3.4vw, 40px);
   text-align: center;
@@ -531,6 +651,8 @@ a {
 }
 
 .more h2 em,
+.covers h2 em,
+.sample h2 em,
 .faq h2 em {
   font-style: normal;
   color: var(--accent);
@@ -675,6 +797,16 @@ a {
   list-style: none;
 }
 
+.contact {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.contact a {
+  color: #fff;
+  font-weight: 500;
+}
+
 .facts li {
   padding: 8px 16px;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -756,7 +888,8 @@ a {
   }
 
   .gets,
-  .more-list {
+  .more-list,
+  .sample {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -786,8 +919,13 @@ a {
     font-size: clamp(1.9rem, 8.6vw, 3rem);
   }
 
-  .hero-actions .btn {
+  .hero-actions .btn,
+  .sample-copy .btn {
     width: 100%;
+  }
+
+  .covers-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .sheet .nav .btn {
