@@ -138,64 +138,118 @@ if (!reduceMotion && window.matchMedia('(hover: hover) and (pointer: fine)').mat
   }
 }
 
-/* How it works: each step has a small panel showing just the part of the
-   calculator it describes. On wide screens the panels are moved into one stage
-   that stays in view while the steps scroll past; on narrow screens each stays
-   under its step. A panel plays when its step reaches the middle of the window. */
+/* How it works: each step has a panel showing just the part of the calculator
+   it describes, as frames captured from the real thing.
+   Wide screens, motion allowed: the section is pinned. The steps and one stage
+   hold still while the page scrolls through a tall track; the scroll position
+   picks the step and how far through its frames it is, and fills the blue line
+   beside the step numbers to match.
+   Otherwise: each panel sits under its step and plays once, on its own clock,
+   when the step reaches the middle of the window. */
 const steps = [...document.querySelectorAll('.flow-step')]
 const scenes = steps.map(step => step.querySelector('.scene'))
 const stage = document.getElementById('flow-screen')
+const track = document.getElementById('flow-track')
+const grid = track?.querySelector('.flow-grid')
 
-// Each panel holds one or more reels: frames captured from the real calculator, shown in turn
 const timers = new WeakMap()
+const times = (reel) => reel.dataset.times.split(',').map(Number)
 const frame = (reel, k) => {
+  if (reel.dataset.at === String(k)) return
+  reel.dataset.at = k
   for (const img of reel.children) img.classList.toggle('show', Number(img.dataset.k) === k)
 }
-const last = (reel) => reel.dataset.times.split(',').length - 1
-const settle = (reel) => {
-  (timers.get(reel) || []).forEach(clearTimeout)
-  frame(reel, last(reel))
-}
-const run = (reel) => {
-  (timers.get(reel) || []).forEach(clearTimeout)
+const stop = (reel) => (timers.get(reel) || []).forEach(clearTimeout)
+const settle = (reel) => { stop(reel); frame(reel, times(reel).length - 1) }
+const play = (reel) => {
+  stop(reel)
   frame(reel, 0)
-  timers.set(reel, reel.dataset.times.split(',').slice(1).map((at, i) => setTimeout(() => frame(reel, i + 1), Number(at))))
+  timers.set(reel, times(reel).slice(1).map((at, i) => setTimeout(() => frame(reel, i + 1), at)))
+}
+// How long a panel's frames run for, and the frame a reel shows at a given moment
+const length = (scene) => Math.max(...[...scene.querySelectorAll('.reel')].map(reel => times(reel).at(-1)))
+const scrub = (scene, f) => {
+  // The frames play across the middle of the step, with a pause at each end
+  const at = Math.max(0, Math.min(1, (f - 0.06) / 0.74)) * length(scene)
+  for (const reel of scene.querySelectorAll('.reel')) {
+    frame(reel, times(reel).findLastIndex(t => t <= at))
+  }
 }
 
-if (steps.length && 'IntersectionObserver' in window) {
+if (steps.length && track && grid) {
   let current = -1
-  const show = (index) => {
-    if (index === current) return
+  const mark = (index) => {
+    if (index === current) return false
     current = index
     steps.forEach((step, i) => {
       step.classList.toggle('on', i === index)
       step.classList.toggle('done', i < index)
     })
-    scenes.forEach((scene, i) => {
-      if (!scene) return
-      const on = i === index
-      scene.classList.toggle('on', on)
-      const reels = scene.querySelectorAll('.reel')
-      if (on && !reduceMotion) reels.forEach(run)
-      else reels.forEach(settle)
-    })
+    scenes.forEach((scene, i) => scene?.classList.toggle('on', i === index))
+    return true
   }
 
-  // Wide: every panel lives in the stage. Narrow: each sits under its own step.
   const wide = window.matchMedia('(min-width: 901px)')
-  const place = () => scenes.forEach((scene, i) => {
-    if (scene) (wide.matches && stage ? stage : steps[i]).append(scene)
-  })
-  place()
-  wide.addEventListener?.('change', place)
+  const pinned = () => wide.matches && !reduceMotion && Boolean(stage)
+  // Scroll given to each step, in window heights: more for the panels with more frames
+  const share = scenes.map(scene => 0.55 + Math.min(0.75, length(scene) / 8000))
+  const whole = share.reduce((a, b) => a + b, 0)
 
-  const watcher = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (entry.isIntersecting) show(Number(entry.target.dataset.step))
+  const lay = () => {
+    const pin = pinned()
+    root.classList.toggle('pin', pin)
+    scenes.forEach((scene, i) => { if (scene) (pin ? stage : steps[i]).append(scene) })
+    track.style.height = pin ? `${grid.offsetHeight + whole * window.innerHeight}px` : ''
+    if (!pin) {
+      steps.forEach(step => step.style.removeProperty('--f'))
+      scenes.forEach(scene => scene?.querySelectorAll('.reel').forEach(settle))
     }
-  }, { rootMargin: '-45% 0px -45% 0px' })
-  steps.forEach(step => watcher.observe(step))
-  show(0)
+    current = -1
+    follow()
+  }
+
+  // Pinned: where the scroll is within the track decides everything
+  function follow() {
+    if (!root.classList.contains('pin')) return
+    const travel = track.offsetHeight - grid.offsetHeight
+    const top = parseFloat(getComputedStyle(grid).top) || 0
+    const done = Math.max(0, Math.min(1, (top - track.getBoundingClientRect().top) / travel)) * whole
+    let index = 0, before = 0
+    while (index < steps.length - 1 && done >= before + share[index]) before += share[index++]
+    const f = Math.max(0, Math.min(1, (done - before) / share[index]))
+    mark(index)
+    steps.forEach((step, i) => step.style.setProperty('--f', i < index ? 1 : i === index ? f.toFixed(3) : 0))
+    scenes.forEach((scene, i) => {
+      if (!scene) return
+      if (i === index) scrub(scene, f)
+      else scene.querySelectorAll('.reel').forEach(reel => frame(reel, i < index ? times(reel).length - 1 : 0))
+    })
+  }
+  let waiting = false
+  window.addEventListener('scroll', () => {
+    if (!waiting) { waiting = true; requestAnimationFrame(() => { waiting = false; follow() }) }
+  }, { passive: true })
+  window.addEventListener('resize', lay)
+  wide.addEventListener?.('change', lay)
+
+  // Not pinned: a panel plays once when its step reaches the middle of the window
+  if ('IntersectionObserver' in window) {
+    const watcher = new IntersectionObserver((entries) => {
+      if (root.classList.contains('pin')) return
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue
+        const index = Number(entry.target.dataset.step)
+        if (!mark(index)) continue
+        steps.forEach((step, i) => step.style.setProperty('--f', i < index ? 1 : 0))
+        scenes.forEach((scene, i) => {
+          scene?.querySelectorAll('.reel').forEach(i === index && !reduceMotion ? play : settle)
+        })
+      }
+    }, { rootMargin: '-45% 0px -45% 0px' })
+    steps.forEach(step => watcher.observe(step))
+  }
+
+  lay()
 }
 
 /* Sample documents open in a popup over the page rather than a new tab.
