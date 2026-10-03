@@ -2,6 +2,12 @@ import '@fontsource-variable/outfit'
 import './landing.css'
 import timberData from '../data/timber-prices.json'
 import { deckGapSize, maxDeckBoards, timberCost, formatCurrency } from '../utils/calculations'
+import demoLight from './img/app-demo-light.mp4'
+import demoDark from './img/app-demo-dark.mp4'
+import demoLightWebm from './img/app-demo-light.webm'
+import demoDarkWebm from './img/app-demo-dark.webm'
+import posterLight from './img/app-demo-poster-light.webp'
+import posterDark from './img/app-demo-poster-dark.webp'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -306,6 +312,35 @@ if (frame && !reduceMotion) {
   lean()
   window.addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(lean) } }, { passive: true })
   window.addEventListener('resize', lean)
+}
+
+/* Hero video: a recording of the calculator in use, in the light or dark
+   version to match the page. It plays muted on a loop while it is on
+   screen. With reduced motion it stays on its poster and gets controls. */
+const video = document.getElementById('hero-video')
+if (video) {
+  const dark = window.matchMedia('(prefers-color-scheme: dark)')
+  let onScreen = true
+  const play = () => { if (!reduceMotion && onScreen) video.play().catch(() => {}) }
+  const load = () => {
+    video.poster = dark.matches ? posterDark : posterLight
+    // WebM where the browser can play it, MP4 everywhere else
+    const webm = video.canPlayType('video/webm; codecs="vp9"') !== ''
+    const mp4 = video.canPlayType('video/mp4; codecs="avc1.64001f"') !== ''
+    video.src = dark.matches ? (mp4 || !webm ? demoDark : demoDarkWebm) : (mp4 || !webm ? demoLight : demoLightWebm)
+    if (reduceMotion) video.controls = true
+    else play()
+  }
+  load()
+  dark.addEventListener?.('change', load)
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting
+      if (onScreen) play()
+      else video.pause()
+    // Watch the wrapper, which doesn't move: the frame itself is tilted and animated
+    }).observe(video.closest('.hero-app') || video)
+  }
 }
 
 /* Steps: one open at a time, each showing its own screen. They advance

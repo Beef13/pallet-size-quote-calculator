@@ -493,17 +493,19 @@ a {
   from { opacity: 0; transform: rotateX(22deg) translateY(120px); }
 }
 
-.app-frame picture,
-.app-frame img {
+.app-frame video {
   display: block;
   width: 100%;
-  border-radius: clamp(10px, 1.4vw, 16px) clamp(10px, 1.4vw, 16px) 0 0;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
 }
 
 .app-crop {
   overflow: hidden;
   border-radius: clamp(10px, 1.4vw, 16px) clamp(10px, 1.4vw, 16px) 0 0;
-  aspect-ratio: 2000 / 1010;
+  aspect-ratio: 1600 / 826;
+  background: var(--field);
 }
 
 /* Floating tags around the app */
@@ -534,8 +536,8 @@ a {
 
 .chip-a { left: -4%; top: -22px; --dot: #5b47e0; }
 .chip-b { right: -3%; top: -30px; --dot: #1fa971; }
-.chip-c { left: -8%; top: 36%; --dot: #f0a020; }
-.chip-d { right: -7%; top: 42%; --dot: #e0527a; }
+.chip-c { right: calc(100% - 22px); top: 36%; --dot: #f0a020; }
+.chip-d { left: calc(100% - 22px); top: 42%; --dot: #e0527a; }
 
 @keyframes pop {
   from { opacity: 0; scale: 0.6; }
@@ -1730,7 +1732,7 @@ a {
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1340px) {
   .chip-c,
   .chip-d {
     display: none;
@@ -1804,10 +1806,6 @@ a {
 
   .chip {
     display: none;
-  }
-
-  .app-crop {
-    aspect-ratio: 2000 / 1250;
   }
 
   .hero-actions {
