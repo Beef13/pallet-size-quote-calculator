@@ -2,7 +2,7 @@ import '@fontsource-variable/outfit'
 import './landing.css'
 import timberData from '../data/timber-prices.json'
 import { deckGapSize, maxDeckBoards, timberCost, formatCurrency } from '../utils/calculations'
-import { setupWalkthrough } from './walkthrough'
+import { setupShowcase } from './showcase'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
@@ -108,5 +108,5 @@ for (const node of document.querySelectorAll('[data-accounts]')) {
 }
 
 setupCalculator()
-setupWalkthrough()
+setupShowcase()
 

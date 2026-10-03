@@ -1,0 +1,189 @@
+/* ------------------------------------------------------------------
+   Showcase: a pinned, full-height stage. showcase.js moves the pieces;
+   this file gives them their look. The stage is always light, like
+   the calculator's own workspace, whatever the page theme.
+   ------------------------------------------------------------------ */
+
+.show {
+  --show-bg: #f1f1f3;
+  --show-ink: #111316;
+  --show-ink-2: #5f656d;
+  background: var(--show-bg);
+  color: var(--show-ink);
+}
+
+.show-head {
+  padding-block: clamp(64px, 9vw, 120px) clamp(8px, 2vw, 24px);
+  text-align: center;
+}
+
+.show-head h2 {
+  font-size: var(--step-4);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+
+.show-head p {
+  margin: 18px auto 0;
+  max-width: 30em;
+  font-size: var(--step-1);
+  color: var(--show-ink-2);
+}
+
+/* The track is the length of scrolling the six scenes take; the pin holds the stage in view */
+.show-track {
+  height: calc(6 * 150vh + 100vh);
+}
+
+.show-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+@supports (height: 100svh) {
+  .show-pin {
+    height: 100svh;
+  }
+}
+
+/* ---------- Words: one scene's at a time, at the top ---------- */
+
+.show-steps {
+  position: absolute;
+  inset: clamp(84px, 11vh, 112px) 0 auto;
+  z-index: 2;
+  margin: 0;
+  padding: 0 var(--gutter);
+  list-style: none;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.show-step {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 40rem;
+  visibility: hidden;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.show-step:first-child {
+  visibility: visible;
+  opacity: 1;
+}
+
+.show-count {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.show .show-count {
+  color: #2563d9;
+}
+
+.show-step h3 {
+  font-size: clamp(1.7rem, 1.1rem + 2.2vw, 2.9rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.show-step p {
+  max-width: 34em;
+  font-size: clamp(0.98rem, 0.9rem + 0.3vw, 1.15rem);
+  line-height: 1.45;
+  color: var(--show-ink-2);
+}
+
+/* ---------- Pieces of the app ---------- */
+
+.show-stage {
+  position: absolute;
+  inset: 0;
+}
+
+.piece {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  visibility: hidden;
+  opacity: 0;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.piece img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: none;
+  opacity: 0;
+}
+
+/* Later captures sit on top of the first, which gives the piece its size */
+.piece img + img {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.piece-card img + img {
+  left: 22px;
+  top: 20px;
+  width: calc(100% - 44px);
+}
+
+/* A section lifted out of the build panel */
+.piece-card {
+  padding: 20px 22px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(17, 19, 22, 0.05), 0 30px 60px -30px rgba(17, 19, 22, 0.35);
+}
+
+/* Blocks that already have their own tinted surface */
+.piece-flush {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 0 0 10px #fff, 0 1px 2px 10px rgba(17, 19, 22, 0.05), 0 34px 60px -24px rgba(17, 19, 22, 0.35);
+}
+
+.piece-stamp {
+  border-radius: 28px;
+  box-shadow: 0 1px 2px rgba(17, 19, 22, 0.05), 0 26px 50px -26px rgba(17, 19, 22, 0.4);
+}
+
+.piece-slider {
+  border-radius: 22px;
+  box-shadow: 0 1px 2px rgba(17, 19, 22, 0.05), 0 20px 40px -22px rgba(17, 19, 22, 0.35);
+}
+
+.piece-sheet {
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(17, 19, 22, 0.14), 0 30px 60px -28px rgba(17, 19, 22, 0.55);
+}
+
+@media (max-width: 820px) {
+  .show-track {
+    height: calc(6 * 135vh + 100vh);
+  }
+
+  .show-steps {
+    inset: 76px 0 auto;
+  }
+
+  .show-step {
+    gap: 6px;
+  }
+}
