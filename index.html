@@ -12,7 +12,6 @@
   <body>
     <a class="skip" href="#main">Skip to content</a>
 
-    <!-- The whole page is one drawing sheet: a framed sheet of paper with a title block at the bottom -->
     <div class="sheet">
       <header class="nav" id="top">
         <div class="nav-inner">
@@ -22,12 +21,14 @@
             </span>
             Pallet Quote
           </a>
-          <a class="btn btn-ghost btn-small" href="./app/index.html">Open the calculator</a>
+          <a class="btn btn-primary btn-small" href="./app/index.html">Open the calculator</a>
         </div>
       </header>
 
       <main id="main">
         <section class="hero">
+          <span class="glass glass-l" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="glass glass-r" aria-hidden="true"><i></i><i></i><i></i></span>
           <div class="hero-head">
             <!-- The headline is dimensioned like a part on a drawing -->
             <h1 class="measured">
@@ -37,7 +38,7 @@
             <div class="hero-side">
               <p class="lede">Type in the pallet size and pick your timber. Pallet Quote prices every board by the metre at your rates, adds your labour and markup, and draws it to scale for your customer to sign.</p>
               <div class="hero-actions">
-                <a class="btn btn-primary" href="./app/index.html">Start a quote</a>
+                <a class="btn btn-white" href="./app/index.html">Start a quote</a>
                 <p class="hero-note">Free to use at the moment. Nothing to install.</p>
               </div>
             </div>
@@ -69,7 +70,7 @@
         </section>
 
         <section class="faq" id="questions" aria-labelledby="faq-title">
-          <h2 id="faq-title">Questions</h2>
+          <h2 id="faq-title">Common <em>questions</em></h2>
           <div class="faq-list">
             <details>
               <summary>Do I need to install anything?</summary>
@@ -91,16 +92,15 @@
           </div>
         </section>
 
-        <!-- Closing call, laid out as the sheet's title block -->
-        <section class="titleblock" aria-labelledby="final-title">
-          <div class="tb-title">
-            <span class="tb-label">Drawing</span>
-            <h2 id="final-title">Run your next quote through it.</h2>
-          </div>
-          <div class="tb-cell"><span class="tb-label">Cost</span>Free at the moment</div>
-          <div class="tb-cell"><span class="tb-label">Install</span>Nothing</div>
-          <div class="tb-cell"><span class="tb-label">Works on</span>Phone, tablet, computer</div>
-          <a class="tb-go" href="./app/index.html">Start a quote</a>
+        <!-- Closing call -->
+        <section class="final" aria-labelledby="final-title">
+          <h2 id="final-title">Run your next quote through it.</h2>
+          <ul class="facts">
+            <li>Free at the moment</li>
+            <li>Nothing to install</li>
+            <li>Phone, tablet or computer</li>
+          </ul>
+          <a class="btn btn-white btn-large" href="./app/index.html">Start a quote</a>
         </section>
       </main>
     </div>
