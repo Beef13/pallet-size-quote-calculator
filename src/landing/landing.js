@@ -1,6 +1,7 @@
 import '@fontsource-variable/outfit'
 import './landing.css'
 import './theme'
+import { operator } from './operator'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const root = document.documentElement
@@ -10,6 +11,16 @@ const accountsOn = Boolean(import.meta.env.VITE_SUPABASE_URL)
 root.classList.toggle('accounts-on', accountsOn)
 for (const node of document.querySelectorAll('[data-accounts]')) {
   if ((node.dataset.accounts === 'on') !== accountsOn) node.remove()
+}
+
+// Plans and prices only appear once there is a payment link to send people to
+const payLink = import.meta.env.VITE_STRIPE_PAYMENT_LINK || ''
+for (const node of document.querySelectorAll('[data-billing]')) {
+  if ((node.dataset.billing === 'on') !== Boolean(payLink)) node.remove()
+}
+for (const node of document.querySelectorAll('[data-pay]')) node.href = payLink
+for (const node of document.querySelectorAll('[data-interest]')) {
+  node.href = `mailto:${operator.email}?subject=${encodeURIComponent('Pallet Quote for a team')}`
 }
 
 /* ------------------------------------------------------------------

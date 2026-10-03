@@ -34,7 +34,8 @@
             <a href="#how">How it works</a>
             <a href="#features">Features</a>
             <a href="#sample">Documents</a>
-            <a href="#covers">Pricing</a>
+            <a href="#covers" data-billing="off">Pricing</a>
+            <a href="#pricing" data-billing="on">Pricing</a>
             <a href="#questions">Questions</a>
           </nav>
           <div class="nav-actions">
@@ -63,8 +64,8 @@
               <p class="lede">Enter the pallet dimensions and select your timber. Pallet Quote costs every board and bearer by the metre at your rates, applies your labour and markup, and produces a scaled shop drawing for customer approval.</p>
               <div class="hero-actions">
                 <a class="btn btn-white" href="./app/index.html">Create a quote</a>
-                <p class="hero-note" data-accounts="off">Free to use at present. No installation required.</p>
-                <p class="hero-note" data-accounts="on">Free to use at present, with no installation or account required. <a href="./app/index.html#signup">Sign up</a> to back up your prices and quotes and keep them synchronised across your devices.</p>
+                <p class="hero-note" data-accounts="off"><span data-billing="off">Free to use at present.</span><span data-billing="on">The calculator is free.</span> No installation required.</p>
+                <p class="hero-note" data-accounts="on"><span data-billing="off">Free to use at present, with no installation or account required. <a href="./app/index.html#signup">Sign up</a> to back up your prices and quotes and keep them synchronised across your devices.</span><span data-billing="on">The calculator is free, with no installation or account required. Online backup and synchronisation across your devices is <a href="#pricing">$29 per month</a>.</span></p>
               </div>
             </div>
           </div>
@@ -303,6 +304,60 @@
           </div>
         </section>
 
+        <!-- Plans: only in builds with a payment link (VITE_STRIPE_PAYMENT_LINK) -->
+        <section class="pricing" id="pricing" aria-labelledby="pricing-title" data-billing="on">
+          <div class="section-head" data-reveal>
+            <h2 id="pricing-title" class="section-title">Plans and <em>pricing</em></h2>
+            <p class="section-intro">The calculator is free. A subscription adds online backup and synchronisation across your devices. There is no setup fee and no contract.</p>
+          </div>
+          <div class="tiers" data-reveal>
+            <article class="tier" aria-labelledby="tier-free">
+              <h3 id="tier-free">Free</h3>
+              <p class="tier-for">For quoting on one device.</p>
+              <p class="tier-price"><span class="tier-amount">$0</span></p>
+              <p class="tier-terms">No account and no card required. Free for as long as you use it.</p>
+              <a class="btn btn-ghost" href="./app/index.html">Create a quote</a>
+              <ul class="ticks">
+                  <li>Unlimited quotes and pallet sizes</li>
+                  <li>Your own timber prices, labour and markup</li>
+                  <li>Live 3D view and scaled shop drawings</li>
+                  <li>Customer PDF and breakdown PDF</li>
+                  <li>Saved presets and quote history</li>
+                  <li>Backup to a file at any time</li>
+              </ul>
+            </article>
+
+            <article class="tier tier-main" aria-labelledby="tier-pro">
+              <h3 id="tier-pro">Pro</h3>
+              <p class="tier-for">For quoting from the office, the yard and the truck.</p>
+              <p class="tier-price"><span class="tier-amount">$29</span><span class="tier-per">per month</span></p>
+              <p class="tier-terms">Billed monthly. Cancel at any time; the subscription runs to the end of the month already paid for.</p>
+              <a class="btn btn-primary" data-pay href="./app/index.html">Subscribe to Pro</a>
+              <p class="tier-plus">Everything in Free, and:</p>
+              <ul class="ticks">
+                  <li>An account, with login by email</li>
+                  <li>Quotes, prices and presets backed up online</li>
+                  <li>The same data on your phone, tablet and computer</li>
+                  <li>Support by email</li>
+              </ul>
+            </article>
+
+            <article class="tier tier-later" aria-labelledby="tier-team">
+              <h3 id="tier-team">Team <span class="tier-tag">Not yet available</span></h3>
+              <p class="tier-for">For businesses where more than one person quotes.</p>
+              <p class="tier-price"><span class="tier-amount tier-amount-quiet">Price to be announced</span></p>
+              <p class="tier-terms">This plan has not been built, so it is not for sale. Its price will be published here before it is.</p>
+              <a class="btn btn-ghost" data-interest href="mailto:contact@palletquoter.com">Register your interest</a>
+              <p class="tier-plus">Planned, in addition to Pro:</p>
+              <ul class="ticks ticks-no">
+                  <li>A login for each person who quotes</li>
+                  <li>One shared price list and quote history</li>
+              </ul>
+            </article>
+          </div>
+          <p class="fine pricing-note" data-reveal>Prices are in Australian dollars. The full amount is shown at the checkout before you pay, and payment is processed by Stripe. Your quotes remain on your device if you cancel. See the <a href="./terms/index.html">terms of use</a>.</p>
+        </section>
+
         <section class="faq" id="questions" aria-labelledby="faq-title">
           <div class="section-head" data-reveal>
             <h2 id="faq-title" class="section-title">Frequently asked <em>questions</em></h2>
@@ -320,6 +375,10 @@
               <summary>Does the price include labour and profit?</summary>
               <p>Yes, once they are set. Enter your labour per pallet and your markup, and each quote displays the markup alongside the gross margin it produces. Freight is not yet included.</p>
             </details>
+            <details data-billing="on">
+              <summary>What does it cost?</summary>
+              <p>The calculator is free, with no account and no limit on the number of quotes. Pro is $29 per month in Australian dollars and adds an account, online backup and synchronisation across your devices. There is no setup fee or contract, and you can cancel at any time.</p>
+            </details>
             <details>
               <summary>Where is my data stored?</summary>
               <p data-accounts="on">In the browser on your device; no account is required. If you log in with your email address, your prices and quotes are also backed up online and synchronised across your devices.</p>
@@ -332,7 +391,8 @@
         <section class="final" aria-labelledby="final-title" data-reveal="scale">
           <h2 id="final-title">Prepare your next quote with Pallet Quote.</h2>
           <ul class="facts">
-            <li>Free at present</li>
+            <li data-billing="off">Free at present</li>
+            <li data-billing="on">Free to start</li>
             <li>No installation</li>
             <li>Phone, tablet or computer</li>
           </ul>

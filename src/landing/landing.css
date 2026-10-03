@@ -395,6 +395,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 
 /* A white card with a pale blue ring round it */
 .covers-card,
+.tier,
 .doc-sheet,
 .faq details,
 .frame {
@@ -1210,6 +1211,134 @@ html:has(dialog[open]) {
 
 .covers-card .fine {
   margin-top: auto;
+}
+
+/* ---------- Plans and pricing ---------- */
+
+.pricing {
+  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
+}
+
+.tiers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 28px);
+  max-width: 1080px;
+  margin-inline: auto;
+}
+
+.tier {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(20px, 2.6vw, 30px);
+  border-radius: var(--radius);
+}
+
+/* The plan on sale carries the accent; the one not yet built is drawn in outline only */
+.tier-main {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 5px var(--accent-soft), var(--shadow);
+}
+
+.tier-later {
+  border-style: dashed;
+  background: transparent;
+  box-shadow: none;
+}
+
+.tier h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--step-1);
+  font-weight: 500;
+}
+
+.tier-tag {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--field);
+  color: var(--ink-2);
+  font-size: 0.78rem;
+}
+
+.tier-for {
+  margin-top: 6px;
+  min-height: 3.2em;
+  color: var(--ink-2);
+}
+
+.tier-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 3.6rem;
+  margin-top: 14px;
+}
+
+.tier-amount {
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.tier-amount-quiet {
+  font-size: var(--step-2);
+  color: var(--ink-2);
+}
+
+.tier-per {
+  color: var(--ink-2);
+}
+
+.tier-terms {
+  min-height: 4.8em;
+  margin-top: 6px;
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+
+.tier .btn {
+  margin-top: 16px;
+  white-space: normal;
+  text-align: center;
+}
+
+.tier-plus {
+  margin-top: 24px;
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+
+.tier .ticks {
+  margin-top: 24px;
+}
+
+.tier .tier-plus + .ticks {
+  margin-top: 14px;
+}
+
+.pricing-note {
+  max-width: 1080px;
+  margin: clamp(20px, 2.6vw, 30px) auto 0;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .tiers {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 520px;
+  }
+
+  .tier-for,
+  .tier-price,
+  .tier-terms {
+    min-height: 0;
+  }
 }
 
 /* ---------- Questions ---------- */
