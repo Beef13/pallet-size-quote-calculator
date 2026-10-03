@@ -1,11 +1,15 @@
 import '@fontsource-variable/outfit'
 import './landing.css'
 import './legal.css'
-import { operator, lastUpdated, accounts } from './operator'
+import { operator, lastUpdated, accounts, billing } from './operator'
 
 // Two versions of some passages: one for when accounts exist, one for when they don't
 for (const node of document.querySelectorAll('[data-accounts]')) {
   if ((node.dataset.accounts === 'on') !== accounts.enabled) node.remove()
+}
+// Likewise for payment: one version while it's free, one once subscriptions are on sale
+for (const node of document.querySelectorAll('[data-billing]')) {
+  if ((node.dataset.billing === 'on') !== billing.enabled) node.remove()
 }
 for (const node of document.querySelectorAll('[data-region]')) node.textContent = accounts.dataRegion
 
