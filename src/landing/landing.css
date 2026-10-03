@@ -280,18 +280,23 @@ a {
   padding-block: clamp(28px, 6vw, 72px) clamp(48px, 7vw, 96px);
 }
 
-.hero-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-  align-items: center;
-  gap: clamp(28px, 4vw, 56px);
-}
-
 .hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  min-width: 0;
+  gap: 22px;
+  max-width: 46rem;
+}
+
+/* The calculator itself, at a size where it can be read */
+.hero-shot {
+  margin-top: clamp(32px, 5vw, 56px);
+  border-radius: clamp(14px, 2.2vw, 26px);
+  overflow: hidden;
+  box-shadow: var(--shadow), 0 0 0 1px var(--rule);
+}
+
+.hero-shot img {
+  width: 100%;
 }
 
 .hero h1 {

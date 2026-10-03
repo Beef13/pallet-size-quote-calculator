@@ -30,38 +30,25 @@
     </header>
 
     <main id="main">
-      <!-- Hero: the pallet builds itself and the price adds up as each part lands -->
+      <!-- Hero: the claim, then the calculator itself -->
       <section class="hero">
-        <div class="wrap hero-grid">
+        <div class="wrap">
           <div class="hero-copy">
-            <h1>Price the pallet before the customer hangs up.</h1>
-            <p class="lede">Enter a size and pick your timber. Pallet Quote works out the boards, the gaps and the cost per metre, then draws it up for your customer to sign off. Turn an enquiry into a professional quote in minutes.</p>
+            <h1>Pallet quotes, priced and drawn in minutes.</h1>
+            <p class="lede">Enter a size and pick your timber. Pallet Quote works out the boards, the gaps and the cost per metre, adds your labour and markup, and draws it up for your customer to sign off.</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="./app/index.html">Start a quote</a>
               <a class="btn btn-ghost" href="#how">See how it works</a>
             </div>
             <p class="hero-note">Runs in your browser on a phone, tablet or computer. Nothing to install, and it keeps working without signal.</p>
           </div>
-
-          <figure class="hero-stage" aria-label="A 1165 by 1165 millimetre pallet being priced as it is built">
-            <svg id="hero-pallet" class="hero-pallet" viewBox="0 0 640 470" role="img" aria-hidden="true"></svg>
-            <div class="ticket" id="ticket">
-              <div class="ticket-head">
-                <span>1165 × 1165 mm pallet</span>
-                <span class="ticket-qty">× 250</span>
-              </div>
-              <ol class="ticket-lines" id="ticket-lines">
-                <li data-step="0"><span>Bottom boards <em>3 × 100 × 19</em></span><b>$2.62</b></li>
-                <li data-step="1"><span>Bearers <em>3 × 100 × 38</em></span><b>$5.24</b></li>
-                <li data-step="2"><span>Top boards <em>7 × 100 × 17</em></span><b>$5.06</b></li>
-              </ol>
-              <div class="ticket-total">
-                <span>Timber for 250 pallets</span>
-                <strong id="ticket-total">$3,230.00</strong>
-              </div>
-            </div>
-            <button class="replay" id="replay" type="button">Build it again</button>
-          </figure>
+          <div class="hero-shot">
+            <picture>
+              <source srcset="/src/landing/img/app-hero-dark.webp" media="(prefers-color-scheme: dark)" />
+              <img src="/src/landing/img/app-hero.webp" width="2000" height="1357" fetchpriority="high"
+                alt="The Pallet Quote calculator: timber chosen for each part on the left, a 3D model of the pallet with its dimensions on the right, and the price in the corner" />
+            </picture>
+          </div>
         </div>
       </section>
 
@@ -79,11 +66,11 @@
               <p>A drawing on the back of a docket that only you can read, sent to a customer who won't sign off what they can't picture.</p>
             </article>
             <article>
-              <h3>The callback</h3>
-              <p>“Let me work it out and get back to you.” By the time you ring back with a number, they've already asked someone else.</p>
+              <h3>The wait</h3>
+              <p>Working it out by hand takes the evening. By the time the quote goes out, the customer has already asked someone else.</p>
             </article>
           </div>
-          <p class="turn">Pallet Quote does all three while you're still on the phone.</p>
+          <p class="turn">Pallet Quote does all three in a few minutes.</p>
         </div>
       </section>
 
@@ -91,157 +78,65 @@
       <section class="walk" id="how" aria-labelledby="walk-title">
         <div class="wrap">
           <header class="walk-head">
-            <h2 id="walk-title" class="section-title">One phone call, start to finish</h2>
-            <p>Scroll through an example enquiry: 250 pallets, 1165 × 1165, green case pine. The clock shows how long you've been on the phone.</p>
+            <h2 id="walk-title" class="section-title">A full quote in six short steps</h2>
+            <p>This is the calculator itself, making one quote for 250 pallets. Scroll to play it through.</p>
           </header>
 
           <div class="walk-grid">
             <ol class="walk-steps">
               <li class="walk-step">
                 <div class="walk-copy">
-                  <span class="walk-time">0:10</span>
-                  <h3>They give you a size. You type it in.</h3>
-                  <p>Width and length, or load a preset for the pallets you make every week. The footprint is drawn to scale straight away.</p>
+                  <span class="walk-time">Step 1</span>
+                  <h3>Type the size.</h3>
+                  <p>Width and length, or load a preset for the pallets you make every week. The pallet is outlined to scale as soon as you finish typing.</p>
                 </div>
               </li>
               <li class="walk-step">
                 <div class="walk-copy">
-                  <span class="walk-time">0:30</span>
-                  <h3>Choose the timber for each part.</h3>
-                  <p>Bottom boards, bearers, top deck. Each part drops into the 3D view as you pick it, with its cost beside it, priced on its real length at your rate per metre.</p>
+                  <span class="walk-time">Step 2</span>
+                  <h3>Pick the timber, part by part.</h3>
+                  <p>Bottom boards, bearers, top boards. Each one appears in the 3D model as you choose it, with its cost beside it, priced on its real length at your rate per metre.</p>
                 </div>
               </li>
               <li class="walk-step">
                 <div class="walk-copy">
-                  <span class="walk-time">0:55</span>
-                  <h3>They ask about a tighter deck. Drag one slider.</h3>
-                  <p>Nine top boards close the gaps from 77.5 mm to 33. The boards re-space themselves evenly and the price follows. They stay with seven, and it never lets you fit more boards than the width allows.</p>
+                  <span class="walk-time">Step 3</span>
+                  <h3>Change your mind as often as you like.</h3>
+                  <p>Add a board and the rest re-space themselves: the gaps go from 78 mm to 33, and the price follows. Take it back off just as quickly. It never lets you fit more boards than the width allows.</p>
                 </div>
               </li>
               <li class="walk-step">
                 <div class="walk-copy">
-                  <span class="walk-time">1:15</span>
-                  <h3>Your labour and markup are already in.</h3>
-                  <p>Set them once. Every quote adds labour per pallet, your markup, the quantity and GST, and shows the margin your markup works out to.</p>
+                  <span class="walk-time">Step 4</span>
+                  <h3>The price is already worked out.</h3>
+                  <p>Set your labour and markup once. Every quote adds them, multiplies by the quantity and puts GST on top, and shows the margin your markup works out to.</p>
                 </div>
               </li>
               <li class="walk-step">
                 <div class="walk-copy">
-                  <span class="walk-time">1:35</span>
-                  <h3>The drawing draws itself.</h3>
+                  <span class="walk-time">Step 5</span>
+                  <h3>So is the drawing.</h3>
                   <p>Plan, front and side elevations at true scale, an isometric view and an enlarged end detail, each part lettered to match the list. Nothing to sketch.</p>
                 </div>
               </li>
               <li class="walk-step">
                 <div class="walk-copy">
-                  <span class="walk-time">2:00</span>
-                  <h3>Send the quote before you hang up.</h3>
-                  <p>One PDF for the customer with the drawings and the total. One for you with every metre, your markup and your profit. Both carry the same quote number and are saved in your history.</p>
+                  <span class="walk-time">Step 6</span>
+                  <h3>Two PDFs, numbered and saved.</h3>
+                  <p>One for the customer with the drawings and the total. One for you with every metre, your markup and your profit. Both are kept in History, where you mark each quote sent, accepted or lost.</p>
                 </div>
               </li>
             </ol>
 
             <div class="walk-pin">
-              <div class="stage" id="stage" aria-hidden="true">
-                <div class="stage-bar">
-                  <span class="stage-call"><span class="stage-call-dot"></span><span class="stage-call-label">On the phone</span> <b class="stage-call-time">0:00</b></span>
-                  <span class="stage-ref">Q2026-0142 <span class="stage-tag">Draft</span></span>
-                </div>
-                <div class="stage-body">
-                  <div class="stage-panel">
-                    <div class="stage-row todo">
-                      <div class="stage-row-head"><span class="stage-row-title">Pallet size</span><svg class="ring" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle class="ring-track" cx="10" cy="10" r="8"/><circle class="ring-progress" cx="10" cy="10" r="8" transform="rotate(-90 10 10)"/><circle class="ring-disc" cx="10" cy="10" r="10"/><path class="ring-tick" d="M5.8 10.3l2.8 2.8 5.6-5.9"/></svg></div>
-                      <span class="stage-row-summary">Not chosen</span>
-                    </div>
-                    <div class="stage-row todo">
-                      <div class="stage-row-head"><span class="stage-row-title">Bottom boards</span><span class="stage-cost" hidden></span><svg class="ring" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle class="ring-track" cx="10" cy="10" r="8"/><circle class="ring-progress" cx="10" cy="10" r="8" transform="rotate(-90 10 10)"/><circle class="ring-disc" cx="10" cy="10" r="10"/><path class="ring-tick" d="M5.8 10.3l2.8 2.8 5.6-5.9"/></svg></div>
-                      <span class="stage-row-summary">Not chosen</span>
-                    </div>
-                    <div class="stage-row todo">
-                      <div class="stage-row-head"><span class="stage-row-title">Bearers</span><span class="stage-cost" hidden></span><svg class="ring" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle class="ring-track" cx="10" cy="10" r="8"/><circle class="ring-progress" cx="10" cy="10" r="8" transform="rotate(-90 10 10)"/><circle class="ring-disc" cx="10" cy="10" r="10"/><path class="ring-tick" d="M5.8 10.3l2.8 2.8 5.6-5.9"/></svg></div>
-                      <span class="stage-row-summary">Not chosen</span>
-                    </div>
-                    <div class="stage-row todo">
-                      <div class="stage-row-head"><span class="stage-row-title">Top boards</span><span class="stage-cost" hidden></span><svg class="ring" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle class="ring-track" cx="10" cy="10" r="8"/><circle class="ring-progress" cx="10" cy="10" r="8" transform="rotate(-90 10 10)"/><circle class="ring-disc" cx="10" cy="10" r="10"/><path class="ring-tick" d="M5.8 10.3l2.8 2.8 5.6-5.9"/></svg></div>
-                      <span class="stage-row-summary">Not chosen</span>
-                    </div>
-                    <div class="stage-slider">
-                      <div class="stage-slider-head"><span>Top boards</span><b class="stage-slider-count">7 of 11</b></div>
-                      <div class="stage-slider-track"><span class="stage-slider-fill"></span><span class="stage-slider-thumb"></span></div>
-                    </div>
-                  </div>
-                  <div class="stage-view">
-                    <svg class="stage-pallet" viewBox="0 0 600 700"></svg>
-                    <div class="stage-card">
-                      <span class="stage-card-label">Timber per pallet</span>
-                      <strong class="stage-card-value">$0.00</strong>
-                      <ul class="stage-card-lines">
-                        <li><span>Labour</span><b data-v="labour"></b></li>
-                        <li><span>Markup <span data-v="markup-pct"></span> <em>(<span data-v="margin-pct"></span> margin)</em></span><b data-v="markup"></b></li>
-                        <li><span>Pallets</span><b>× <span data-v="qty"></span></b></li>
-                        <li><span>GST 10%</span><b data-v="gst"></b></li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="stage-sheets">
-                    <div class="sheet-page sheet-yours">
-                      <div class="sheet-page-head"><b>Cost breakdown</b><span>Q2026-0142</span></div>
-                      <p class="sheet-kicker">Your copy</p>
-                      <ul class="sheet-rows">
-                        <li><span>Bottom boards<em>3 × 1.165 m</em></span><b data-v="bottom"></b></li>
-                        <li><span>Bearers<em>3 × 1.165 m</em></span><b data-v="bearers"></b></li>
-                        <li><span>Top boards<em>7 × 1.165 m</em></span><b data-v="top"></b></li>
-                        <li class="rule"><span>Materials</span><b data-v="materials"></b></li>
-                        <li><span>Labour</span><b data-v="labour"></b></li>
-                        <li><span>Markup <span data-v="markup-pct"></span></span><b data-v="markup"></b></li>
-                        <li class="rule"><span>Price per pallet</span><b data-v="each"></b></li>
-                        <li><span>Total ex GST, <span data-v="qty"></span> pallets</span><b data-v="ex"></b></li>
-                        <li class="profit"><span>Gross profit</span><b data-v="profit"></b></li>
-                      </ul>
-                    </div>
-                    <div class="sheet-page sheet-customer">
-                      <div class="sheet-page-head"><b>Pallet specification &amp; quote</b><span>Q2026-0142</span></div>
-                      <img src="/src/landing/img/drawing-sheet.webp" width="1400" height="1312" alt="" />
-                      <ul class="sheet-rows sheet-spec">
-                        <li><span>A&ensp;Top boards</span><span>100 × 17</span><b>7</b></li>
-                        <li><span>B&ensp;Bearers</span><span>100 × 38</span><b>3</b></li>
-                        <li><span>C&ensp;Bottom boards</span><span>100 × 19</span><b>3</b></li>
-                      </ul>
-                      <ul class="sheet-rows sheet-total">
-                        <li><span>Price per pallet</span><b data-v="each"></b></li>
-                        <li><span>Quantity</span><b data-v="qty"></b></li>
-                        <li><span>GST</span><b data-v="gst"></b></li>
-                        <li class="grand"><span>Total</span><b data-v="grand"></b></li>
-                      </ul>
-                    </div>
-                  </div>
+              <div class="stage" id="stage" role="img" aria-label="The Pallet Quote calculator, shown at each step of making this quote">
+                <div class="stage-reel"></div>
+                <div class="stage-sheets">
+                  <div class="sheet-page sheet-yours"><img data-sheet="sheet-breakdown" width="911" height="1288" alt="" /></div>
+                  <div class="sheet-page sheet-customer"><img data-sheet="sheet-customer" width="911" height="1288" alt="" /></div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- The real thing -->
-      <section class="proof" aria-labelledby="proof-title">
-        <div class="wrap">
-          <div class="proof-head">
-            <h2 id="proof-title" class="section-title">That was a sketch of it. This is the calculator.</h2>
-            <p>A quote like it in the real thing: every part ticked off, a 3D model you can turn round, and the running total in the corner.</p>
-          </div>
-          <div class="shot shot-wide annotated">
-            <picture>
-              <source srcset="/src/landing/img/app-build-dark.webp" media="(prefers-color-scheme: dark)" />
-              <img src="/src/landing/img/app-build.webp" width="2000" height="1250" loading="lazy"
-                alt="The Pallet Quote builder with each section ticked off, top boards and leader boards chosen, a 3D pallet and a total for 250 pallets" />
-            </picture>
-            <span class="note" style="--x: 25.7%; --y: 54%; --dx: -1;">Cost of each part</span>
-            <span class="note" style="--x: 88.5%; --y: 11%; --dx: -1;">Total for any quantity</span>
-            <span class="note" style="--x: 64%; --y: 52%; --dx: 1;">Live 3D, drawn to scale</span>
-          </div>
-          <div class="proof-actions">
-            <a class="btn btn-primary" href="./app/index.html">Open the calculator</a>
-            <a class="btn btn-ghost" href="#try">Try a quick one here</a>
           </div>
         </div>
       </section>
