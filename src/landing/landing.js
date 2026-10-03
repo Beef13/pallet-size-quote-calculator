@@ -146,36 +146,20 @@ const steps = [...document.querySelectorAll('.flow-step')]
 const scenes = steps.map(step => step.querySelector('.scene'))
 const stage = document.getElementById('flow-screen')
 
-// Figures that count up or type themselves in when their panel plays
+// Each panel holds one or more reels: frames captured from the real calculator, shown in turn
 const timers = new WeakMap()
-const settle = (node) => {
-  cancelAnimationFrame(timers.get(node))
-  node.textContent = node.dataset.final
+const frame = (reel, k) => {
+  for (const img of reel.children) img.classList.toggle('show', Number(img.dataset.k) === k)
 }
-const run = (node) => {
-  const typed = node.dataset.type !== undefined
-  const target = typed ? node.dataset.type : node.dataset.count
-  const places = typed ? 0 : (target.split('.')[1] || '').length
-  const delay = Number(node.dataset.delay || 0)
-  const length = Number(node.dataset.dur || (typed ? 380 : 700))
-  const show = (p) => {
-    node.textContent = typed
-      ? target.slice(0, Math.round(p * target.length)) || '\u00a0'
-      : (Number(target) * p).toLocaleString('en-AU', { minimumFractionDigits: places, maximumFractionDigits: places })
-  }
-  const began = performance.now()
-  const tick = (now) => {
-    const p = Math.max(0, Math.min(1, (now - began - delay) / length))
-    show(typed ? p : 1 - Math.pow(1 - p, 3))
-    if (p < 1) timers.set(node, requestAnimationFrame(tick))
-    else node.textContent = node.dataset.final
-  }
-  cancelAnimationFrame(timers.get(node))
-  show(0)
-  timers.set(node, requestAnimationFrame(tick))
+const last = (reel) => reel.dataset.times.split(',').length - 1
+const settle = (reel) => {
+  (timers.get(reel) || []).forEach(clearTimeout)
+  frame(reel, last(reel))
 }
-for (const node of document.querySelectorAll('.scene [data-count], .scene [data-type]')) {
-  node.dataset.final = node.textContent
+const run = (reel) => {
+  (timers.get(reel) || []).forEach(clearTimeout)
+  frame(reel, 0)
+  timers.set(reel, reel.dataset.times.split(',').slice(1).map((at, i) => setTimeout(() => frame(reel, i + 1), Number(at))))
 }
 
 if (steps.length && 'IntersectionObserver' in window) {
@@ -191,9 +175,9 @@ if (steps.length && 'IntersectionObserver' in window) {
       if (!scene) return
       const on = i === index
       scene.classList.toggle('on', on)
-      const figures = scene.querySelectorAll('[data-count], [data-type]')
-      if (on && !reduceMotion) figures.forEach(run)
-      else figures.forEach(settle)
+      const reels = scene.querySelectorAll('.reel')
+      if (on && !reduceMotion) reels.forEach(run)
+      else reels.forEach(settle)
     })
   }
 
