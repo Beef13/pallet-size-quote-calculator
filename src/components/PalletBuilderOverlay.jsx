@@ -61,7 +61,38 @@ function readLogo(file) {
   })
 }
 
+/* Demonstration mode (/app/?demo=1): the calculator as it is embedded in the landing page.
+   Everything works, but nothing is kept: it never reads or writes the visitor's saved data,
+   accounts are off, and saving a quote, exporting a PDF and exporting a backup are switched off. */
+const DEMO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo')
+// It starts with the same labour, markup and placeholder business as the sample quote on the landing page
+const demoStore = new Map(DEMO ? [
+  ['timberPrices', JSON.stringify({ pricing: { labourPerPallet: 3, markupPercent: 25 } })],
+  ['palletBusiness', JSON.stringify({ name: 'Example Pallets Pty Ltd', abn: '00 000 000 000', phone: '(03) 0000 0000', email: 'quotes@example.com' })]
+] : [])
+/* The demonstration is for looking round, not for working out a real quote, so the inputs that
+   define a job are fixed: the size, the timber and sizes, the prices, labour and markup, the
+   business and customer details, and the buttons that clear or save. Board and bearer counts,
+   the quantity, the 3D view, the tabs and the theme are left free to try. */
+const demoLocked = (target) => {
+  const el = target.closest?.('select, textarea, input, button, label.switch, label.text-btn')
+  if (!el) return false
+  if (el.matches('select, textarea, label.switch, label.text-btn')) return true
+  if (el.matches('input')) return !(el.type === 'range' || /^Number of/.test(el.getAttribute('aria-label') || ''))
+  return el.matches('.lock-button') || /^(Clear|Save as preset|New quote|Unlock all|Lock all|Edit list|Export|Import|Reset|Use )/.test(el.textContent.trim())
+}
+const accountsLive = accountsEnabled && !DEMO
+
 function readStorage(key) {
+  if (DEMO) {
+    if (demoStore.has(key)) return demoStore.get(key)
+    // The page that embeds the demonstration says which theme it is in
+    if (key === 'palletDarkMode') {
+      const theme = new URLSearchParams(window.location.search).get('theme')
+      return theme === 'dark' ? 'true' : theme === 'light' ? 'false' : null
+    }
+    return null
+  }
   try {
     return localStorage.getItem(key)
   } catch (e) {
@@ -70,6 +101,10 @@ function readStorage(key) {
 }
 
 function writeStorage(key, value) {
+  if (DEMO) {
+    demoStore.set(key, value)
+    return true
+  }
   try {
     localStorage.setItem(key, value)
   } catch (e) {
@@ -545,6 +580,55 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setError('')
   }
 
+  // A ready-made pallet, so a first-time visitor can see a finished quote before entering anything.
+  // It fills in the design and the quantity only: prices, labour and markup are left as they are.
+  const loadExample = () => {
+    loadPreset({
+      palletWidth: '1165', palletLength: '1165',
+      selectedBottomBoardType: 'pine-green-case', selectedBottomBoardSize: '100x19', numberOfBottomBoards: '3',
+      selectedBearerType: 'pine-green-case', selectedBearerSize: '100x38', numberOfBearers: '3',
+      selectedTopBoardType: 'pine-green-case', selectedTopBoardSize: '100x17', numberOfTopBoards: '7'
+    })
+    setPalletQuantity('250')
+  }
+  // The landing page's "See an example" button arrives here as #example.
+  // The demonstration always opens on the example, so there is something to look at straight away.
+  useEffect(() => {
+    if (DEMO) { loadExample(); return }
+    if (window.location.hash !== '#example') return
+    loadExample()
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+  }, [])
+
+  // Demonstration: what is switched off, and following the theme of the page it is embedded in
+  const [demoNotice, setDemoNotice] = useState(false)
+  // A short message when a fixed input is tried
+  const [demoHint, setDemoHint] = useState(false)
+  const demoHintTimer = useRef(null)
+  const demoBlock = (event) => {
+    if (!demoLocked(event.target)) return
+    event.preventDefault()
+    event.stopPropagation()
+    setDemoHint(true)
+    clearTimeout(demoHintTimer.current)
+    demoHintTimer.current = setTimeout(() => setDemoHint(false), 2400)
+  }
+  const demoGuard = DEMO ? {
+    onPointerDownCapture: demoBlock,
+    onMouseDownCapture: demoBlock,
+    onClickCapture: demoBlock,
+    onKeyDownCapture: (event) => { if (event.key !== 'Tab') demoBlock(event) }
+  } : {}
+  useEffect(() => {
+    if (!DEMO) return undefined
+    const onMessage = (event) => {
+      if (event.origin !== window.location.origin || event.data?.type !== 'pallet-theme') return
+      setIsDarkMode(Boolean(event.data.dark))
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [])
+
   // Delete a saved preset
   const deletePreset = (presetId) => {
     const updatedPresets = savedPresets.filter(p => p.id !== presetId)
@@ -554,6 +638,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   // Export presets to JSON file
   const exportPresets = () => {
+    if (DEMO) { setDemoNotice(true); return }
     // Always export today's saved prices, even while an old quote is open
     let savedPrices = prices
     try { savedPrices = mergeSaved(JSON.parse(readStorage('timberPrices') || 'null')) } catch (e) { /* keep current */ }
@@ -964,6 +1049,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Save the current quote. Drafts are updated in place; a quote that has
   // already been sent keeps its record and the changes get a new number.
   const saveQuote = ({ markSent = false } = {}) => {
+    if (DEMO) { setDemoNotice(true); return null }
     if (!liveQuote.hasAnyPrice) return null
     const now = new Date().toISOString()
     const record = {
@@ -1064,6 +1150,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [printVariant, setPrintVariant] = useState('customer')
   const [quoteRef, setQuoteRef] = useState('')
   const exportPdf = (variant) => {
+    if (DEMO) { setDemoNotice(true); return }
     const saved = saveQuote({ markSent: variant === 'customer' })
     const ref = saved?.number || ''
     flushSync(() => {
@@ -1243,7 +1330,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const pricesSavedRef = useRef(pricesSaved)
   pricesSavedRef.current = pricesSaved
   useEffect(() => {
-    if (!accountsEnabled) return undefined
+    if (!accountsLive) return undefined
     const parseStored = (key, fallback) => {
       try { return JSON.parse(readStorage(key) ?? 'null') ?? fallback } catch (e) { return fallback }
     }
@@ -1534,7 +1621,12 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   return (
     <div className={`workbench ${isPanelCollapsed ? 'panel-collapsed' : ''}`}>
       {/* Left panel */}
-      <aside className="panel" aria-hidden={isPanelCollapsed}>
+      <aside className="panel" aria-hidden={isPanelCollapsed} {...demoGuard}>
+        {DEMO && (
+          <p className={`demo-hint ${demoHint ? 'shown' : ''}`} role="status" aria-live="polite">
+            {demoHint ? 'Fixed in this demonstration. Board counts and the quantity can be changed.' : ''}
+          </p>
+        )}
         <header className="panel-header">
           <div className="brand">
             <span className="brand-logo" aria-hidden="true">
@@ -1554,7 +1646,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             <strong><Money value={(liveQuote.totalPrice || 0) * quantity} /></strong>
           </div>
           <div className="header-actions">
-            {accountsEnabled && (
+            {accountsLive && (
               <button type="button" className={`icon-btn account-btn ${signedIn ? `is-${account.status}` : ''}`} data-account-button
                 onClick={() => { setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
                 title={signedIn ? `Signed in as ${account.email}` : 'Sign in to back up and sync'}
@@ -1635,7 +1727,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     data-field="preset"
                     onChange={(e) => {
                       const value = e.target.value
-                      if (value.startsWith('saved:')) {
+                      if (value === 'example') {
+                        loadExample()
+                      } else if (value.startsWith('saved:')) {
                         const preset = savedPresets.find(p => p.id === value.replace('saved:', ''))
                         if (preset) loadPreset(preset)
                       } else if (value) {
@@ -1646,6 +1740,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     }}
                   >
                     <option value="">A standard size or saved preset</option>
+                    <option value="example">An example pallet, ready built</option>
                     <optgroup label="Standard sizes">
                       <option value="1165x1165">1165 × 1165 mm</option>
                       <option value="1140x1140">1140 × 1140 mm</option>
@@ -2287,7 +2382,21 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         )}
       </aside>
 
-      {accountsEnabled && showAccount && (
+      {DEMO && demoNotice && (
+        <div className="modal-overlay" onClick={() => setDemoNotice(false)}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="demo-title" data-demo-notice
+            onClick={e => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setDemoNotice(false) }}>
+            <h3 id="demo-title">This is a demonstration</h3>
+            <p>Saving a quote and exporting PDFs are switched off here. Open the calculator to create, save and send your own quotes.</p>
+            <div className="modal-actions">
+              <button type="button" onClick={() => setDemoNotice(false)} className="btn btn-quiet" autoFocus>Keep looking</button>
+              <a className="btn btn-primary" href="./index.html" target="_top">Open the calculator</a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {accountsLive && showAccount && (
         <div className="modal-overlay" onClick={() => setShowAccount(false)}>
           <div className="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="account-title" data-account-modal
             onClick={e => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Escape') setShowAccount(false) }}>
@@ -2401,7 +2510,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
         {!(livePreviewData.palletWidth > 0 && livePreviewData.palletLength > 0) && (
           <div className="stage-empty">
-            <p>Enter a size to see the pallet take shape.</p>
+            <div className="stage-empty-card">
+              <p>Enter a size to see the pallet take shape.</p>
+              <button type="button" className="btn btn-secondary" data-field="example" onClick={loadExample}>Load an example pallet</button>
+            </div>
           </div>
         )}
 

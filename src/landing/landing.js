@@ -234,6 +234,52 @@ function setupCalculator() {
 
 /* ------------------------------------------------------------------ */
 
+// Passages that differ depending on whether this build has accounts switched on
+const accountsOn = Boolean(import.meta.env.VITE_SUPABASE_URL)
+for (const node of document.querySelectorAll('[data-accounts]')) {
+  if ((node.dataset.accounts === 'on') !== accountsOn) node.remove()
+}
+
+/* The demonstration in the hero: the calculator itself, in its demonstration mode, inside a
+   frame. Wide screens only. It is drawn at 1280 x 800 and scaled to fit, loads once the page
+   is idle with a screenshot standing in until then, and only takes clicks and scrolling after
+   "Try the demo" is pressed, so it never traps the page's own scrolling. It goes quiet again
+   when it leaves the screen. */
+const demo = document.getElementById('live-demo')
+const frame = document.getElementById('hero-app')
+if (demo && frame) {
+  const startButton = document.getElementById('demo-start')
+  const wide = window.matchMedia('(min-width: 961px)')
+  const dark = window.matchMedia('(prefers-color-scheme: dark)')
+  let asked = false
+  const fit = () => { frame.style.transform = `scale(${demo.clientWidth / 1280})` }
+  const quiet = () => { demo.classList.remove('live'); frame.tabIndex = -1 }
+  const loadApp = () => {
+    if (asked || !wide.matches) return
+    asked = true
+    frame.addEventListener('load', () => { demo.classList.add('loaded'); startButton.hidden = false }, { once: true })
+    frame.hidden = false
+    frame.src = `./app/index.html?demo=1&theme=${dark.matches ? 'dark' : 'light'}`
+    fit()
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(demo)
+  }
+  const whenIdle = () => (window.requestIdleCallback || setTimeout)(loadApp)
+  if (document.readyState === 'complete') whenIdle()
+  else window.addEventListener('load', whenIdle, { once: true })
+  wide.addEventListener?.('change', () => { if (wide.matches) whenIdle(); else quiet() })
+  dark.addEventListener?.('change', () => {
+    frame.contentWindow?.postMessage({ type: 'pallet-theme', dark: dark.matches }, window.location.origin)
+  })
+  startButton?.addEventListener('click', () => {
+    demo.classList.add('live')
+    frame.tabIndex = 0
+    frame.focus()
+  })
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) quiet() }).observe(demo)
+  }
+}
+
 buildHero()
 setMoney(document.getElementById('ticket-total'), ticketSteps.reduce((s, x) => s + x.add, 0) * QTY)
 setupCalculator()

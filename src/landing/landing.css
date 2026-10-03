@@ -311,6 +311,142 @@ a {
   max-width: 36em;
 }
 
+/* The line the page used to lead with, kept as the hook under the headline */
+.hero-hook {
+  font-size: var(--step-2);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--accent);
+}
+
+/* Shown only where the demonstration is (wide), or only where it isn't (narrow) */
+.narrow-only {
+  display: none;
+}
+
+/* ---------- The demonstration, in the hero under the words ---------- */
+
+.hero-demo {
+  margin-top: clamp(40px, 6vw, 80px);
+  scroll-margin-top: 84px;
+}
+
+.demo-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  margin-bottom: 14px;
+}
+
+.demo-head h2 {
+  font-size: var(--step-0);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.demo-head p {
+  font-size: var(--step--1);
+  color: var(--ink-3);
+}
+
+/* The frame: a screenshot until the calculator has loaded over it */
+.demo {
+  position: relative;
+  aspect-ratio: 1280 / 800;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.demo picture,
+.demo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+}
+
+/* The calculator, drawn at 1280 x 800 and scaled to the frame by script */
+.demo iframe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1280px;
+  height: 800px;
+  border: 0;
+  transform-origin: 0 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.demo.loaded iframe {
+  opacity: 1;
+}
+
+.demo.live iframe {
+  pointer-events: auto;
+}
+
+/* Until it is pressed, the demonstration is only a picture: the page scrolls past it freely */
+.demo-start {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: clamp(20px, 3vw, 36px);
+  border: 0;
+  background: linear-gradient(180deg, transparent 60%, color-mix(in srgb, var(--ink) 30%, transparent));
+  font: inherit;
+  cursor: pointer;
+}
+
+.demo-start-pill {
+  padding: 14px 30px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--step-0);
+  font-weight: 500;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--paper) 70%, transparent), 0 14px 28px -12px color-mix(in srgb, var(--accent) 80%, transparent);
+  transition: transform 0.2s var(--ease), background-color 0.2s ease;
+}
+
+.demo-start:hover .demo-start-pill {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.demo.live .demo-start {
+  display: none;
+}
+
+/* What the demonstration leaves out, and where the full calculator is */
+.demo-limits {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px clamp(20px, 4vw, 48px);
+  align-items: start;
+  margin-top: clamp(16px, 2vw, 24px);
+  color: var(--ink-2);
+  font-size: 0.98rem;
+}
+
+.demo-limits strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.demo-limits .btn {
+  margin: 10px 0 0;
+  vertical-align: middle;
+}
+
 /* The drawing board the pallet sits on */
 .hero-stage {
   position: relative;
@@ -986,6 +1122,136 @@ a {
   color: var(--ink-3);
 }
 
+/* The outcome each feature block is about */
+.outcome {
+  align-self: flex-start;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+/* ---------- What happens when you start a quote ---------- */
+
+.start {
+  padding-block: clamp(64px, 9vw, 120px);
+  background: var(--paper);
+}
+
+.start-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 72px);
+}
+
+.start-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  min-width: 0;
+}
+
+.start-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.start-steps li {
+  position: relative;
+  padding-left: 54px;
+  counter-increment: step;
+}
+
+.start-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.start-steps h3 {
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.start-steps p {
+  margin-top: 6px;
+  max-width: 38em;
+  color: var(--ink-2);
+}
+
+.start-steps strong,
+.start-account strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.start-account {
+  max-width: 40em;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  background: var(--field);
+  color: var(--ink-2);
+}
+
+/* ---------- What it costs ---------- */
+
+.pricing {
+  padding-block: clamp(56px, 8vw, 104px);
+}
+
+.pricing-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr);
+  gap: clamp(24px, 5vw, 64px);
+  align-items: start;
+}
+
+.pricing-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 40em;
+  padding: clamp(22px, 3vw, 34px);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  color: var(--ink-2);
+}
+
+.pricing-now {
+  font-size: var(--step-2);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.pricing-body a {
+  color: var(--accent);
+}
+
+.final-note {
+  font-size: var(--step--1);
+}
+
 /* ---------- Details ---------- */
 
 .details {
@@ -1162,13 +1428,91 @@ a {
   height: 26px;
 }
 
+/* Wide screens: the working calculator is the hero picture, so the words sit
+   in two columns above it and the drawn pallet steps aside */
+@media (min-width: 961px) {
+  .hero {
+    padding-top: clamp(20px, 3vw, 44px);
+  }
+
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-stage {
+    display: none;
+  }
+
+  .hero-copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: clamp(32px, 5vw, 72px);
+    row-gap: 16px;
+    align-items: start;
+  }
+
+  .hero h1 {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    font-size: clamp(2.5rem, 4.1vw, 3.7rem);
+  }
+
+  .hero-hook {
+    grid-column: 1;
+    grid-row: 3;
+    font-size: var(--step-1);
+  }
+
+  .hero-copy .lede {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: var(--step-0, 1.0625rem);
+  }
+
+  .hero-actions {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .hero-note {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .hero-demo {
+    margin-top: clamp(24px, 3vw, 40px);
+  }
+}
+
+/* Two white bands in a row: a rule keeps them apart */
+.try {
+  border-top: 1px solid var(--line);
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 960px) {
   .hero-grid,
   .try-grid,
-  .faq-grid {
+  .faq-grid,
+  .start-grid,
+  .pricing-inner {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* No demonstration here: the cut-down calculator further down does that job */
+  .hero-demo,
+  .wide-only {
+    display: none;
+  }
+
+  .narrow-only {
+    display: revert;
+  }
+
+  .btn.narrow-only {
+    display: inline-flex;
   }
 
   .feature,

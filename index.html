@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Pallet Quote</title>
-    <meta name="description" content="Turn a pallet enquiry into a priced, drawn quote in minutes. Pallet Quote works out the boards, gaps and cost per metre, adds your labour and markup, and draws it up for your customer to sign off." />
+    <title>Pallet Quote: accurate pallet quotes and customer-ready drawings in minutes</title>
+    <meta name="description" content="Accurate pallet quotes and customer-ready drawings in minutes. Pallet Quote costs every board and bearer on your own rate per metre, adds your labour and markup, and draws the pallet up for your customer to sign off." />
     <meta name="theme-color" content="#178a52" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
     <link rel="apple-touch-icon" href="/icons/icon.svg" />
@@ -22,10 +22,12 @@
         </a>
         <nav class="nav-links" aria-label="Sections">
           <a href="#how">How it works</a>
-          <a href="#try">Try it</a>
+          <a href="#demo" class="wide-only">Demo</a>
+          <a href="#try" class="narrow-only">Try it</a>
+          <a href="#pricing">Pricing</a>
           <a href="#questions">Questions</a>
         </nav>
-        <a class="btn btn-primary btn-small" href="./app/index.html">Open the calculator</a>
+        <a class="btn btn-primary btn-small" href="./app/index.html">Start a quote</a>
       </div>
     </header>
 
@@ -34,13 +36,15 @@
       <section class="hero">
         <div class="wrap hero-grid">
           <div class="hero-copy">
-            <h1>Price the pallet before the customer hangs up.</h1>
-            <p class="lede">Enter a size and pick your timber. Pallet Quote works out the boards, the gaps and the cost per metre, then draws it up for your customer to sign off. Turn an enquiry into a professional quote in minutes.</p>
+            <h1>Accurate pallet quotes and customer-ready drawings, in minutes.</h1>
+            <p class="hero-hook">Price the pallet before the customer hangs up.</p>
+            <p class="lede">Enter the size and pick your timber. Pallet Quote costs every board and bearer on your own rate per metre, adds your labour and markup, and draws the pallet up for your customer to sign off.</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="./app/index.html">Start a quote</a>
-              <a class="btn btn-ghost" href="#how">See how it works</a>
+              <a class="btn btn-ghost wide-only" href="#demo">Try the demo</a>
+              <a class="btn btn-ghost narrow-only" href="#how">See how it works</a>
             </div>
-            <p class="hero-note">Runs in your browser on a phone, tablet or computer. Nothing to install, and it keeps working without signal.</p>
+            <p class="hero-note">Free to use at present. No account, no card and nothing to install. Runs in the browser on a phone, tablet or computer, and keeps working without signal.</p>
           </div>
 
           <figure class="hero-stage" aria-label="A 1165 by 1165 millimetre pallet being priced as it is built">
@@ -62,6 +66,29 @@
             </div>
             <button class="replay" id="replay" type="button">Build it again</button>
           </figure>
+        </div>
+
+        <!-- The calculator itself, in demonstration mode. Wide screens only: on a phone the
+             cut-down calculator further down the page does this job. -->
+        <div class="wrap hero-demo" id="demo">
+          <div class="demo-head">
+            <h2>See it working on a sample pallet</h2>
+            <p>The real calculator, set up as a demonstration. Change the board counts and the quantity, turn the pallet round, and look through the tabs.</p>
+          </div>
+          <div class="demo" id="live-demo">
+            <picture>
+              <source srcset="/src/landing/img/app-build-dark.webp" media="(prefers-color-scheme: dark)" />
+              <img src="/src/landing/img/app-build.webp" width="2000" height="1250" alt="The Pallet Quote calculator: the builder on the left, a 3D pallet in the middle and the total for 250 pallets" />
+            </picture>
+            <iframe id="hero-app" title="Pallet Quote calculator, a working demonstration" tabindex="-1" hidden></iframe>
+            <button type="button" class="demo-start" id="demo-start" hidden>
+              <span class="demo-start-pill">Try the demo</span>
+            </button>
+          </div>
+          <div class="demo-limits">
+            <p><strong>What the demo leaves out.</strong> The size, the timber and the prices are fixed on one sample pallet, and saving a quote and exporting PDFs are switched off.</p>
+            <p><strong>For your own pallets,</strong> open the full calculator. It is free at present and needs no account. <a class="btn btn-primary btn-small" href="./app/index.html">Start a quote</a></p>
+          </div>
         </div>
       </section>
 
@@ -94,12 +121,13 @@
 
           <div class="feature">
             <div class="feature-copy">
+              <p class="outcome">Quote faster</p>
               <h3>Build it and watch it take shape</h3>
-              <p>Pick the timber and size for the bottom boards, bearers and top deck. The pallet appears in 3D as you go, to scale, with the gaps worked out and dimensioned.</p>
+              <p>Pick the timber and size for the bottom boards, bearers and top deck. The pallet appears in 3D as you go, to scale, with the gaps worked out. Change the size or the quantity and the price follows.</p>
               <ul class="ticks">
                 <li>It never lets you fit more boards than the width allows</li>
-                <li>Different leader boards on the outside edges, priced separately</li>
-                <li>Drag to turn it round and show the customer exactly what they're getting</li>
+                <li>Save the pallets you quote every week and load one with a click</li>
+                <li>Duplicate a past quote at today's rates for a repeat order</li>
               </ul>
             </div>
             <div class="shot shot-wide annotated">
@@ -116,12 +144,14 @@
 
           <div class="feature reverse">
             <div class="feature-copy">
+              <p class="outcome">Price accurately</p>
               <h3>Priced per metre, the way you buy timber</h3>
-              <p>Every board and bearer is costed on its real length at your own rate per metre. Add your labour per pallet and your markup, and GST goes on top. Change the size or the quantity and the price follows.</p>
+              <p>Every board and bearer is costed on its real length at your own rate per metre. Add your labour per pallet and your markup, and GST goes on top.</p>
               <ul class="ticks">
                 <li>Markup and the gross margin it gives, side by side</li>
-                <li>Timber prices are locked until you unlock them, so nobody changes one by accident</li>
-                <li>Each line shows the count, the size and the length it was priced on</li>
+                <li>Prices stay locked until you unlock them, so nobody changes one by accident</li>
+                <li>Leader boards on the outside edges are priced as their own size</li>
+                <li>Every quote keeps the rates it was priced on, so an old quote never changes when timber does</li>
               </ul>
             </div>
             <div class="shot-pair">
@@ -138,12 +168,13 @@
 
           <div class="feature">
             <div class="feature-copy">
-              <h3>Drawings your customer can sign off</h3>
-              <p>Every quote comes with a proper shop drawing. Plan, front and side elevations at true scale, an isometric view, and an enlarged end detail with every thickness marked.</p>
+              <p class="outcome">Get customer sign-off</p>
+              <h3>A drawing your customer can sign off</h3>
+              <p>Every quote comes with a proper shop drawing: plan, front and side elevations at true scale, an isometric view, and an enlarged end detail with every thickness marked. The customer sees what they're buying and what it costs, nothing more.</p>
               <ul class="ticks">
                 <li>Lettered parts that match the specification table</li>
                 <li>Board widths, gaps, bearer spacing and overall height dimensioned</li>
-                <li>Third-angle projection with a title block, scale and notes</li>
+                <li>Your rates, labour and markup stay on your own copy</li>
               </ul>
             </div>
             <figure class="drawing">
@@ -153,27 +184,45 @@
               <span class="note" style="--x: 14%; --y: 47%; --dx: 1;">Lettered parts</span>
             </figure>
           </div>
+        </div>
+      </section>
 
-          <div class="feature reverse">
-            <div class="feature-copy">
-              <h3>One PDF for the customer, one for you</h3>
-              <p>Send the customer a clean quote with your business details, the drawings, the specification and the total with GST. Keep a cost breakdown for yourself with every metre, your markup and your profit. Both carry the same quote number.</p>
-              <ul class="ticks">
-                <li>The customer copy shows what they're buying and what it costs, nothing more</li>
-                <li>Every quote is saved with the rates it was priced on, so an old quote never changes when timber does</li>
-                <li>Reopen a past quote, or duplicate it at today's rates for a repeat order</li>
-              </ul>
-            </div>
-            <div class="sheets" aria-label="Example quote documents">
-              <figure class="sheet sheet-back">
-                <img src="/src/landing/img/pdf-breakdown.webp" width="1000" height="1414" loading="lazy" alt="Cost breakdown PDF with itemised costs, kept for your records" />
-                <figcaption>Your copy</figcaption>
-              </figure>
-              <figure class="sheet sheet-front">
-                <img src="/src/landing/img/pdf-customer.webp" width="1000" height="1414" loading="lazy" alt="Customer PDF with shop drawings, the specification and the total price" />
-                <figcaption>Customer copy</figcaption>
-              </figure>
-            </div>
+      <!-- What starting a quote involves -->
+      <section class="start" id="start" aria-labelledby="start-title">
+        <div class="wrap start-grid">
+          <div class="start-copy">
+            <h2 id="start-title" class="section-title">What happens when you start a quote</h2>
+            <ol class="start-steps">
+              <li>
+                <h3>It opens in your browser</h3>
+                <p>No account, no card and nothing to install. On a phone you can add it to your home screen and it opens like an app.</p>
+              </li>
+              <li>
+                <h3>You set your rates once</h3>
+                <p>Your price per metre for each timber size, your labour per pallet and your markup. It comes with example prices to get you started; they are not market prices, so put your own in first.</p>
+              </li>
+              <li>
+                <h3>You build the pallet and the price is there</h3>
+                <p>Add the customer's name and the quote gets a number, such as Q2026-0001, and is saved on your device. Mark it sent, accepted or lost, reopen it, or duplicate it for a repeat order.</p>
+              </li>
+              <li>
+                <h3>You export two PDFs</h3>
+                <p><strong>Customer PDF</strong> opens your browser's print window: choose Save as PDF and email it. It has your business details, the drawing, the specification and the total with GST. <strong>Breakdown PDF</strong> is your own copy, with every rate, your markup and your profit. Both carry the same quote number.</p>
+              </li>
+            </ol>
+            <p class="start-account" data-accounts="on"><strong>An account is optional.</strong> Sign in with your email, with no password to remember, and your prices and quotes are backed up online and follow you from one device to the next.</p>
+            <p class="start-account" data-accounts="off"><strong>There are no accounts.</strong> Your prices and quotes stay in the browser on your device. Use Back up to save a copy to a file, which you can load on another device.</p>
+            <a class="btn btn-primary" href="./app/index.html">Start a quote</a>
+          </div>
+          <div class="sheets" aria-label="Example quote documents">
+            <figure class="sheet sheet-back">
+              <img src="/src/landing/img/pdf-breakdown.webp" width="1000" height="1414" loading="lazy" alt="Cost breakdown PDF with itemised costs, kept for your records" />
+              <figcaption>Your copy</figcaption>
+            </figure>
+            <figure class="sheet sheet-front">
+              <img src="/src/landing/img/pdf-customer.webp" width="1000" height="1414" loading="lazy" alt="Customer PDF with shop drawings, the specification and the total price" />
+              <figcaption>Customer copy</figcaption>
+            </figure>
           </div>
         </div>
       </section>
@@ -225,42 +274,15 @@
         </div>
       </section>
 
-      <!-- Smaller details -->
-      <section class="details" aria-labelledby="details-title">
-        <div class="wrap">
-          <h2 id="details-title" class="section-title">The small things that save the most time</h2>
-          <ul class="detail-list">
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
-              <h3>Saved presets</h3>
-              <p>Save the pallets you quote every week and load one with a click. Change the quantity and the quote is done.</p>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-              <h3>Locked prices</h3>
-              <p>Your rates stay put until you unlock them. Update them when the timber invoice changes, then lock them again.</p>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M3 15h18M7 9v6M17 9v6"/></svg>
-              <h3>Leader boards</h3>
-              <p>Wider or thicker boards on the outside edges, with the gaps recalculated and each size priced on its own line.</p>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0"/><path d="M3 3l18 18"/></svg>
-              <h3>Works without signal</h3>
-              <p>Once it's opened, it keeps working in the yard, the truck or the back paddock. Quote now, send it when you're back in range.</p>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-              <h3>Phone, tablet or desk</h3>
-              <p>The same calculator on whatever's in your hand, with the running total pinned to the top of the screen.</p>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2.5"/></svg>
-              <h3>Every quote on file</h3>
-              <p>Quotes are numbered and saved as you send them. Mark them sent, accepted or lost, search by customer, and duplicate one for a repeat order.</p>
-            </li>
-          </ul>
+      <!-- What it costs -->
+      <section class="pricing" id="pricing" aria-labelledby="pricing-title">
+        <div class="wrap pricing-inner">
+          <h2 id="pricing-title" class="section-title">What it costs</h2>
+          <div class="pricing-body">
+            <p class="pricing-now">Free to use at present.</p>
+            <p>No account and no card. The whole calculator is included: quotes, shop drawings and both PDFs.</p>
+            <p>If we introduce paid plans, we will say so clearly here before anything is charged, and you won't be charged unless you agree to it. That is also what the <a href="./terms/index.html">terms</a> say.</p>
+          </div>
         </div>
       </section>
 
@@ -269,6 +291,23 @@
         <div class="wrap faq-grid">
           <h2 id="faq-title" class="section-title">Questions</h2>
           <div class="faq-list">
+            <details>
+              <summary>What does it cost?</summary>
+              <p>Nothing at present. There is no account to create and no card to enter. If paid plans are introduced we will say so on this page before anything is charged, and you won't be charged unless you agree to it.</p>
+            </details>
+            <details>
+              <summary>Do I need an account?</summary>
+              <p data-accounts="on">No. Start a quote and it works straight away, with your prices and quotes kept in the browser on your device. An account is optional: sign in with your email and they are also backed up online and kept in step across your devices.</p>
+              <p data-accounts="off">No. There are no accounts. Start a quote and it works straight away, with your prices and quotes kept in the browser on your device.</p>
+            </details>
+            <details>
+              <summary>How do I send a quote to my customer?</summary>
+              <p>Press Customer PDF. Your browser's print window opens; choose Save as PDF, then email the file or print it. The quote is saved and marked as sent. Pallet Quote does not send email itself.</p>
+            </details>
+            <details class="wide-only">
+              <summary>What is the demo at the top of the page?</summary>
+              <p>It is the real calculator with one sample pallet loaded. You can change the board counts and the quantity and look through every tab, but the size, timber and prices are fixed and it won't save a quote or export a PDF. Press Start a quote for the full calculator.</p>
+            </details>
             <details>
               <summary>Do I need to install anything?</summary>
               <p>No. Open it in the browser on your phone, tablet or computer. On a phone you can add it to your home screen and it opens like an app.</p>
@@ -295,7 +334,8 @@
             </details>
             <details>
               <summary>Where is my data kept?</summary>
-              <p>Prices, presets and saved quotes are stored in the browser on your device. Nothing is sent anywhere. Use Back up to save a copy to a file, which you can import on another device. Keep a backup, because clearing your browser data clears them too.</p>
+              <p data-accounts="on">Prices, presets and saved quotes are stored in the browser on your device, and the calculator works without an account. If you sign in with your email, they are also backed up online and kept in step across your devices. You can save a copy to a file at any time with Back up.</p>
+              <p data-accounts="off">Prices, presets and saved quotes are stored in the browser on your device. Nothing is sent anywhere. Use Back up to save a copy to a file, which you can import on another device. Keep a backup, because clearing your browser data clears them too.</p>
             </details>
           </div>
         </div>
@@ -311,6 +351,7 @@
           <h2 id="final-title">Your next quote is minutes away.</h2>
           <p>Open the calculator, enter the size and choose the timber. The price, the drawing and the PDF come together as you go.</p>
           <a class="btn btn-primary btn-large" href="./app/index.html">Start a quote</a>
+          <p class="final-note">Free at present. No account, no card.</p>
         </div>
       </section>
     </main>
