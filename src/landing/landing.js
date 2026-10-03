@@ -138,24 +138,80 @@ if (!reduceMotion && window.matchMedia('(hover: hover) and (pointer: fine)').mat
   }
 }
 
-/* How it works: on wide screens one screen stays in view while the steps scroll
-   past it, changing to match the step nearest the middle of the window. */
+/* How it works: each step has a small panel showing just the part of the
+   calculator it describes. On wide screens the panels are moved into one stage
+   that stays in view while the steps scroll past; on narrow screens each stays
+   under its step. A panel plays when its step reaches the middle of the window. */
 const steps = [...document.querySelectorAll('.flow-step')]
-const shots = [...document.querySelectorAll('.flow-shot')]
+const scenes = steps.map(step => step.querySelector('.scene'))
+const stage = document.getElementById('flow-screen')
+
+// Figures that count up or type themselves in when their panel plays
+const timers = new WeakMap()
+const settle = (node) => {
+  cancelAnimationFrame(timers.get(node))
+  node.textContent = node.dataset.final
+}
+const run = (node) => {
+  const typed = node.dataset.type !== undefined
+  const target = typed ? node.dataset.type : node.dataset.count
+  const places = typed ? 0 : (target.split('.')[1] || '').length
+  const delay = Number(node.dataset.delay || 0)
+  const length = Number(node.dataset.dur || (typed ? 380 : 700))
+  const show = (p) => {
+    node.textContent = typed
+      ? target.slice(0, Math.round(p * target.length)) || '\u00a0'
+      : (Number(target) * p).toLocaleString('en-AU', { minimumFractionDigits: places, maximumFractionDigits: places })
+  }
+  const began = performance.now()
+  const tick = (now) => {
+    const p = Math.max(0, Math.min(1, (now - began - delay) / length))
+    show(typed ? p : 1 - Math.pow(1 - p, 3))
+    if (p < 1) timers.set(node, requestAnimationFrame(tick))
+    else node.textContent = node.dataset.final
+  }
+  cancelAnimationFrame(timers.get(node))
+  show(0)
+  timers.set(node, requestAnimationFrame(tick))
+}
+for (const node of document.querySelectorAll('.scene [data-count], .scene [data-type]')) {
+  node.dataset.final = node.textContent
+}
+
 if (steps.length && 'IntersectionObserver' in window) {
+  let current = -1
   const show = (index) => {
+    if (index === current) return
+    current = index
     steps.forEach((step, i) => {
       step.classList.toggle('on', i === index)
       step.classList.toggle('done', i < index)
     })
-    shots.forEach((shot, i) => shot.classList.toggle('on', i === index))
+    scenes.forEach((scene, i) => {
+      if (!scene) return
+      const on = i === index
+      scene.classList.toggle('on', on)
+      const figures = scene.querySelectorAll('[data-count], [data-type]')
+      if (on && !reduceMotion) figures.forEach(run)
+      else figures.forEach(settle)
+    })
   }
+
+  // Wide: every panel lives in the stage. Narrow: each sits under its own step.
+  const wide = window.matchMedia('(min-width: 901px)')
+  const place = () => scenes.forEach((scene, i) => {
+    if (scene) (wide.matches && stage ? stage : steps[i]).append(scene)
+  })
+  place()
+  wide.addEventListener?.('change', place)
+
   const watcher = new IntersectionObserver((entries) => {
     for (const entry of entries) {
       if (entry.isIntersecting) show(Number(entry.target.dataset.step))
     }
   }, { rootMargin: '-45% 0px -45% 0px' })
   steps.forEach(step => watcher.observe(step))
+  show(0)
 }
 
 /* Sample documents open in a popup over the page rather than a new tab.

@@ -1090,11 +1090,6 @@ html.accounts-on .sheet [data-accounts="off"] {
   color: var(--ink-2);
 }
 
-/* Only phones show a picture inside each step; wide screens use the stage */
-.flow-inline {
-  display: none;
-}
-
 /* The stage: a blue tile with the screen set into it */
 .flow-stage {
   position: sticky;
@@ -1124,32 +1119,357 @@ html.accounts-on .sheet [data-accounts="off"] {
   box-shadow: 0 30px 60px -34px rgba(6, 20, 70, 0.8);
 }
 
-.flow-shot {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transform: translateY(18px) scale(0.98);
-  transition: opacity 0.45s var(--ease), transform 0.7s var(--ease);
+/* ---------- The panels in How it works ----------
+   Small pieces of the calculator, built here rather than photographed, each
+   showing only what its step is about. Their parts arrive in order when the
+   panel plays (.on). Sizes are in em so a panel scales with its container. */
+
+.scene {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.9em;
+  margin: 0;
+  padding: 1.5em;
+  background: var(--paper);
+  font-size: clamp(11px, 3vw, 14px);
+  line-height: 1.35;
 }
 
-.flow-shot.on {
+/* Under its step, on narrow screens */
+.flow-step > .scene {
+  grid-column: 2;
+  margin-top: 6px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+/* Without script the panels stay under their steps, so the stage is not needed */
+html:not(.js) .flow-stage {
+  display: none;
+}
+
+/* In the stage, on wide screens: all four stacked, the current one showing */
+.flow-screen {
+  container-type: inline-size;
+}
+
+.flow-screen > .scene {
+  position: absolute;
+  inset: 0;
+  padding: 2em;
+  font-size: clamp(11px, 2.45cqw, 16px);
+  opacity: 0;
+  transform: translateY(18px) scale(0.98);
+  transition: opacity 0.4s var(--ease), transform 0.6s var(--ease);
+  pointer-events: none;
+}
+
+.flow-screen > .scene.on {
   opacity: 1;
   transform: none;
 }
 
-.flow-shot img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top left;
+/* Parts of a panel arrive one after another */
+.scene [data-a] {
+  transition: opacity 0.45s var(--ease), transform 0.55s var(--ease);
+  transition-delay: calc(var(--i, 0) * 110ms + 200ms);
 }
 
-/* The last step shows the two PDFs, fanned like sheets on a desk */
-.flow-papers {
+.js .scene:not(.on) [data-a] {
+  opacity: 0;
+  transform: translateY(0.7em);
+  transition-duration: 0.2s;
+  transition-delay: 0s;
+}
+
+.sc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 0.9em;
+  border-radius: 1.1em;
   background: var(--panel);
 }
 
-.flow-papers img {
+.sc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0 0.2em 0.2em;
+}
+
+.sc-head b,
+.sc-row b,
+.sc-field b {
+  font-weight: 500;
+}
+
+.sc-tag {
+  padding: 0.2em 0.8em;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.sc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.6em 0.8em;
+  border-radius: 0.8em;
+  background: var(--paper);
+}
+
+.sc-row small {
+  display: block;
+  color: var(--ink-2);
+  font-size: 0.82em;
+}
+
+.sc-side .sc-row small {
+  display: inline;
+  margin-left: 0.4em;
+}
+
+.sc-val {
+  margin-left: auto;
+  color: var(--ink-2);
+}
+
+.sc-val b {
+  display: inline-block;
+  min-width: 2.4em;
+  color: var(--ink);
+  text-align: right;
+}
+
+.sc-val i {
+  margin-left: 0.3em;
+  font-style: normal;
+  font-size: 0.85em;
+}
+
+/* The padlock closes once its price is in */
+.sc-lock {
+  flex: none;
+  width: 1.3em;
+  height: 1.3em;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.3s ease;
+  transition-delay: calc(var(--i, 0) * 110ms + 500ms);
+}
+
+.sc-lock .shackle {
+  transform-origin: 16px 11px;
+  transition: transform 0.4s var(--ease);
+  transition-delay: calc(var(--i, 0) * 110ms + 500ms);
+}
+
+.js .scene:not(.on) .sc-lock {
+  stroke: var(--ink-3);
+  transition-delay: 0s;
+}
+
+.js .scene:not(.on) .sc-lock .shackle {
+  transform: translateY(-3px) rotate(28deg);
+  transition-delay: 0s;
+}
+
+.sc-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9em;
+}
+
+.sc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  padding: 0.7em 0.9em;
+  border-radius: 0.9em;
+  background: var(--panel);
+}
+
+.sc-field > span,
+.sc-label {
+  color: var(--ink-2);
+  font-size: 0.85em;
+}
+
+.sc-field b {
+  font-size: 1.25em;
+}
+
+.sc-note {
+  color: var(--ink-2);
+  font-size: 0.9em;
+}
+
+/* Size and timber beside the pallet being built */
+.scene-build {
+  flex-direction: row;
+  align-items: center;
+  gap: 1.4em;
+}
+
+.sc-form {
+  display: flex;
+  flex: 0 0 44%;
+  flex-direction: column;
+  gap: 0.8em;
+  min-width: 0;
+}
+
+.sc-size {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.sc-size i,
+.sc-stepper i {
+  color: var(--ink-2);
+  font-style: normal;
+}
+
+.sc-input,
+.sc-select {
+  padding: 0.5em 0.8em;
+  border-radius: 0.7em;
+  background: var(--paper);
+  font-weight: 500;
+}
+
+.sc-input {
+  flex: 1;
+  min-width: 0;
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+.sc-select {
+  font-size: 0.92em;
+}
+
+.sc-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.sc-stepper span {
+  margin-right: auto;
+  color: var(--ink-2);
+  font-size: 0.9em;
+}
+
+.sc-stepper i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.sc-stepper b {
+  min-width: 1.2em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.sc-pallet {
+  flex: 1;
+  min-width: 0;
+  height: auto;
+  overflow: visible;
+}
+
+.sc-pallet polygon {
+  stroke: rgba(91, 74, 52, 0.45);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+}
+
+.w-t { fill: #ecdfc6; }
+.w-l { fill: #d9c39c; }
+.w-r { fill: #c4a676; }
+
+/* Each board drops into place */
+.sc-pallet g {
+  transition: opacity 0.3s ease, transform 0.55s var(--ease);
+  transition-delay: calc(var(--p, 0) * 1ms);
+}
+
+.js .scene:not(.on) .sc-pallet g {
+  opacity: 0;
+  transform: translateY(-28px);
+  transition-duration: 0.2s;
+  transition-delay: 0s;
+}
+
+/* The itemised lines beside the totals */
+.scene-price {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.9em;
+}
+
+.sc-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+}
+
+.scene-price .sc-row {
+  padding-block: 0.45em;
+}
+
+.sc-strong {
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+.sc-total {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  padding: 0.9em 1.1em;
+  border-radius: 1.1em;
+  background: linear-gradient(150deg, var(--blue-top), var(--blue-mid) 60%, var(--blue-low));
+  color: #fff;
+}
+
+.sc-total span:first-child {
+  font-size: 0.85em;
+  opacity: 0.9;
+}
+
+.sc-total b {
+  font-size: 1.9em;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+/* The two PDFs, fanned like sheets on a desk */
+.scene-send {
+  position: relative;
+  display: block;
+  aspect-ratio: 1.6;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.scene-send img {
   position: absolute;
   top: 9%;
   width: 37%;
@@ -1157,27 +1477,44 @@ html.accounts-on .sheet [data-accounts="off"] {
   border-radius: 5px;
   background: #fff;
   box-shadow: 0 24px 50px -22px rgba(6, 20, 70, 0.5);
+  transition: transform 0.9s var(--ease) 0.15s;
 }
 
-.flow-papers img {
-  transition: transform 0.9s var(--ease) 0.1s;
-}
-
-.flow-papers img:first-child {
+.scene-send img:nth-of-type(1) {
   left: 13%;
-  transform: rotate(-11deg) translateX(26px);
+  transform: rotate(-5deg);
 }
 
-.flow-papers img:last-child {
+.scene-send img:nth-of-type(2) {
   left: 48%;
-  transform: rotate(10deg) translateX(-26px);
+  transform: rotate(4deg);
 }
 
-/* The sheets fan apart as the step arrives */
-.flow-papers.on img:first-child,
-.flow-inline.flow-papers img:first-child { transform: rotate(-5deg); }
-.flow-papers.on img:last-child,
-.flow-inline.flow-papers img:last-child { transform: rotate(4deg); }
+.js .scene-send:not(.on) img:nth-of-type(1) { transform: rotate(-13deg) translateX(30px); }
+.js .scene-send:not(.on) img:nth-of-type(2) { transform: rotate(12deg) translateX(-30px); }
+
+.sc-sent {
+  position: absolute;
+  left: 50%;
+  bottom: 9%;
+  translate: -50% 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.55em 1.1em;
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: 0 14px 30px -14px rgba(6, 20, 70, 0.6);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.sc-sent i {
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 50%;
+  background: #1f9d55;
+}
 
 /* ---------- Features ---------- */
 
@@ -2088,6 +2425,7 @@ html:has(dialog[open]) {
   }
 
   .flow-step,
+  .flow-step.done,
   .flow-step:first-child,
   .flow-step:last-child {
     min-height: 0;
@@ -2107,22 +2445,6 @@ html:has(dialog[open]) {
 
   .flow-step:last-child::before {
     display: none;
-  }
-
-  .flow-inline {
-    display: block;
-    grid-column: 2;
-    max-width: 420px;
-    margin: 6px 0 0;
-  }
-
-  .flow-inline.flow-papers {
-    position: relative;
-    aspect-ratio: 1.25;
-    border: 1px solid var(--rule);
-    border-radius: var(--radius);
-    background: var(--paper);
-    overflow: hidden;
   }
 }
 
@@ -2190,8 +2512,18 @@ html:has(dialog[open]) {
     border-top: 1px solid var(--rule);
   }
 
-  .flow-inline:not(.flow-papers) {
-    max-height: 420px;
+  /* Panels with two columns stack */
+  .scene-build {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sc-form {
+    flex-basis: auto;
+  }
+
+  .scene-price {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .flow-step {
@@ -2277,6 +2609,12 @@ html:has(dialog[open]) {
 
   .hero-shot,
   .js .final:not(.in) .final-art .device {
+    transform: none;
+  }
+
+  .js .scene:not(.on) [data-a],
+  .js .scene:not(.on) .sc-pallet g {
+    opacity: 1;
     transform: none;
   }
 }
