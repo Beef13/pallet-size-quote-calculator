@@ -690,7 +690,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 /* The demo: a recording of the calculator being used */
 .demo {
   position: relative;
-  aspect-ratio: 1600 / 826;
+  aspect-ratio: 1600 / 1000;
 }
 
 .demo video {

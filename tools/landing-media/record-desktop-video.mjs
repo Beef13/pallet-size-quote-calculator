@@ -3,7 +3,8 @@ import fs from 'fs';
 const [,, out, scheme='light'] = process.argv;
 const dir=`${out}/frames-${scheme}`; fs.rmSync(dir,{recursive:true,force:true}); fs.mkdirSync(dir,{recursive:true});
 const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium',args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
-const ctx=await b.newContext({viewport:{width:1280,height:660},deviceScaleFactor:1.5,colorScheme:scheme});
+// A 16:10 window, the shape of a laptop screen (it was 1280 x 660, which made a short, wide video)
+const ctx=await b.newContext({viewport:{width:1280,height:800},deviceScaleFactor:1.5,colorScheme:scheme});
 await ctx.addInitScript(()=>{
   addEventListener('DOMContentLoaded',()=>{
     const c=document.createElement('div');
@@ -83,5 +84,7 @@ let list='';
 frames.forEach((f,i)=>{const name=`f${String(i).padStart(5,'0')}.jpg`;fs.writeFileSync(`${dir}/${name}`,Buffer.from(f.data,'base64'));const d=i<frames.length-1?Math.max(0.0005,frames[i+1].v-f.v):0.6;list+=`file '${name}'\nduration ${d.toFixed(4)}\n`});
 list+=`file 'f${String(frames.length-1).padStart(5,'0')}.jpg'\n`;
 fs.writeFileSync(`${dir}/list.txt`,list);
+// The frame to use as the poster: the finished pallet, just before the Quote tab is opened
+const still=frames.findLast(f=>f.v<=vt-5.0)||frames.at(-1); fs.writeFileSync(`${out}/poster-${scheme}.jpg`,Buffer.from(still.data,'base64'));
 await p.screenshot({path:`${out}/rec-end-${scheme}.png`});
 await b.close();
