@@ -34,7 +34,7 @@
       <section class="hero">
         <div class="wrap hero-grid">
           <div class="hero-copy">
-            <h1>Priced to the metre. Drawn to scale. Ready to sign.</h1>
+            <h1><span>Priced to the metre.</span> <span>Drawn to scale.</span> <span>Ready to sign.</span></h1>
             <p class="lede">Type in the size and pick the timber. Pallet Quote counts the boards, sets the gaps and prices every metre at your rates, with your labour and markup on top. Then it draws the job up, so your customer signs off exactly what you're going to build.</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="./app/index.html">Start a quote</a>
@@ -62,6 +62,33 @@
             </div>
             <button class="replay" id="replay" type="button">Build it again</button>
           </figure>
+        </div>
+      </section>
+
+      <!-- The headline's three claims, each shown and linked to its section -->
+      <section class="proof" aria-label="What every quote includes">
+        <div class="wrap proof-grid">
+          <a class="proof-item" href="#priced">
+            <span class="proof-frame"><img src="/src/landing/img/app-quote-panel.webp" width="700" height="1387" alt="The quote tab showing materials, labour, markup, GST and the total" style="object-position: 50% 80%" /></span>
+            <span class="proof-text">
+              <strong>Priced to the metre</strong>
+              <span>Every board and bearer costed on its real length at your own rate, then labour, markup and GST.</span>
+            </span>
+          </a>
+          <a class="proof-item" href="#drawn">
+            <span class="proof-frame"><img src="/src/landing/img/drawing-sheet.webp" width="1400" height="1312" alt="Shop drawing with a dimensioned plan view and an isometric view" style="object-position: 50% 0%" /></span>
+            <span class="proof-text">
+              <strong>Drawn to scale</strong>
+              <span>A proper shop drawing with plan, elevations and an end detail, every gap dimensioned.</span>
+            </span>
+          </a>
+          <a class="proof-item" href="#signed">
+            <span class="proof-frame"><img src="/src/landing/img/pdf-customer.webp" width="1000" height="1414" alt="Customer PDF with the specification table and the total price" style="object-position: 50% 86%" /></span>
+            <span class="proof-text">
+              <strong>Ready to sign</strong>
+              <span>A clean customer PDF with the drawing, the specification and the total. Your costs stay on your copy.</span>
+            </span>
+          </a>
         </div>
       </section>
 
@@ -114,7 +141,7 @@
             </div>
           </div>
 
-          <div class="feature reverse">
+          <div id="priced" class="feature reverse">
             <div class="feature-copy">
               <h3>Priced by the metre, because that's how you buy it</h3>
               <p>Every board and bearer is costed on its real length at your own rate per metre. Add your labour per pallet and your markup, and GST goes on top. Change the size or the quantity and the price moves with it.</p>
@@ -136,7 +163,7 @@
             </div>
           </div>
 
-          <div class="feature">
+          <div id="drawn" class="feature">
             <div class="feature-copy">
               <h3>A drawing they can sign, not a sketch they have to trust</h3>
               <p>Every quote comes with a proper shop drawing: plan, front and side elevations at true scale, an isometric view, and an enlarged end detail with every thickness marked. What they sign is what you build.</p>
@@ -154,7 +181,7 @@
             </figure>
           </div>
 
-          <div class="feature reverse">
+          <div id="signed" class="feature reverse">
             <div class="feature-copy">
               <h3>One PDF for them. One for you.</h3>
               <p>The customer gets a clean quote: your business details, the drawings, the specification and the total with GST. You keep the breakdown: every metre, your markup and your profit. Same quote number on both.</p>

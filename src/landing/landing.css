@@ -268,12 +268,12 @@ a {
 /* ---------- Hero ---------- */
 
 .hero {
-  padding-block: clamp(28px, 6vw, 72px) clamp(48px, 7vw, 96px);
+  padding-block: clamp(28px, 6vw, 72px) clamp(32px, 5vw, 64px);
 }
 
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   align-items: center;
   gap: clamp(28px, 4vw, 56px);
 }
@@ -286,10 +286,16 @@ a {
 }
 
 .hero h1 {
-  font-size: var(--step-4);
+  font-size: clamp(2.2rem, 1.1rem + 3.3vw, 3.6rem);
   font-weight: 600;
   letter-spacing: -0.035em;
-  line-height: 1.02;
+  line-height: 1.04;
+  text-wrap: wrap;
+}
+
+/* One claim per line */
+.hero h1 span {
+  display: block;
 }
 
 .lede {
@@ -511,6 +517,62 @@ a {
 
 .replay:hover {
   color: var(--ink);
+}
+
+/* Proof strip: the headline's three claims, each with the screen that backs it */
+.proof {
+  padding-bottom: clamp(48px, 7vw, 96px);
+}
+
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2.5vw, 32px);
+}
+
+.proof-item {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.proof-frame {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.proof-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s var(--ease);
+}
+
+.proof-item:hover .proof-frame img {
+  transform: scale(1.03);
+}
+
+.proof-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.proof-text strong {
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.proof-text span {
+  color: var(--ink-2);
 }
 
 /* ---------- Sections ---------- */
@@ -1228,6 +1290,20 @@ a {
 
   .hero-stage {
     margin-bottom: 0;
+  }
+
+  .proof-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proof-item {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .proof-frame {
+    flex: 0 0 112px;
+    aspect-ratio: 1;
   }
 
   .calc-row {
