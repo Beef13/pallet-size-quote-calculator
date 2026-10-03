@@ -8,7 +8,7 @@
 import {
   ACESFilmicToneMapping, AmbientLight, CanvasTexture, DirectionalLight, Group, Mesh,
   MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, PMREMGenerator,
-  Scene, SRGBColorSpace, TextureLoader, Vector3, WebGLRenderer
+  Scene, Shape, ShapeGeometry, SRGBColorSpace, TextureLoader, Vector3, WebGLRenderer
 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
@@ -19,6 +19,8 @@ import screenDark from './img/app-desktop-dark.webp'
 // Measurements taken from the model, in its own units (x across, y front to back, z up)
 const HINGE = { y: 1.2639, z: 0.004 }
 const DISPLAY = { halfWidth: 1.742, bottom: 0.15, top: 2.352, y: 1.2619 }
+// Radius of the display's top corners, as a share of its width
+export const CORNER = 0.0109
 const LID_PARTS = ['Aluminum_-_Satin', 'Glass_Clear', 'Steel_-_Satin', 'Steel_-_Satin_NONE']
 
 const clamp = (v) => Math.max(0, Math.min(1, v))
@@ -89,7 +91,21 @@ export async function mountLaptop({ stage, dark }) {
   const screenMat = new MeshBasicMaterial({ map: dark ? darkTex : lightTex, toneMapped: false })
   const width = DISPLAY.halfWidth * 2
   const height = DISPLAY.top - DISPLAY.bottom
-  const screen = new Mesh(new PlaneGeometry(width, height), screenMat)
+  // The display's top corners are rounded to sit evenly inside the lid's own corners
+  const r = CORNER * width
+  const outline = new Shape()
+  outline.moveTo(-width / 2, -height / 2)
+  outline.lineTo(width / 2, -height / 2)
+  outline.lineTo(width / 2, height / 2 - r)
+  outline.absarc(width / 2 - r, height / 2 - r, r, 0, Math.PI / 2, false)
+  outline.lineTo(-width / 2 + r, height / 2)
+  outline.absarc(-width / 2 + r, height / 2 - r, r, Math.PI / 2, Math.PI, false)
+  outline.lineTo(-width / 2, -height / 2)
+  const panel = new ShapeGeometry(outline, 12)
+  const spots = panel.attributes.position
+  const uv = panel.attributes.uv
+  for (let i = 0; i < spots.count; i++) uv.setXY(i, spots.getX(i) / width + 0.5, spots.getY(i) / height + 0.5)
+  const screen = new Mesh(panel, screenMat)
   screen.rotation.x = Math.PI / 2
   screen.position.set(0, DISPLAY.y - HINGE.y, (DISPLAY.top + DISPLAY.bottom) / 2 - HINGE.z)
   lid.add(screen)
@@ -157,7 +173,7 @@ export async function mountLaptop({ stage, dark }) {
     }
     const [left, top] = at(-DISPLAY.halfWidth, DISPLAY.top)
     const [right, bottom] = at(DISPLAY.halfWidth, DISPLAY.bottom)
-    return { left, top, width: right - left, height: bottom - top }
+    return { left, top, width: right - left, height: bottom - top, radius: (right - left) * CORNER }
   }
 
   // Where the base meets the surface once open: the bottom front edge, on the page

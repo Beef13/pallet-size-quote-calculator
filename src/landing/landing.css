@@ -819,6 +819,12 @@ html.accounts-on .sheet [data-accounts="off"] {
 /* The 3D laptop (wide screens, with script and WebGL). The drawn mockup above is what
    shows until the model is ready, and what stays if it never is. The model fills a
    stage; the working calculator is laid exactly over the model's display once open. */
+/* The model's stage sits up close under the hero's words */
+.devices.model-pending,
+.devices.model {
+  margin-top: clamp(-64px, -4.2vw, -34px);
+}
+
 .devices.model-pending .laptop,
 .devices.model .laptop {
   display: block;
@@ -871,7 +877,8 @@ html.accounts-on .sheet [data-accounts="off"] {
   position: absolute;
   width: auto;
   padding: 0;
-  border-radius: 2px;
+  /* Top corners follow the curve of the lid's own corners; script supplies the size */
+  border-radius: var(--screen-radius, 9px) var(--screen-radius, 9px) 0 0;
   background: none;
   box-shadow: none;
   overflow: hidden;

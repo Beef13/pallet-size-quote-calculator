@@ -182,6 +182,7 @@ const placeScreen = () => {
   lidBox.style.top = `${box.top}px`
   lidBox.style.width = `${box.width}px`
   lidBox.style.height = `${box.height}px`
+  lidBox.style.setProperty('--screen-radius', `${box.radius}px`)
   stage.style.setProperty('--ground-y', `${box.ground.y}px`)
   stage.style.setProperty('--base-left', `${box.ground.left}px`)
   stage.style.setProperty('--base-width', `${box.ground.width}px`)
