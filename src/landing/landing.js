@@ -2,9 +2,9 @@ import '@fontsource-variable/outfit'
 import './landing.css'
 import timberData from '../data/timber-prices.json'
 import { deckGapSize, maxDeckBoards, timberCost, formatCurrency } from '../utils/calculations'
-import { setupShowcase } from './showcase'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 function el(name, attrs = {}, parent) {
   const node = document.createElementNS(SVG_NS, name)
@@ -17,6 +17,139 @@ function el(name, attrs = {}, parent) {
 function setMoney(node, value) {
   const [whole, cents] = formatCurrency(value).split('.')
   node.innerHTML = `${whole}<span class="cents">.${cents}</span>`
+}
+
+/* ------------------------------------------------------------------
+   Hero: an isometric 1165 x 1165 pallet that assembles itself while
+   the ticket adds up the price, part by part.
+   ------------------------------------------------------------------ */
+
+function deck(count, boardW, boardT, palletW) {
+  const gap = deckGapSize(palletW, count, boardW)
+  return Array.from({ length: count }, (_, i) => ({ x: i * (boardW + gap), w: boardW, t: boardT }))
+}
+
+function buildHero() {
+  const svg = document.getElementById('hero-pallet')
+  if (!svg) return null
+  svg.innerHTML = ''
+
+  const W = 1165, L = 1165
+  const bottom = deck(3, 100, 19, W)
+  const top = deck(7, 100, 17, W)
+  const bearerH = 100, bearerT = 38
+  const bearerZ = [0, (L - bearerT) / 2, L - bearerT]
+  const y0 = 19, y1 = 19 + bearerH, H = y1 + 17
+
+  // Isometric projection fitted to the 640 x 470 view box
+  const C = Math.cos(Math.PI / 6), S = 0.5
+  const raw = (x, y, z) => [(x - z) * C, (x + z) * S - y]
+  // Sit the pallet up and to the left so the ticket can overlap the corner
+  const k = Math.min(440 / ((W + L) * C), 300 / ((W + L) * S + H))
+  const ox = 250 - ((W - L) * C * k) / 2
+  const oy = 70 + H * k
+  const P = (x, y, z) => { const [u, v] = raw(x, y, z); return [ox + u * k, oy + v * k] }
+  const pts = (...p) => p.map(q => q.join(',')).join(' ')
+
+  // Soft shadow on the floor
+  el('polygon', { class: 'shadow-blob', points: pts(P(-30, 0, -30), P(W + 30, 0, -30), P(W + 30, 0, L + 30), P(-30, 0, L + 30)) }, svg)
+
+  let order = 0
+  const box = (b, cls, delay) => {
+    const g = el('g', { class: `part ${cls}`, style: `--i: ${delay}` }, svg)
+    el('polygon', { class: 'face-left', points: pts(P(b.x0, b.y0, b.z1), P(b.x1, b.y0, b.z1), P(b.x1, b.y1, b.z1), P(b.x0, b.y1, b.z1)) }, g)
+    el('polygon', { class: 'face-right', points: pts(P(b.x1, b.y0, b.z0), P(b.x1, b.y0, b.z1), P(b.x1, b.y1, b.z1), P(b.x1, b.y1, b.z0)) }, g)
+    el('polygon', { class: 'face-top', points: pts(P(b.x0, b.y1, b.z0), P(b.x1, b.y1, b.z0), P(b.x1, b.y1, b.z1), P(b.x0, b.y1, b.z1)) }, g)
+    order++
+    return g
+  }
+
+  // Draw back to front, bottom layer up (painter's algorithm)
+  bottom.forEach((b, i) => box({ x0: b.x, x1: b.x + b.w, y0: 0, y1: b.t, z0: 0, z1: L }, 'board', 80 + i * 110))
+  bearerZ.forEach((z, i) => box({ x0: 0, x1: W, y0, y1, z0: z, z1: z + bearerT }, 'bearer', 760 + i * 130))
+  top.forEach((b, i) => box({ x0: b.x, x1: b.x + b.w, y0: y1, y1: y1 + b.t, z0: 0, z1: L }, 'board', 1460 + i * 105))
+
+  // Nail heads where each top board crosses a bearer
+  const nails = el('g', {}, svg)
+  top.forEach((b, i) => bearerZ.forEach(z => [0.25, 0.75].forEach(f => {
+    const [cx, cy] = P(b.x + b.w * f, y1 + b.t, z + bearerT / 2)
+    el('ellipse', { class: 'nail', cx, cy, rx: 1.6, ry: 0.95, style: `--i: ${2250 + i * 25}` }, nails)
+  })))
+
+  // Dimension lines along the two near edges
+  const dim = (a, b, off, label, delay) => {
+    const g = el('g', { class: 'dim', style: `--i: ${delay}` }, svg)
+    const [ax, ay] = P(...a), [bx, by] = P(...b)
+    const [oxA, oyA] = P(...off.a), [oxB, oyB] = P(...off.b)
+    el('line', { x1: ax, y1: ay, x2: oxA, y2: oyA }, g)
+    el('line', { x1: bx, y1: by, x2: oxB, y2: oyB }, g)
+    el('line', { x1: oxA, y1: oyA, x2: oxB, y2: oyB }, g)
+    const ang = Math.atan2(oyB - oyA, oxB - oxA) * 180 / Math.PI
+    for (const [tx, ty] of [[oxA, oyA], [oxB, oyB]]) {
+      el('path', { d: `M${tx - 4} ${ty + 4} L${tx + 4} ${ty - 4}`, transform: `rotate(${ang + 45 - 45} ${tx} ${ty})` }, g)
+    }
+    const mx = (oxA + oxB) / 2, my = (oyA + oyB) / 2
+    const upright = ang > 90 || ang < -90 ? ang + 180 : ang
+    const t = el('text', { x: mx, y: my - 8, 'text-anchor': 'middle', transform: `rotate(${upright} ${mx} ${my})` }, g)
+    t.textContent = label
+  }
+  const g = 150
+  dim([0, 0, L], [W, 0, L], { a: [0, 0, L + g], b: [W, 0, L + g] }, '1165', 2450)
+  dim([W, 0, 0], [W, 0, L], { a: [W + g, 0, 0], b: [W + g, 0, L] }, '1165', 2600)
+
+  return svg
+}
+
+const ticketSteps = [
+  { at: 520, add: 2.62 },
+  { at: 1250, add: 5.24 },
+  { at: 2250, add: 5.06 }
+]
+const QTY = 250
+
+function playHero() {
+  const svg = buildHero()
+  const ticket = document.getElementById('ticket')
+  const total = document.getElementById('ticket-total')
+  if (!svg || !ticket || !total) return
+
+  const lines = [...ticket.querySelectorAll('.ticket-lines li')]
+  const finalTotal = ticketSteps.reduce((s, x) => s + x.add, 0) * QTY
+
+  if (reduceMotion) {
+    setMoney(total, finalTotal)
+    return
+  }
+
+  svg.classList.remove('building')
+  void svg.getBoundingClientRect()
+  svg.classList.add('building')
+
+  ticket.classList.add('pending')
+  lines.forEach(li => li.classList.remove('in'))
+  setMoney(total, 0)
+
+  let shown = 0
+  const tween = (from, to, ms) => {
+    const start = performance.now()
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / ms)
+      const e = 1 - Math.pow(1 - p, 3)
+      setMoney(total, from + (to - from) * e)
+      if (p < 1) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }
+
+  ticketSteps.forEach((step, i) => {
+    setTimeout(() => {
+      lines[i]?.classList.add('in')
+      const from = shown
+      shown += step.add * QTY
+      tween(from, shown, 520)
+      if (i === ticketSteps.length - 1) setTimeout(() => ticket.classList.remove('pending'), 600)
+    }, step.at)
+  })
 }
 
 /* ------------------------------------------------------------------
@@ -107,6 +240,13 @@ for (const node of document.querySelectorAll('[data-accounts]')) {
   if ((node.dataset.accounts === 'on') !== accountsOn) node.remove()
 }
 
+buildHero()
+setMoney(document.getElementById('ticket-total'), ticketSteps.reduce((s, x) => s + x.add, 0) * QTY)
 setupCalculator()
-setupShowcase()
 
+// Play the build once the fonts are in, so the ticket doesn't reflow mid-way
+const start = () => playHero()
+if (document.fonts?.ready) document.fonts.ready.then(start)
+else start()
+
+document.getElementById('replay')?.addEventListener('click', playHero)

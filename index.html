@@ -30,25 +30,38 @@
     </header>
 
     <main id="main">
-      <!-- Hero: the claim, then the calculator itself -->
+      <!-- Hero: the pallet builds itself and the price adds up as each part lands -->
       <section class="hero">
-        <div class="wrap">
+        <div class="wrap hero-grid">
           <div class="hero-copy">
-            <h1>Pallet quotes, priced and drawn in minutes.</h1>
-            <p class="lede">Enter a size and pick your timber. Pallet Quote works out the boards, the gaps and the cost per metre, adds your labour and markup, and draws it up for your customer to sign off.</p>
+            <h1>Price the pallet before the customer hangs up.</h1>
+            <p class="lede">Enter a size and pick your timber. Pallet Quote works out the boards, the gaps and the cost per metre, then draws it up for your customer to sign off. Turn an enquiry into a professional quote in minutes.</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="./app/index.html">Start a quote</a>
               <a class="btn btn-ghost" href="#how">See how it works</a>
             </div>
             <p class="hero-note">Runs in your browser on a phone, tablet or computer. Nothing to install, and it keeps working without signal.</p>
           </div>
-          <div class="hero-shot">
-            <picture>
-              <source srcset="/src/landing/img/app-hero-dark.webp" media="(prefers-color-scheme: dark)" />
-              <img src="/src/landing/img/app-hero.webp" width="2000" height="1357" fetchpriority="high"
-                alt="The Pallet Quote calculator: timber chosen for each part on the left, a 3D model of the pallet with its dimensions on the right, and the price in the corner" />
-            </picture>
-          </div>
+
+          <figure class="hero-stage" aria-label="A 1165 by 1165 millimetre pallet being priced as it is built">
+            <svg id="hero-pallet" class="hero-pallet" viewBox="0 0 640 470" role="img" aria-hidden="true"></svg>
+            <div class="ticket" id="ticket">
+              <div class="ticket-head">
+                <span>1165 × 1165 mm pallet</span>
+                <span class="ticket-qty">× 250</span>
+              </div>
+              <ol class="ticket-lines" id="ticket-lines">
+                <li data-step="0"><span>Bottom boards <em>3 × 100 × 19</em></span><b>$2.62</b></li>
+                <li data-step="1"><span>Bearers <em>3 × 100 × 38</em></span><b>$5.24</b></li>
+                <li data-step="2"><span>Top boards <em>7 × 100 × 17</em></span><b>$5.06</b></li>
+              </ol>
+              <div class="ticket-total">
+                <span>Timber for 250 pallets</span>
+                <strong id="ticket-total">$3,230.00</strong>
+              </div>
+            </div>
+            <button class="replay" id="replay" type="button">Build it again</button>
+          </figure>
         </div>
       </section>
 
@@ -66,55 +79,101 @@
               <p>A drawing on the back of a docket that only you can read, sent to a customer who won't sign off what they can't picture.</p>
             </article>
             <article>
-              <h3>The wait</h3>
-              <p>Working it out by hand takes the evening. By the time the quote goes out, the customer has already asked someone else.</p>
+              <h3>The callback</h3>
+              <p>“Let me work it out and get back to you.” By the time you ring back with a number, they've already asked someone else.</p>
             </article>
           </div>
-          <p class="turn">Pallet Quote does all three in a few minutes.</p>
+          <p class="turn">Pallet Quote does all three while you're still on the phone.</p>
         </div>
       </section>
 
-      <!-- Showcase: one quote, played by the scroll, in pieces of the real app -->
-      <section class="show" id="how" aria-labelledby="show-title">
-        <header class="show-head wrap">
-          <h2 id="show-title">A full quote in six short steps.</h2>
-          <p>Every piece you're about to see is the calculator itself, making one quote for 250 pallets.</p>
-        </header>
-        <div class="show-track">
-          <div class="show-pin">
-            <ol class="show-steps">
-              <li class="show-step">
-                <span class="show-count">Step 1</span>
-                <h3>Type the size.</h3>
-                <p>Width and length, or load a preset for the pallets you make every week. The pallet is outlined to scale as soon as you finish typing.</p>
-              </li>
-              <li class="show-step">
-                <span class="show-count">Step 2</span>
-                <h3>Pick the timber, part by part.</h3>
-                <p>Each part appears in the 3D model as you choose it, with its cost beside it, priced on its real length at your rate per metre.</p>
-              </li>
-              <li class="show-step">
-                <span class="show-count">Step 3</span>
-                <h3>Change it as often as you like.</h3>
-                <p>Add a board and the rest re-space themselves: the gaps go from 78 mm to 33, and the price follows. It never lets you fit more than the width allows.</p>
-              </li>
-              <li class="show-step">
-                <span class="show-count">Step 4</span>
-                <h3>The price is already worked out.</h3>
-                <p>Set your labour and markup once. Every quote adds them, multiplies by the quantity and puts GST on top.</p>
-              </li>
-              <li class="show-step">
-                <span class="show-count">Step 5</span>
-                <h3>So is the drawing.</h3>
-                <p>Plan, elevations, an isometric view and an enlarged end detail at true scale, each part lettered to match the list. Nothing to sketch.</p>
-              </li>
-              <li class="show-step">
-                <span class="show-count">Step 6</span>
-                <h3>Two PDFs, numbered and saved.</h3>
-                <p>One for the customer with the drawings and the total. One for you with every metre, your markup and your profit. Both are kept in History.</p>
-              </li>
-            </ol>
-            <div class="show-stage" id="show-stage" aria-hidden="true"></div>
+      <!-- How it works: four real screens -->
+      <section class="how" id="how" aria-labelledby="how-title">
+        <div class="wrap">
+          <h2 id="how-title" class="section-title">From a phone call to a signed-off quote</h2>
+
+          <div class="feature">
+            <div class="feature-copy">
+              <h3>Build it and watch it take shape</h3>
+              <p>Pick the timber and size for the bottom boards, bearers and top deck. The pallet appears in 3D as you go, to scale, with the gaps worked out and dimensioned.</p>
+              <ul class="ticks">
+                <li>It never lets you fit more boards than the width allows</li>
+                <li>Different leader boards on the outside edges, priced separately</li>
+                <li>Drag to turn it round and show the customer exactly what they're getting</li>
+              </ul>
+            </div>
+            <div class="shot shot-wide annotated">
+              <picture>
+                <source srcset="/src/landing/img/app-build-dark.webp" media="(prefers-color-scheme: dark)" />
+                <img src="/src/landing/img/app-build.webp" width="2000" height="1250" loading="lazy"
+                  alt="The Pallet Quote builder with each section ticked off, top boards and leader boards chosen, a 3D pallet and a total for 250 pallets" />
+              </picture>
+              <span class="note" style="--x: 25.7%; --y: 54%; --dx: -1;">Cost of each part</span>
+              <span class="note" style="--x: 88.5%; --y: 11%; --dx: -1;">Total for any quantity</span>
+              <span class="note" style="--x: 64%; --y: 52%; --dx: 1;">Live 3D, drawn to scale</span>
+            </div>
+          </div>
+
+          <div class="feature reverse">
+            <div class="feature-copy">
+              <h3>Priced per metre, the way you buy timber</h3>
+              <p>Every board and bearer is costed on its real length at your own rate per metre. Add your labour per pallet and your markup, and GST goes on top. Change the size or the quantity and the price follows.</p>
+              <ul class="ticks">
+                <li>Markup and the gross margin it gives, side by side</li>
+                <li>Timber prices are locked until you unlock them, so nobody changes one by accident</li>
+                <li>Each line shows the count, the size and the length it was priced on</li>
+              </ul>
+            </div>
+            <div class="shot-pair">
+              <div class="shot">
+                <img src="/src/landing/img/app-prices.webp" width="700" height="1387" loading="lazy"
+                  alt="The prices tab listing board sizes with a price per metre and a lock beside each" />
+              </div>
+              <div class="shot">
+                <img src="/src/landing/img/app-quote-panel.webp" width="700" height="1387" loading="lazy"
+                  alt="The quote tab with each part and its cost, then materials, labour, markup, GST and the total for 250 pallets" />
+              </div>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-copy">
+              <h3>Drawings your customer can sign off</h3>
+              <p>Every quote comes with a proper shop drawing. Plan, front and side elevations at true scale, an isometric view, and an enlarged end detail with every thickness marked.</p>
+              <ul class="ticks">
+                <li>Lettered parts that match the specification table</li>
+                <li>Board widths, gaps, bearer spacing and overall height dimensioned</li>
+                <li>Third-angle projection with a title block, scale and notes</li>
+              </ul>
+            </div>
+            <figure class="drawing">
+              <img src="/src/landing/img/drawing-sheet.webp" width="1400" height="1312" loading="lazy"
+                alt="Shop drawing of a 1165 by 1165 pallet with plan, elevations, isometric view, end detail and title block" />
+              <span class="note" style="--x: 21%; --y: 53%; --dx: 1;">Red callout links to the detail</span>
+              <span class="note" style="--x: 14%; --y: 47%; --dx: 1;">Lettered parts</span>
+            </figure>
+          </div>
+
+          <div class="feature reverse">
+            <div class="feature-copy">
+              <h3>One PDF for the customer, one for you</h3>
+              <p>Send the customer a clean quote with your business details, the drawings, the specification and the total with GST. Keep a cost breakdown for yourself with every metre, your markup and your profit. Both carry the same quote number.</p>
+              <ul class="ticks">
+                <li>The customer copy shows what they're buying and what it costs, nothing more</li>
+                <li>Every quote is saved with the rates it was priced on, so an old quote never changes when timber does</li>
+                <li>Reopen a past quote, or duplicate it at today's rates for a repeat order</li>
+              </ul>
+            </div>
+            <div class="sheets" aria-label="Example quote documents">
+              <figure class="sheet sheet-back">
+                <img src="/src/landing/img/pdf-breakdown.webp" width="1000" height="1414" loading="lazy" alt="Cost breakdown PDF with itemised costs, kept for your records" />
+                <figcaption>Your copy</figcaption>
+              </figure>
+              <figure class="sheet sheet-front">
+                <img src="/src/landing/img/pdf-customer.webp" width="1000" height="1414" loading="lazy" alt="Customer PDF with shop drawings, the specification and the total price" />
+                <figcaption>Customer copy</figcaption>
+              </figure>
+            </div>
           </div>
         </div>
       </section>
