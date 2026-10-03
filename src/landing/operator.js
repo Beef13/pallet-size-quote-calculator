@@ -15,5 +15,13 @@ export const accounts = {
   dataRegion: 'Sydney, Australia'
 }
 
+// Paid subscriptions. Follows the build: when VITE_STRIPE_PAYMENT_LINK is set (the Stripe
+// payment link customers subscribe through), the Terms and Privacy pages show the payment
+// wording in place of "free at the moment". Leave it unset and nothing mentions payment.
+export const billing = {
+  enabled: Boolean(import.meta.env.VITE_STRIPE_PAYMENT_LINK),
+  link: import.meta.env.VITE_STRIPE_PAYMENT_LINK || ''
+}
+
 // Shown at the top of both pages. Change it whenever the wording changes.
 export const lastUpdated = '3 October 2026'

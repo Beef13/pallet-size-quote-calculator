@@ -43,7 +43,8 @@
             <li>The drawings show layout and dimensions. They are not an engineering design or a load rating.</li>
             <li data-accounts="off">Your quotes and prices are stored on your own device. Keep a backup, because we can't recover them for you.</li>
             <li data-accounts="on">Your quotes and prices are stored on your own device, and in your account if you sign in. Keep a backup either way.</li>
-            <li>It's free to use at the moment.</li>
+            <li data-billing="off">It's free to use at the moment.</li>
+            <li data-billing="on">A subscription is paid in advance and renews until you cancel. You can cancel at any time.</li>
           </ul>
         </div>
 
@@ -72,8 +73,20 @@
         <p data-accounts="on">Your prices, timber list, presets, business details, logo and saved quotes are stored in the browser on your device. If you choose to sign in, they are also stored in your account so they are backed up and available on your other devices. If you don't sign in, they are not sent to us, and we can't see or recover them.</p>
         <p>Data on a device can be lost if you clear your browser data, use private browsing, change browser or change device. Use the backup option to save a copy regularly. Keeping a backup is your responsibility<span data-accounts="on">, including if you use an account</span>. Our <a href="../privacy/index.html">privacy policy</a> has more detail.</p>
 
-        <h2>6. Cost</h2>
-        <p>Pallet Quote is free to use at the moment. If we introduce paid plans, we will say so clearly before anything is charged, and you won't be charged unless you agree to it.</p>
+        <h2 data-billing="off">6. Cost</h2>
+        <p data-billing="off">Pallet Quote is free to use at the moment. If we introduce paid plans, we will say so clearly before anything is charged, and you won't be charged unless you agree to it.</p>
+
+        <h2 data-billing="on">6. Subscriptions and payment</h2>
+        <p data-billing="on">Pallet Quote is sold as a subscription. The price, the billing period and whether GST is included are shown on the payment page before you pay. Prices are in Australian dollars.</p>
+        <ul data-billing="on">
+          <li><strong>Paying.</strong> Payment is taken by card through Stripe, our payment provider. You pay in advance for each billing period. We don't see or store your full card details.</li>
+          <li><strong>Renewal.</strong> Your subscription renews automatically at the end of each billing period, and your card is charged for the next one, until you cancel.</li>
+          <li><strong>Cancelling.</strong> You can cancel at any time by emailing <span data-op="email"></span>. Cancelling stops future charges. Your subscription runs to the end of the period you have already paid for.</li>
+          <li><strong>Refunds.</strong> We don't refund a period that has already started just because you changed your mind or didn't use it. This doesn't affect your rights under the Australian Consumer Law (section 10): if Pallet Quote has a major problem we can't fix, you are entitled to a refund.</li>
+          <li><strong>Failed payments.</strong> If a payment fails we will try again and let you know. If it still can't be collected, your subscription may end.</li>
+          <li><strong>Price changes.</strong> If we change the price, we will email you at least 30 days before it applies to you. The new price applies from your next renewal after that, and you can cancel before then.</li>
+        </ul>
+        <p data-billing="on">The data on your device stays yours whether or not you have a subscription. Keep a backup before you cancel.</p>
 
         <h2>7. Changes and availability</h2>
         <p>We may add, change or remove features, and we may suspend or stop providing Pallet Quote. Once it has loaded it is designed to keep working without an internet connection, but we don't promise that it will always be available or free of errors.</p>
