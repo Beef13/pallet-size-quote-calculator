@@ -94,7 +94,8 @@ export async function mountLaptop({ stage, dark }) {
   screen.position.set(0, DISPLAY.y - HINGE.y, (DISPLAY.top + DISPLAY.bottom) / 2 - HINGE.z)
   lid.add(screen)
 
-  // A soft shadow on the surface under the base
+  // A soft shadow on the surface under the base, kept inside the laptop's outline so
+  // the edge of the drawing never cuts it
   const blot = document.createElement('canvas')
   blot.width = blot.height = 256
   const ctx = blot.getContext('2d')
@@ -104,7 +105,7 @@ export async function mountLaptop({ stage, dark }) {
   ctx.fillStyle = fade
   ctx.fillRect(0, 0, 256, 256)
   const shadow = new Mesh(
-    new PlaneGeometry(4.6, 3.1),
+    new PlaneGeometry(3.8, 2.9),
     new MeshBasicMaterial({ map: new CanvasTexture(blot), transparent: true, depthWrite: false, toneMapped: false })
   )
   shadow.rotation.x = -Math.PI / 2
@@ -138,7 +139,9 @@ export async function mountLaptop({ stage, dark }) {
     // The display is dark until the lid is most of the way up
     const wake = part(p, 0.45, 0.8)
     screenMat.color.setScalar(wake)
-    shadow.material.opacity = 0.55 + round * 0.45
+    // This shadow is for the view from above. Open, the page draws a wider one under
+    // the base, which the edge of the drawing cannot cut off.
+    shadow.material.opacity = 1 - round
     ask()
   }
 

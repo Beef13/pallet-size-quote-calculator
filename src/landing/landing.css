@@ -827,6 +827,32 @@ html.accounts-on .sheet [data-accounts="off"] {
   aspect-ratio: 1.31;
 }
 
+/* The shadow under the open laptop. It is drawn by the page, wider than the model's
+   stage, so nothing cuts it off; it comes in as the view reaches the front. */
+.devices.model .laptop::after {
+  content: '';
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: -1.5%;
+  height: 11%;
+  background: radial-gradient(closest-side, rgba(6, 20, 70, 0.34), rgba(6, 20, 70, 0.12) 55%, transparent);
+  opacity: calc((var(--p, 0) - 0.6) * 2.5);
+  pointer-events: none;
+}
+
+.devices.model .laptop-canvas {
+  z-index: 1;
+}
+
+.devices.model .laptop-lid {
+  z-index: 2;
+}
+
+.devices.model .handset {
+  z-index: 3;
+}
+
 .laptop-canvas {
   position: absolute;
   inset: 0;

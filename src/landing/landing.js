@@ -172,6 +172,7 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v))
 const showAt = (p) => {
   model.pose(p)
   devices.classList.toggle('is-open', p >= 0.995)
+  devices.style.setProperty('--p', p.toFixed(3))
   const t = clamp01((p - 0.86) / 0.14)
   devices.style.setProperty('--phone', (1 - Math.pow(1 - t, 3)).toFixed(3))
 }
