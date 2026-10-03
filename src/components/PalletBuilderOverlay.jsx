@@ -1302,7 +1302,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       await signInWithEmail(signInEmail)
       setSignInState({ busy: false, sent: true, error: '' })
     } catch (err) {
-      setSignInState({ busy: false, sent: false, error: err.message || 'The sign-in link could not be sent.' })
+      setSignInState({ busy: false, sent: false, error: err.message || 'The log-in link could not be sent.' })
     }
   }
   const handleGoogleSignIn = async () => {
@@ -1584,8 +1584,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             {accountsEnabled && (
               <button type="button" className={`icon-btn account-btn ${signedIn ? `is-${account.status}` : ''}`} data-account-button
                 onClick={() => { setAccountMode('signin'); setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
-                title={signedIn ? `Signed in as ${account.email}` : 'Sign in to back up and sync'}
-                aria-label={signedIn ? `Account, signed in as ${account.email}` : 'Sign in to back up and sync'}>
+                title={signedIn ? `Logged in as ${account.email}` : 'Log in to back up and sync'}
+                aria-label={signedIn ? `Account, logged in as ${account.email}` : 'Log in to back up and sync'}>
                 <Icon name="user" />
                 {signedIn && <span className="account-dot" aria-hidden="true" />}
               </button>
@@ -2329,11 +2329,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <button type="button" className="text-btn" onClick={dismissNotice}>OK</button>
                   </p>
                 )}
-                <p>Your prices, presets, business details and saved quotes are stored in your account and kept in step across the devices you sign in on.</p>
+                <p>Your prices, presets, business details and saved quotes are stored in your account and kept in step across the devices you log in on.</p>
                 {signInState.error && <p className="account-error" role="alert">{signInState.error}</p>}
                 {confirmDeleteOnline ? (
                   <div className="account-danger">
-                    <p>This removes everything stored in your account and signs you out. What's on this device stays here. It can't be undone.</p>
+                    <p>This removes everything stored in your account and logs you out. What's on this device stays here. It can't be undone.</p>
                     <div className="modal-actions">
                       <button type="button" className="btn btn-quiet" onClick={() => setConfirmDeleteOnline(false)}>Keep it</button>
                       <button type="button" className="btn btn-danger" onClick={handleDeleteOnline}>Delete online data</button>
@@ -2342,7 +2342,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 ) : (
                   <>
                     <div className="modal-actions">
-                      <button type="button" className="btn btn-quiet" onClick={() => { signOut(); setShowAccount(false) }}>Sign out</button>
+                      <button type="button" className="btn btn-quiet" onClick={() => { signOut(); setShowAccount(false) }}>Log out</button>
                       <button type="button" className="btn btn-secondary" onClick={syncNow} disabled={account.status === 'syncing'}>Sync now</button>
                       <button type="button" className="btn btn-primary" onClick={() => setShowAccount(false)}>Done</button>
                     </div>
@@ -2352,13 +2352,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               </>
             ) : (
               <>
-                <h3 id="account-title">{accountMode === 'signup' ? 'Create your account' : 'Sign in to back up and sync'}</h3>
+                <h3 id="account-title">{accountMode === 'signup' ? 'Create your account' : 'Log in to back up and sync'}</h3>
                 <p>{accountMode === 'signup'
                   ? 'Enter your email and we will send you a link to get started. Your prices, presets and quotes are then saved to your account and kept in step across your devices.'
-                  : 'Your prices, presets and quotes are saved to your account and kept in step across your devices. Pallet Quote still works without signing in.'}</p>
+                  : 'Your prices, presets and quotes are saved to your account and kept in step across your devices. Pallet Quote still works without logging in.'}</p>
                 {signInState.sent ? (
                   <>
-                    <p className="account-sent" role="status">Check your inbox at <strong>{signInEmail.trim()}</strong> for a sign-in link. Open it on this device to finish.</p>
+                    <p className="account-sent" role="status">Check your inbox at <strong>{signInEmail.trim()}</strong> for a link. Open it on this device to finish.</p>
                     <div className="modal-actions">
                       <button type="button" className="btn btn-quiet" onClick={() => setSignInState({ busy: false, sent: false, error: '' })}>Use a different email</button>
                       <button type="button" className="btn btn-primary" onClick={() => setShowAccount(false)}>Done</button>
@@ -2376,14 +2376,14 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <div className="modal-actions">
                       <button type="button" className="btn btn-quiet" onClick={() => setShowAccount(false)}>Not now</button>
                       <button type="submit" className="btn btn-primary" disabled={!signInEmail.trim() || signInState.busy || !account.ready}>
-                        {signInState.busy ? 'Sending…' : accountMode === 'signup' ? 'Email me a sign-up link' : 'Email me a sign-in link'}
+                        {signInState.busy ? 'Sending…' : accountMode === 'signup' ? 'Email me a sign-up link' : 'Email me a log-in link'}
                       </button>
                     </div>
                     {googleSignInEnabled && (
-                      <button type="button" className="btn btn-secondary account-google" onClick={handleGoogleSignIn} disabled={!account.ready}>{accountMode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}</button>
+                      <button type="button" className="btn btn-secondary account-google" onClick={handleGoogleSignIn} disabled={!account.ready}>{accountMode === 'signup' ? 'Sign up with Google' : 'Log in with Google'}</button>
                     )}
                     <p className="account-legal">
-                      No password needed. By {accountMode === 'signup' ? 'creating an account' : 'signing in'} you agree to the <a href="../terms/index.html" target="_blank" rel="noopener">terms</a> and <a href="../privacy/index.html" target="_blank" rel="noopener">privacy policy</a>.
+                      No password needed. By {accountMode === 'signup' ? 'creating an account' : 'logging in'} you agree to the <a href="../terms/index.html" target="_blank" rel="noopener">terms</a> and <a href="../privacy/index.html" target="_blank" rel="noopener">privacy policy</a>.
                     </p>
                   </form>
                 )}
