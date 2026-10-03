@@ -585,13 +585,12 @@ html.accounts-on .sheet [data-accounts="off"] {
   border-radius: 6px;
   background: #fff;
   box-shadow: 0 24px 44px -22px rgba(6, 20, 70, 0.75);
-  transition: transform 0.4s var(--ease);
+  transition: transform 0.4s var(--ease), scale 0.4s var(--ease);
 }
 
 .hero-pdf img {
   width: 100%;
   border-radius: 3px;
-  transition: filter 0.25s ease;
 }
 
 .hero-pdf-back {
@@ -620,6 +619,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 .hero-pdf:hover,
 .hero-pdf:focus-visible {
   z-index: 5;
+  scale: 1.07;
 }
 
 /* An expand mark in the middle of the page under the pointer: pressing opens it in full */
@@ -655,11 +655,6 @@ html.accounts-on .sheet [data-accounts="off"] {
 .hero-pdf:focus-visible .hero-pdf-tag {
   opacity: 1;
   scale: 1;
-}
-
-.hero-pdf:hover img,
-.hero-pdf:focus-visible img {
-  filter: brightness(0.93);
 }
 
 /* Where there is no room for the pages, a plain link to the sample instead */
