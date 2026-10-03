@@ -182,11 +182,12 @@ const onScroll = () => {
       const u = Math.min(1, p / 0.82)
       const open = u * u * (3 - 2 * u)
       const phone = ease(Math.max(0, (p - 0.7) / 0.3))
-      // How far the lid's top sits above the hinge at this angle, as the eye sees it
-      // (3200 is the viewing distance set in the stylesheet)
+      // How high the lid stands above the hinge at this angle: the screen face
+      // foreshortens while the lid's top edge comes into view
       const h = lidEl.offsetHeight
+      const edge = lidEl.querySelector('.lid-edge')?.offsetHeight || 0
       const tilt = (1 - open) * Math.PI / 2
-      const seen = h * Math.cos(tilt) * 3200 / (3200 - h * Math.sin(tilt))
+      const seen = h * Math.cos(tilt) + edge * Math.sin(tilt)
       devices.style.setProperty('--open', open.toFixed(3))
       devices.style.setProperty('--phone', phone.toFixed(3))
       devices.style.setProperty('--lift', Math.max(0, h - seen).toFixed(1))
