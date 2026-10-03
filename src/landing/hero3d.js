@@ -160,6 +160,20 @@ export async function mountLaptop({ stage, dark }) {
     return { left, top, width: right - left, height: bottom - top }
   }
 
+  // Where the base meets the surface once open: the bottom front edge, on the page
+  const ground = () => {
+    const w = stage.clientWidth
+    const h = stage.clientHeight
+    const at = (x) => {
+      corner.set(x, -1.24, -0.135)
+      body.localToWorld(corner).project(camera)
+      return [(corner.x + 1) / 2 * w, (1 - corner.y) / 2 * h]
+    }
+    const [left, y] = at(-1.78)
+    const [right] = at(1.78)
+    return { left, width: right - left, y }
+  }
+
   const resize = () => {
     const w = stage.clientWidth
     const h = stage.clientHeight
@@ -187,6 +201,7 @@ export async function mountLaptop({ stage, dark }) {
       scene.updateMatrixWorld(true)
       camera.updateMatrixWorld(true)
       const box = rect()
+      box.ground = ground()
       pose(was)
       return box
     },

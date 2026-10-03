@@ -827,16 +827,22 @@ html.accounts-on .sheet [data-accounts="off"] {
   aspect-ratio: 1.31;
 }
 
-/* The shadow under the open laptop. It is drawn by the page, wider than the model's
-   stage, so nothing cuts it off; it comes in as the view reaches the front. */
+/* The shadow under the open laptop, drawn by the page so the model's stage cannot cut
+   it. It starts on the line where the base meets the surface (script supplies that
+   line) and is darkest there, so the laptop reads as resting on the surface rather
+   than hovering: a tight dark contact shadow, with a softer one spreading out below. */
 .devices.model .laptop::after {
   content: '';
   position: absolute;
-  left: -4%;
-  right: -4%;
-  bottom: -1.5%;
-  height: 11%;
-  background: radial-gradient(closest-side, rgba(6, 20, 70, 0.34), rgba(6, 20, 70, 0.12) 55%, transparent);
+  left: calc(var(--base-left, 4%) - var(--base-width, 92%) * 0.06);
+  width: calc(var(--base-width, 92%) * 1.12);
+  /* Tucked a few pixels up behind the base, so no gap shows under it */
+  top: calc(var(--ground-y, 92%) - 5px);
+  height: calc(var(--base-width, 92%) * 0.075);
+  background:
+    radial-gradient(ellipse 46.5% 11% at 50% 0, rgba(3, 9, 34, 0.85), rgba(3, 9, 34, 0.45) 55%, transparent),
+    radial-gradient(ellipse 48% 38% at 50% 0, rgba(4, 12, 44, 0.34), rgba(4, 12, 44, 0.12) 60%, transparent),
+    radial-gradient(ellipse 50% 100% at 50% 0, rgba(6, 20, 70, 0.2), rgba(6, 20, 70, 0.06) 60%, transparent);
   opacity: calc((var(--p, 0) - 0.6) * 2.5);
   pointer-events: none;
 }
