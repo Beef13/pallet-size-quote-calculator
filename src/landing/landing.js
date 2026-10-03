@@ -7,6 +7,12 @@ import demoLightWebm from './img/app-demo-light.webm'
 import demoDarkWebm from './img/app-demo-dark.webm'
 import posterLight from './img/app-demo-poster-light.webp'
 import posterDark from './img/app-demo-poster-dark.webp'
+import phoneLight from './img/app-demo-phone-light.mp4'
+import phoneDark from './img/app-demo-phone-dark.mp4'
+import phoneLightWebm from './img/app-demo-phone-light.webm'
+import phoneDarkWebm from './img/app-demo-phone-dark.webm'
+import phonePosterLight from './img/app-demo-phone-poster-light.webp'
+import phonePosterDark from './img/app-demo-phone-poster-dark.webp'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -19,23 +25,51 @@ for (const node of document.querySelectorAll('[data-accounts]')) {
 
 /* Demo video: a recording of the calculator in use, in the light or dark
    version to match the page. It plays muted on a loop while it is on
-   screen. With reduced motion it stays on its poster and gets controls. */
+   screen, with a pause button. Phones get the recording made at phone size.
+   With reduced motion it starts paused on its poster. */
 const video = document.getElementById('hero-video')
 if (video) {
+  const phone = window.matchMedia('(max-width: 640px)')
+  const toggle = document.getElementById('demo-toggle')
   let onScreen = true
-  const play = () => { if (!reduceMotion && onScreen) video.play().catch(() => {}) }
+  // Paused by the visitor, or held on its poster because they asked for reduced motion
+  let held = reduceMotion
+
+  const sources = {
+    wide: { light: [demoLight, demoLightWebm, posterLight], dark: [demoDark, demoDarkWebm, posterDark] },
+    phone: { light: [phoneLight, phoneLightWebm, phonePosterLight], dark: [phoneDark, phoneDarkWebm, phonePosterDark] }
+  }
+
+  const showState = () => {
+    if (!toggle) return
+    const label = held ? 'Play the demonstration' : 'Pause the demonstration'
+    toggle.toggleAttribute('data-paused', held)
+    toggle.setAttribute('aria-label', label)
+    toggle.title = held ? 'Play' : 'Pause'
+  }
+  const play = () => { if (!held && onScreen) video.play().catch(() => {}) }
+
   const load = () => {
-    const dark = isDark()
-    video.poster = dark ? posterDark : posterLight
+    const [mp4Src, webmSrc, poster] = sources[phone.matches ? 'phone' : 'wide'][isDark() ? 'dark' : 'light']
+    video.poster = poster
     // MP4 wherever the browser can play it, WebM otherwise
     const webm = video.canPlayType('video/webm; codecs="vp9"') !== ''
     const mp4 = video.canPlayType('video/mp4; codecs="avc1.64001f"') !== ''
-    video.src = dark ? (mp4 || !webm ? demoDark : demoDarkWebm) : (mp4 || !webm ? demoLight : demoLightWebm)
-    if (reduceMotion) video.controls = true
-    else play()
+    video.src = mp4 || !webm ? mp4Src : webmSrc
+    play()
   }
+
+  toggle?.addEventListener('click', () => {
+    held = !held
+    if (held) video.pause()
+    else play()
+    showState()
+  })
+
   load()
+  showState()
   onThemeChange(load)
+  phone.addEventListener?.('change', load)
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(([entry]) => {
       onScreen = entry.isIntersecting
