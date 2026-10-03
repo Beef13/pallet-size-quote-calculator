@@ -22,8 +22,8 @@
             Pallet Quote
           </a>
           <div class="nav-actions">
-            <a class="btn btn-ghost btn-small" data-accounts="on" href="./app/index.html#signin">Log in</a>
-            <a class="btn btn-primary btn-small" data-accounts="on" href="./app/index.html#signup">Sign up</a>
+            <a class="nav-link" data-accounts="on" href="./app/index.html#signin">Log in</a>
+            <a class="btn btn-ghost btn-small" data-accounts="on" href="./app/index.html#signup">Sign up</a>
             <a class="btn btn-primary btn-small" data-accounts="off" href="./app/index.html">Open the calculator</a>
           </div>
         </div>
@@ -43,7 +43,8 @@
               <p class="lede">Enter the pallet dimensions and select your timber. Pallet Quote costs every board and bearer by the metre at your rates, applies your labour and markup, and produces a scaled shop drawing for customer approval.</p>
               <div class="hero-actions">
                 <a class="btn btn-white" href="./app/index.html">Create a quote</a>
-                <p class="hero-note">Free to use at present. No installation required.</p>
+                <p class="hero-note" data-accounts="off">Free to use at present. No installation required.</p>
+                <p class="hero-note" data-accounts="on">Free to use at present, with no installation or account required. <a href="./app/index.html#signup">Sign up</a> to back up your prices and quotes and keep them synchronised across your devices.</p>
               </div>
             </div>
           </div>
@@ -53,24 +54,6 @@
               poster="/src/landing/img/app-demo-poster-light.webp"
               aria-label="Screen recording of a 1165 by 1165 pallet being built and priced in Pallet Quote, ending on the quote for 250 pallets"></video>
           </div>
-        </section>
-
-        <section class="gets" aria-label="What every quote includes">
-          <article>
-            <div class="crop"><img src="/src/landing/img/app-quote-panel.webp" width="700" height="1387" loading="lazy" alt="The quote tab showing materials, labour, markup, GST and the total" style="object-position: 50% 80%" /></div>
-            <h2>Priced by the metre</h2>
-            <p>Each board and bearer is costed at your own rate, with labour, markup and GST applied.</p>
-          </article>
-          <article>
-            <div class="crop"><img src="/src/landing/img/drawing-sheet.webp" width="1400" height="1312" loading="lazy" alt="Shop drawing with a dimensioned plan view and an isometric view" style="object-position: 50% 0%" /></div>
-            <h2>Drawn to scale</h2>
-            <p>Plan, elevations and end detail, fully dimensioned.</p>
-          </article>
-          <article>
-            <div class="crop"><img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy" alt="Customer PDF with the specification table and the total price" style="object-position: 50% 92%" /></div>
-            <h2>Two PDFs per quote</h2>
-            <p>A clear quotation for your customer, and a cost breakdown for your own records.</p>
-          </article>
         </section>
 
         <section class="docs" id="sample" aria-labelledby="docs-title">

@@ -247,13 +247,23 @@ a {
   gap: 8px;
 }
 
-/* Sign in and Sign up only show on builds with accounts switched on */
-.nav [data-accounts="on"] {
+/* Passages for builds with accounts switched on stay hidden until the script
+   confirms it, so the page never shows both versions at once */
+html:not(.accounts-on) .sheet [data-accounts="on"],
+html.accounts-on .sheet [data-accounts="off"] {
   display: none;
 }
 
-.accounts-on .nav [data-accounts="on"] {
-  display: inline-flex;
+.nav-link {
+  padding: 8px 10px;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: var(--accent);
 }
 
 .brand {
@@ -292,7 +302,6 @@ a {
 }
 
 /* A white card with a pale blue ring round it */
-.gets article,
 .more-list li,
 .covers-card,
 .doc-sheet,
@@ -460,15 +469,22 @@ a {
 
 .hero-actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 14px 20px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+  text-align: right;
 }
 
 .hero-note {
+  max-width: 30em;
   font-size: var(--step--1);
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hero-note a {
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 /* The demo: the calculator being used */
@@ -490,52 +506,6 @@ a {
 
 @keyframes arrive {
   from { opacity: 0; transform: translateY(28px); }
-}
-
-/* ---------- What every quote includes ---------- */
-
-.gets {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(16px, 2.4vw, 28px);
-  padding: clamp(40px, 6vw, 80px) var(--pad) 0;
-}
-
-.gets article {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: clamp(16px, 2vw, 22px);
-  border-radius: var(--radius);
-  transition: transform 0.3s var(--ease);
-}
-
-.gets article:hover {
-  transform: translateY(-4px);
-}
-
-.crop {
-  aspect-ratio: 4 / 3;
-  margin-bottom: 12px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: inset 0 0 0 1px var(--rule);
-}
-
-.crop img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.gets h2 {
-  font-size: var(--step-2);
-  font-weight: 500;
-}
-
-.gets p {
-  color: var(--ink-2);
 }
 
 /* ---------- The two documents ---------- */
@@ -1059,37 +1029,18 @@ html:has(dialog[open]) {
   }
 
   .hero-actions {
-    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
   }
 
   .glass {
     display: none;
   }
 
-  .gets,
   .more-list {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* Each card: picture on the left, words on the right */
-  .gets article {
-    display: grid;
-    grid-template-columns: 104px minmax(0, 1fr);
-    column-gap: 16px;
-    row-gap: 4px;
-    align-content: center;
-  }
-
-  .crop {
-    grid-row: span 2;
-    aspect-ratio: 1;
-    margin: 0;
-  }
-
-  .gets h2 {
-    align-self: end;
-    font-size: var(--step-1);
-  }
 }
 
 @media (max-width: 560px) {
