@@ -32,7 +32,6 @@
           </a>
           <nav class="nav-links" aria-label="Sections">
             <a href="#how">How it works</a>
-            <a href="#sample">Documents</a>
             <a href="#pricing" data-billing="on">Pricing</a>
             <a href="#questions">Questions</a>
           </nav>
@@ -55,17 +54,23 @@
             <p class="lede">Enter the size, choose your timber, and send a priced quote with a scaled shop drawing.</p>
             <div class="hero-actions">
               <a class="btn btn-primary btn-go" href="./app/index.html">Create a quote<span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 16l8-8M9.5 8H16v6.5"/></svg></span></a>
+              <a class="btn btn-ghost" href="./app/index.html#example">See an example</a>
             </div>
             <p class="hero-note"><span data-billing="off">Free to use at present.</span><span data-billing="on">The calculator is free.</span> Nothing to install.</p>
           </div>
 
-          <div class="hero-shot" id="hero-shot">
-            <div class="frame device">
-              <img class="on-light wide" src="/src/landing/img/shot-hero-light.webp" width="2000" height="1250" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
-              <img class="on-dark wide" src="/src/landing/img/shot-hero-dark.webp" width="2000" height="1250" loading="lazy" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
-              <img class="on-light phone" src="/src/landing/img/shot-hero-panel-light.webp" width="880" height="1544" loading="lazy" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
-              <img class="on-dark phone" src="/src/landing/img/shot-hero-panel-dark.webp" width="880" height="1544" loading="lazy" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
-            </div>
+          <!-- What the customer receives, ahead of any picture of the calculator -->
+          <div class="hero-docs" id="sample">
+            <a class="doc-sheet doc-back" href="./sample-breakdown.pdf" data-doc="breakdown" aria-label="View the sample cost breakdown, the copy you keep">
+              <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754"
+                alt="Sample cost breakdown: the same drawing, each component with its rate per metre and cost, then materials, labour, markup, margin and gross profit" />
+            </a>
+            <a class="doc-sheet doc-front" href="./sample-quote.pdf" data-doc="customer" aria-label="View the sample customer quote in full">
+              <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" fetchpriority="high"
+                alt="Sample customer quote: business details, a scaled shop drawing of a 1165 by 1165 pallet, the specification table and the total including GST" />
+              <span class="doc-open">View</span>
+            </a>
+            <p class="fine hero-caption">What your customer receives, with your own cost breakdown behind it. A sample made in Pallet Quote with placeholder business details; select either page to read it in full.</p>
           </div>
         </section>
 
@@ -132,36 +137,6 @@
               </figure>
             </div>
           </div>
-        </section>
-
-        <section class="docs" id="sample" aria-labelledby="docs-title">
-          <div class="section-head" data-reveal>
-            <div class="section-lead">
-              <h2 id="docs-title" class="section-title">One quote, two documents</h2>
-            </div>
-            <p class="section-intro">Both carry the same quote number. Select either to view it in full.</p>
-          </div>
-          <div class="docs-grid">
-            <article class="doc" data-reveal style="--d: 0">
-              <a class="doc-sheet" href="./sample-quote.pdf" data-doc="customer" aria-label="View the sample customer copy">
-                <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy"
-                  alt="Sample customer quote: business details, a scaled shop drawing of a 1165 by 1165 pallet, the specification table and the total including GST" />
-                <span class="doc-open">View</span>
-              </a>
-              <h3>Customer copy</h3>
-              <p>The quotation you send for approval. Your rates, labour and markup are not shown.</p>
-            </article>
-            <article class="doc" data-reveal style="--d: 1">
-              <a class="doc-sheet" href="./sample-breakdown.pdf" data-doc="breakdown" aria-label="View the sample cost breakdown">
-                <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy"
-                  alt="Sample cost breakdown: the same drawing, each component with its rate per metre and cost, then materials, labour, markup, margin and gross profit" />
-                <span class="doc-open">View</span>
-              </a>
-              <h3>Your copy</h3>
-              <p>The cost breakdown you keep: every rate, your markup, margin and gross profit.</p>
-            </article>
-          </div>
-          <p class="fine docs-note">Produced by Pallet Quote using placeholder business details.</p>
         </section>
 
         <!-- Plans: only in builds with a payment link (VITE_STRIPE_PAYMENT_LINK) -->

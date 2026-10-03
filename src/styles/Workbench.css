@@ -1681,10 +1681,16 @@ html.dark-mode .totals .stepper {
   background: color-mix(in srgb, var(--paper) 70%, transparent);
 }
 
-.stage-empty p {
-  padding: 14px 20px;
+/* The message and the example button share one card; only the card takes clicks */
+.stage-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
   border-radius: 20px;
   background: var(--paper);
+  pointer-events: auto;
 }
 
 /* ---------- Small screens ---------- */

@@ -572,6 +572,24 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     setError('')
   }
 
+  // A ready-made pallet, so a first-time visitor can see a finished quote before entering anything.
+  // It fills in the design and the quantity only: prices, labour and markup are left as they are.
+  const loadExample = () => {
+    loadPreset({
+      palletWidth: '1165', palletLength: '1165',
+      selectedBottomBoardType: 'pine-green-case', selectedBottomBoardSize: '100x19', numberOfBottomBoards: '3',
+      selectedBearerType: 'pine-green-case', selectedBearerSize: '100x38', numberOfBearers: '3',
+      selectedTopBoardType: 'pine-green-case', selectedTopBoardSize: '100x17', numberOfTopBoards: '7'
+    })
+    setPalletQuantity('250')
+  }
+  // The landing page's "See an example" button arrives here as #example
+  useEffect(() => {
+    if (window.location.hash !== '#example') return
+    loadExample()
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+  }, [])
+
   // Delete a saved preset
   const deletePreset = (presetId) => {
     const updatedPresets = savedPresets.filter(p => p.id !== presetId)
@@ -1662,7 +1680,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     data-field="preset"
                     onChange={(e) => {
                       const value = e.target.value
-                      if (value.startsWith('saved:')) {
+                      if (value === 'example') {
+                        loadExample()
+                      } else if (value.startsWith('saved:')) {
                         const preset = savedPresets.find(p => p.id === value.replace('saved:', ''))
                         if (preset) loadPreset(preset)
                       } else if (value) {
@@ -1673,6 +1693,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     }}
                   >
                     <option value="">A standard size or saved preset</option>
+                    <option value="example">An example pallet, ready built</option>
                     <optgroup label="Standard sizes">
                       <option value="1165x1165">1165 × 1165 mm</option>
                       <option value="1140x1140">1140 × 1140 mm</option>
@@ -2430,7 +2451,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
         {!(livePreviewData.palletWidth > 0 && livePreviewData.palletLength > 0) && (
           <div className="stage-empty">
-            <p>Enter a size to see the pallet take shape.</p>
+            <div className="stage-empty-card">
+              <p>Enter a size to see the pallet take shape.</p>
+              <button type="button" className="btn btn-secondary" data-field="example" onClick={loadExample}>Load an example pallet</button>
+            </div>
           </div>
         )}
 

@@ -47,22 +47,14 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
   reveals.forEach(node => seen.observe(node))
 }
 
-// On scroll: the top bar tightens into a floating pill, and the hero screen settles into place
+// On scroll: the top bar tightens into a floating pill
 const nav = document.getElementById('top')
-const heroShot = document.getElementById('hero-shot')
 let queued = false
 const onScroll = () => {
   queued = false
   nav?.classList.toggle('scrolled', window.scrollY > 12)
   // Back in the hero, no section is current
   if (window.scrollY < 300) document.querySelector('.nav-links [aria-current]')?.removeAttribute('aria-current')
-  if (heroShot && !reduceMotion) {
-    const rect = heroShot.getBoundingClientRect()
-    if (rect.bottom > 0) {
-      const p = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight * 0.8)))
-      heroShot.style.setProperty('--rise', `${(1 - p) * 24}px`)
-    }
-  }
 }
 window.addEventListener('scroll', () => {
   if (!queued) { queued = true; requestAnimationFrame(onScroll) }
