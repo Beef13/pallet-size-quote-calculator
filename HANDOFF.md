@@ -127,7 +127,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 **Price lock:** timber and nail prices are locked against accidental edits, each with its own padlock. Labour, markup and GST share one padlock in their section head (lock id `pricing`). Everything starts locked on each visit.
 
-## 5a. Accounts and online storage (built, not switched on)
+## 5a. Accounts and online storage (live at palletquoter.com, not yet on `main`)
 
 The owner wants accounts with online storage on **Supabase**, hosted on **Vercel**, starting on the free plans. The code is complete on the working branch and is **off by default**: with no `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at build time (see `.env.example`) there is no account button, the Supabase library is never downloaded, and the app is local-only exactly as before. The GitHub Pages build has no such settings.
 
@@ -154,8 +154,10 @@ The owner wants accounts with online storage on **Supabase**, hosted on **Vercel
 
 **To switch it on**
 1. **Done (3 Oct 2026):** Supabase project `pallet-quote` (ref `wxheqxppnpftukedrdhl`, region `ap-southeast-2`, URL `https://wxheqxppnpftukedrdhl.supabase.co`) in the owner's organisation "Pallet Qoute" (name has a typo, harmless). The design in `supabase/migrations/` was applied in several smaller migrations (the Supabase connector cancels SQL it sees as destructive, so one big file would not go through). Checked on the real database: visitors are blocked from every table; a signed-in stranger sees nothing and cannot insert. The security advisor shows one expected warning (`ensure_business` is a security-definer function signed-in users may call; that is its purpose). Deleting online data is done by the owner deleting their `businesses` row, allowed by a row-level rule, not by a function.
-2. In Supabase Authentication settings, set the site URL and allowed redirect URLs to the deployed address (including `/app/index.html`).
-3. Create the Vercel project from the repo (`vercel.json` runs the tests and builds at the site root) and set the two `VITE_SUPABASE_*` environment variables.
+2. **Done:** Supabase Authentication URL settings point at `https://palletquoter.com` (redirects `https://palletquoter.com/**` and the `vercel.app` address).
+3. **Done:** Vercel project `pallet-quote` (id `prj_ghC4t0qv8M2toZM1pGGEAH2v0wol`, owner's Hobby account) linked to the GitHub repo, with the two `VITE_SUPABASE_*` variables. Addresses: **https://palletquoter.com** (owner's domain, registered and DNS at Cloudflare: A `@` 76.76.21.21 and CNAME `www` cname.vercel-dns.com, both "DNS only"), `www` forwards to it, plus `pallet-quote-rouge.vercel.app`. The first deployment was made from the working branch. **Vercel's production branch is `main`, so a push to `main` redeploys the site from `main`**; until the working branch is merged, `main` has no accounts code.
+3a. **Done:** sign-in emails go through Resend (domain `palletquoter.com` verified, sending-only key held in Supabase SMTP settings, sender `signin@palletquoter.com`); email limit raised from 2 to 30 an hour. Supabase organisation is on the Pro plan.
+3b. **Tested by the owner on the real setup (3 Oct 2026):** sign-up, emailed link, sign-in on a laptop and a phone, data uploading and appearing on the second device. Not yet tested there: a deletion or status change travelling between devices, Google sign-in (not set up).
 4. The terms and privacy pages switch to the accounts wording automatically when `VITE_SUPABASE_URL` is set. Fill in the operator details in `src/landing/operator.js`.
 5. Before real customers: custom email sending (Supabase's built-in sender is rate-limited), the paid Supabase plan for backups and no pausing, Vercel's paid plan for commercial use, and a lawyer's review of the legal pages.
 
