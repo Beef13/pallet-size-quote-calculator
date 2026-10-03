@@ -313,6 +313,22 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   // Gross profit on the price card. Hidden unless switched on, because that card is on the
   // part of the screen most likely to be shown to a customer.
+  // Drawn outlines on the 3D model: a view preference, kept on this device
+  const [outlines, setOutlines] = useState(() => {
+    try {
+      const saved = JSON.parse(readStorage('palletOutlines') || 'null')
+      const weight = Number(saved?.weight)
+      return { on: Boolean(saved?.on), weight: weight >= 0.5 && weight <= 5 ? weight : 1.5 }
+    } catch (e) {
+      return { on: false, weight: 1.5 }
+    }
+  })
+  const changeOutlines = (patch) => setOutlines(prev => {
+    const next = { ...prev, ...patch }
+    writeStorage('palletOutlines', JSON.stringify(next))
+    return next
+  })
+  const outlineSetting = useMemo(() => (outlines.on ? { weight: outlines.weight } : null), [outlines.on, outlines.weight])
   const [showProfit, setShowProfit] = useState(() => readStorage('palletShowProfit') === 'true')
   const toggleProfit = () => {
     setShowProfit(prev => {
@@ -2397,7 +2413,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           </div>
         </div>
 
-        <Pallet3DLive previewData={livePreviewData} dark={isDarkMode} />
+        <Pallet3DLive previewData={livePreviewData} dark={isDarkMode} outline={outlineSetting} />
 
         {!(livePreviewData.palletWidth > 0 && livePreviewData.palletLength > 0) && (
           <div className="stage-empty">
@@ -2419,6 +2435,27 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             />
           </label>
           ) : <span />}
+          <div className={`range outline-control ${outlines.on ? 'on' : ''}`}>
+            <label className="switch">
+              <input type="checkbox" checked={outlines.on} onChange={(e) => changeOutlines({ on: e.target.checked })} data-field="outlines" />
+              <span className="switch-track" aria-hidden="true"><span className="switch-thumb" /></span>
+              <span>Outlines</span>
+            </label>
+            <Reveal open={outlines.on}>
+              <label className="outline-weight">
+                <span>Line weight <strong>{outlines.weight.toFixed(1)}</strong></span>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="5"
+                  step="0.1"
+                  value={outlines.weight}
+                  onChange={(e) => changeOutlines({ weight: Number(e.target.value) })}
+                  data-field="outline-weight"
+                />
+              </label>
+            </Reveal>
+          </div>
           <span className="stage-hint">Drag to turn, scroll or pinch to zoom</span>
         </div>
       </main>

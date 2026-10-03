@@ -2976,3 +2976,64 @@ html.dark-mode .status-pill.attention-follow-up {
   width: 8px;
   height: 8px;
 }
+
+/* ---------- Outlines on the 3D model: a switch, and a line-weight slider while it's on ---------- */
+
+.range.outline-control {
+  width: auto;
+  min-width: 132px;
+  gap: 0;
+  margin-right: auto;
+  transition: min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.range.outline-control.on {
+  min-width: 190px;
+}
+
+.outline-control .switch {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.outline-weight {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+/* Too narrow for the top-boards slider, this and the hint side by side: the hint gives way */
+@media (min-width: 901px) and (max-width: 1280px) {
+  .stage-controls .stage-hint {
+    display: none;
+  }
+}
+
+/* Phones: the two controls share a row so they cover less of the model */
+@media (max-width: 900px) {
+  .stage-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .stage-controls > .range {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .stage-controls > .range.outline-control,
+  .stage-controls > .range.outline-control.on {
+    flex: 0 0 138px;
+    min-width: 0;
+    margin-right: 0;
+  }
+
+  .stage-controls .stage-hint {
+    flex-basis: 100%;
+  }
+}
