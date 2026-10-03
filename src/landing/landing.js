@@ -20,8 +20,8 @@ function setMoney(node, value) {
 }
 
 /* ------------------------------------------------------------------
-   Hero: an isometric 1165 x 1165 pallet that assembles itself while
-   the ticket adds up the price, part by part.
+   Bento: an isometric 1165 x 1165 pallet that assembles itself in one
+   card while the ticket in the card beside it adds up the price.
    ------------------------------------------------------------------ */
 
 function deck(count, boardW, boardT, palletW) {
@@ -41,13 +41,12 @@ function buildHero() {
   const bearerZ = [0, (L - bearerT) / 2, L - bearerT]
   const y0 = 19, y1 = 19 + bearerH, H = y1 + 17
 
-  // Isometric projection fitted to the 640 x 470 view box
+  // Isometric projection centred in the 640 x 430 view box
   const C = Math.cos(Math.PI / 6), S = 0.5
   const raw = (x, y, z) => [(x - z) * C, (x + z) * S - y]
-  // Sit the pallet up and to the left so the ticket can overlap the corner
   const k = Math.min(440 / ((W + L) * C), 300 / ((W + L) * S + H))
-  const ox = 250 - ((W - L) * C * k) / 2
-  const oy = 70 + H * k
+  const ox = 320 - ((W - L) * C * k) / 2
+  const oy = 50 + H * k
   const P = (x, y, z) => { const [u, v] = raw(x, y, z); return [ox + u * k, oy + v * k] }
   const pts = (...p) => p.map(q => q.join(',')).join(' ')
 
@@ -244,9 +243,129 @@ buildHero()
 setMoney(document.getElementById('ticket-total'), ticketSteps.reduce((s, x) => s + x.add, 0) * QTY)
 setupCalculator()
 
-// Play the build once the fonts are in, so the ticket doesn't reflow mid-way
-const start = () => playHero()
-if (document.fonts?.ready) document.fonts.ready.then(start)
-else start()
+/* ------------------------------------------------------------------
+   Motion
+   ------------------------------------------------------------------ */
 
-document.getElementById('replay')?.addEventListener('click', playHero)
+const seen = (node, fn, options) => {
+  if (!node) return
+  if (!('IntersectionObserver' in window)) { fn(node); return }
+  const io = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue
+      io.unobserve(entry.target)
+      fn(entry.target)
+    }
+  }, options)
+  io.observe(node)
+}
+
+// Sections rise into place the first time they scroll into view
+for (const node of document.querySelectorAll('[data-reveal]')) {
+  if (reduceMotion) node.classList.add('in')
+  else seen(node, (n) => n.classList.add('in'), { rootMargin: '0px 0px -8% 0px', threshold: 0.08 })
+}
+
+// The pallet builds, and the ticket adds up, when the bento comes into view
+const replay = document.getElementById('replay')
+replay?.addEventListener('click', (e) => { e.preventDefault(); playHero() })
+seen(document.getElementById('bento'), () => {
+  if (document.fonts?.ready) document.fonts.ready.then(playHero)
+  else playHero()
+}, { threshold: 0.3 })
+
+// Numbers count up from zero
+for (const node of document.querySelectorAll('[data-count]')) {
+  const target = +node.dataset.count
+  if (reduceMotion || target === 0) continue
+  node.textContent = '0'
+  seen(node, () => {
+    const start = performance.now()
+    const ms = 500 + target * 160
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / ms)
+      node.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))))
+      if (p < 1) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }, { threshold: 0.6 })
+}
+
+// The app leans back as the page loads and stands up straight as you scroll
+const app = document.getElementById('hero-app')
+const frame = app?.querySelector('.app-frame')
+if (frame && !reduceMotion) {
+  let queued = false
+  const lean = () => {
+    queued = false
+    const rect = app.getBoundingClientRect()
+    const p = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight * 0.75)))
+    frame.style.setProperty('--tilt', `${(1 - p) * 14}deg`)
+    frame.style.setProperty('--lift', `${(1 - p) * 30}px`)
+  }
+  lean()
+  window.addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(lean) } }, { passive: true })
+  window.addEventListener('resize', lean)
+}
+
+/* Steps: one open at a time, each showing its own screen. They advance
+   on a timer while in view, until someone picks a step themselves. */
+function setupSteps() {
+  const list = document.getElementById('steps')
+  const viewBox = document.getElementById('steps-view')
+  if (!list || !viewBox) return
+  const steps = [...list.querySelectorAll('.step')]
+  const views = [...viewBox.querySelectorAll('.view')]
+  const STEP_MS = 7000
+  list.style.setProperty('--step-time', `${STEP_MS}ms`)
+  let current = 0
+  let timer = null
+  let auto = !reduceMotion
+  let visible = false
+
+  const show = (i) => {
+    current = (i + steps.length) % steps.length
+    steps.forEach((step, n) => {
+      step.classList.toggle('on', n === current)
+      step.querySelector('.step-head').setAttribute('aria-expanded', String(n === current))
+    })
+    views.forEach((view, n) => view.classList.toggle('on', n === current))
+  }
+
+  const schedule = () => {
+    clearTimeout(timer)
+    list.classList.toggle('auto', auto && visible)
+    if (auto && visible) timer = setTimeout(() => { show(current + 1); schedule() }, STEP_MS)
+  }
+
+  const pick = (i) => {
+    auto = false
+    show(i)
+    schedule()
+  }
+
+  steps.forEach((step, i) => step.querySelector('.step-head').addEventListener('click', () => pick(i)))
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      // Restart the open step's timer line each time the section comes back into view
+      if (visible && auto) show(current)
+      schedule()
+    }, { threshold: 0.35 }).observe(list)
+  }
+
+  // Bento cards jump to their step
+  for (const link of document.querySelectorAll('a[data-step]')) {
+    link.addEventListener('click', () => pick(+link.dataset.step))
+  }
+  // So do links straight to a step, such as #drawn
+  const fromHash = () => {
+    const i = steps.findIndex(step => step.id && `#${step.id}` === location.hash)
+    if (i >= 0) pick(i)
+  }
+  window.addEventListener('hashchange', fromHash)
+  fromHash()
+}
+
+setupSteps()
