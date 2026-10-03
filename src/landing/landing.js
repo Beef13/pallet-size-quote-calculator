@@ -154,6 +154,9 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
 // lifts and settles as it comes up the screen
 const nav = document.getElementById('top')
 const heroShot = document.getElementById('hero-shot')
+const devices = document.querySelector('.devices')
+let opened = false
+let started = false
 let queued = false
 const onScroll = () => {
   queued = false
@@ -164,6 +167,32 @@ const onScroll = () => {
     const p = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight * 0.85)))
     heroShot.style.setProperty('--rise', `${(1 - p) * 36}px`)
     heroShot.style.setProperty('--scale', String(0.965 + p * 0.035))
+  }
+  // The laptop opens as it comes up the screen, then the phone steps in beside it.
+  // Once open it stays open, so the demonstration is never shut on someone using it.
+  if (devices && !reduceMotion && !opened) {
+    const top = devices.getBoundingClientRect().top
+    const vh = window.innerHeight
+    const p = Math.max(0, Math.min(1, (vh * 0.8 - top) / (vh * 0.6)))
+    // Already well up the screen on arrival (a tall window): open it on a timer instead
+    if (!started && p > 0.35) {
+      opened = true
+      devices.style.setProperty('--open', '0')
+      devices.style.setProperty('--phone', '0')
+      devices.classList.add('auto-open')
+      setTimeout(() => {
+        devices.style.setProperty('--open', '1')
+        devices.style.setProperty('--phone', '1')
+      }, 700)
+      return
+    }
+    started = true
+    const ease = (t) => 1 - Math.pow(1 - t, 3)
+    const lid = ease(Math.min(1, p / 0.8))
+    const phone = ease(Math.max(0, (p - 0.7) / 0.3))
+    devices.style.setProperty('--open', lid.toFixed(3))
+    devices.style.setProperty('--phone', phone.toFixed(3))
+    if (p >= 1) opened = true
   }
 }
 window.addEventListener('scroll', () => {
