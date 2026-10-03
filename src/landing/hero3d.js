@@ -164,7 +164,7 @@ export async function mountLaptop({ stage, dark }) {
     renderer.setSize(w, h, false)
     camera.aspect = w / h
     // Hold the laptop's width against the stage's, whatever the stage's shape
-    const halfHeight = (4.36 / camera.aspect) / 2
+    const halfHeight = (4.04 / camera.aspect) / 2
     camera.fov = 2 * Math.atan(halfHeight / DISTANCE) * 180 / Math.PI
     camera.updateProjectionMatrix()
     if (progress >= 0) pose(progress)
