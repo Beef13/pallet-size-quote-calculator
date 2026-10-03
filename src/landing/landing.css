@@ -757,396 +757,175 @@ html.accounts-on .sheet [data-accounts="off"] {
 }
 
 /* ---------- How it works ----------
-   Plain layout: the steps in a column, each with its panel underneath.
-   Pinned layout (html.pin, set by script on wide screens when motion is
-   allowed): the steps and one stage hold still while the page scrolls
-   through a tall track, each step's frames advancing with the scroll and
-   the blue line beside the numbers filling to show how far through it is. */
+   Four rows: the words on one side, a screenshot of that part of the
+   calculator on the other, swapping sides from row to row. */
 
 .flow {
   margin-top: var(--gap);
   padding: clamp(36px, 5vw, 64px) var(--pad);
 }
 
-.flow-steps {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.flow-step {
-  position: relative;
+.feature {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
-  gap: 18px;
-  align-content: start;
-  padding-bottom: 44px;
-}
-
-.flow-step:last-child {
-  padding-bottom: 0;
-}
-
-/* A rail joins the step numbers, and a blue line fills it */
-.flow-step::before,
-.flow-step::after {
-  content: '';
-  position: absolute;
-  left: 22px;
-  top: 46px;
-  bottom: 0;
-  width: 2px;
-  background: var(--rule);
-}
-
-.flow-step::after {
-  background: var(--accent);
-  transform: scaleY(var(--f, 0));
-  transform-origin: 50% 0;
-}
-
-.flow-step:last-child::before,
-.flow-step:last-child::after {
-  display: none;
-}
-
-.flow-num {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
   align-items: center;
-  justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: var(--paper);
-  box-shadow: inset 0 0 0 1px var(--rule);
-  color: var(--ink-2);
-  font-weight: 600;
-  transition: background 0.4s var(--ease), color 0.4s var(--ease), box-shadow 0.4s var(--ease), transform 0.5s var(--ease);
+  gap: clamp(28px, 5vw, 64px);
+  padding-block: clamp(24px, 3.4vw, 44px);
 }
 
-.flow-step.on .flow-num {
-  background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
-  box-shadow: 0 0 0 5px var(--accent-soft);
-  color: #fff;
-  transform: scale(1.08);
+.feature.reverse {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
 }
 
-.flow-step.done .flow-num {
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
-  color: var(--accent);
+.feature.reverse .feature-copy {
+  order: 2;
 }
 
-.flow-text {
+.feature-copy {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 8px;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
 }
 
-.flow-text h3 {
+.feature-copy h3 {
   font-size: var(--step-2);
   font-weight: 500;
 }
 
-.flow-text p {
+.feature-copy p {
+  max-width: 34em;
   color: var(--ink-2);
 }
 
-/* The stage is only used by the pinned layout */
-.flow-stage {
-  display: none;
-}
-
-.flow-screen {
-  position: relative;
-  aspect-ratio: 10 / 9;
-  width: min(100%, calc((100vh - 150px) * 10 / 9));
-  margin-left: auto;
-}
-
-/* ----- Pinned ----- */
-
-.pin .flow-grid {
-  position: sticky;
-  top: 78px;
-  display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
-  gap: clamp(28px, 4vw, 56px);
+.flow-num {
+  display: inline-flex;
   align-items: center;
-  height: calc(100vh - 96px);
-  min-height: 460px;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
+  box-shadow: 0 0 0 5px var(--accent-soft);
+  color: #fff;
+  font-weight: 600;
 }
 
-.pin .flow-stage {
-  display: block;
-}
-
-.pin .flow-step {
-  padding-bottom: 30px;
-  opacity: 0.45;
-  transition: opacity 0.4s var(--ease);
-}
-
-.pin .flow-step.done {
-  opacity: 0.7;
-}
-
-.pin .flow-step.on {
-  opacity: 1;
-}
-
-/* The last step keeps a short rail of its own, so its progress shows too */
-.pin .flow-step:last-child {
-  padding-bottom: 34px;
-}
-
-.pin .flow-step:last-child::before,
-.pin .flow-step:last-child::after {
-  display: block;
-}
-
-/* Only the step being read shows its description */
-.pin .flow-text p {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: max-height 0.5s var(--ease), opacity 0.35s ease;
-}
-
-.pin .flow-step.on .flow-text p {
-  max-height: 9em;
-  opacity: 1;
-}
-
-/* ---------- The panels in How it works ----------
-   Each step has a panel showing only the part of the calculator it is about.
-   Nothing here is drawn: every picture is a close crop captured from the real
-   calculator (tools/landing-media/steps.mjs), and a reel shows its frames in
-   turn so the part is seen being used. */
-
-.scene {
-  display: grid;
-  align-items: center;
-  gap: clamp(10px, 2.2cqw, 18px);
-  margin: 0;
-}
-
-/* Under its step, in the plain layout */
-.flow-step > .scene {
-  grid-column: 2;
-  max-width: 560px;
-  margin-top: 8px;
-}
-
-/* In the stage, on wide screens: all four stacked, the current one showing */
-.flow-screen > .scene {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transform: translateY(18px) scale(0.98);
-  transition: opacity 0.4s var(--ease), transform 0.6s var(--ease);
-  pointer-events: none;
-}
-
-.flow-screen > .scene.on {
-  opacity: 1;
-  transform: none;
-}
-
-/* A reel: frames of the same crop stacked, one showing at a time */
-.reel {
+/* A screenshot */
+.shot {
   position: relative;
-  aspect-ratio: var(--ar);
-  overflow: hidden;
-  border-radius: clamp(10px, 2cqw, 16px);
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
   background: var(--paper);
-  box-shadow: 0 1px 2px rgba(13, 21, 48, 0.05), 0 16px 30px -22px rgba(13, 21, 48, 0.4);
+  box-shadow: var(--shadow);
 }
 
-.reel img {
-  position: absolute;
-  inset: 0;
+.shot img {
   width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: opacity 0.22s ease;
+  border-radius: 19px;
 }
 
-.reel img.show {
-  opacity: 1;
+/* A screenshot of the side panel alone is tall, so it is kept narrow */
+.shot-panel {
+  justify-self: center;
+  width: min(100%, 360px);
 }
 
-/* Frames follow each other closely now, so they change without a fade */
-.reel img {
-  transition: opacity 0.08s linear;
-}
-
-/* The pointer that makes each move. Its tip is the top-left corner of the box. */
-.pointer {
+/* Labels pointing at parts of a screenshot */
+.note {
   position: absolute;
-  z-index: 2;
-  width: 22px;
-  aspect-ratio: 1;
-  margin: -2px 0 0 -4px;
-  opacity: 0;
-  transition: opacity 0.25s ease;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(18px, -140%);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--canvas);
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: nowrap;
   pointer-events: none;
 }
 
-.pointer.shown {
-  opacity: 1;
+.note[style*="--dx: -1"] {
+  transform: translate(calc(-100% - 10px), -140%);
 }
 
-.pointer svg {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  fill: #101828;
-  stroke: #fff;
-  stroke-width: 1.6;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 2px 3px rgba(13, 21, 48, 0.35));
-  transition: transform 0.12s ease;
-}
-
-/* A click: the pointer dips and a ring spreads from its tip */
-.pointer::before {
+.note::after {
   content: '';
   position: absolute;
-  left: 4px;
-  top: 2px;
-  width: 30px;
-  height: 30px;
-  margin: -15px 0 0 -15px;
+  bottom: -9px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--ink);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--accent) 30%, transparent);
-  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 70%, transparent);
-  opacity: 0;
-  transform: scale(1.4);
-  transition: opacity 0.35s ease, transform 0.35s var(--ease);
+  background: var(--canvas);
 }
 
-.pointer.tap::before {
-  opacity: 1;
-  transform: scale(0.5);
-  transition-duration: 0.05s;
+.note[style*="--dx: -1"]::after {
+  right: -14px;
 }
 
-.pointer.tap svg {
-  transform: scale(0.86);
+.note[style*="--dx: 1"]::after {
+  left: -14px;
 }
 
-/* The reels of a panel arrive one after another */
-.scene [data-a] {
-  transition: opacity 0.45s var(--ease), transform 0.55s var(--ease);
-  transition-delay: calc(var(--i, 0) * 90ms + 120ms);
-}
-
-.js .flow-screen > .scene:not(.on) [data-a] {
-  opacity: 0;
-  transform: translateY(14px);
-  transition-duration: 0.2s;
-  transition-delay: 0s;
-}
-
-/* In the stage the two crops of a panel sit staggered, one high on the left and
-   one low on the right, so each is large enough to read */
-.flow-screen > .scene {
-  align-content: center;
-  gap: clamp(8px, 1.8cqw, 14px);
-}
-
-.flow-screen > .scene > .reel:first-child {
-  z-index: 1;
-}
-
-.flow-screen > .scene-rates .reel {
-  width: 74%;
-}
-
-.flow-screen > .scene > .reel:nth-child(2) {
-  justify-self: end;
-}
-
-.flow-screen > .scene-build .reel:first-child {
-  width: 66%;
-}
-
-.flow-screen > .scene-build .reel-stage {
-  width: 80%;
-  margin-top: -7%;
-}
-
-.flow-screen > .scene-price .reel:first-child {
-  width: 58%;
-}
-
-.flow-screen > .scene-price .reel:nth-child(2) {
-  width: 56%;
-  margin-top: -4%;
-}
-
-/* The two PDFs, fanned like sheets on a desk, with the quote's own heading below */
-.scene-send {
+/* The two PDFs, one laid over the other */
+.pdfs {
   position: relative;
-  display: block;
-  aspect-ratio: 1.5;
-  overflow: hidden;
+  justify-self: center;
+  width: min(100%, 560px);
+  aspect-ratio: 1.05;
+  margin-bottom: 40px;
 }
 
-.flow-screen > .scene-send {
-  aspect-ratio: auto;
-}
-
-.flow-screen > .scene-send .paper {
-  top: 6%;
-  width: 41%;
-}
-
-.flow-screen > .scene-send .paper:nth-of-type(1) {
-  left: 9%;
-}
-
-.scene-send .paper {
+.pdf {
   position: absolute;
-  top: 7%;
-  width: 36%;
-  height: auto;
-  border-radius: 5px;
+  width: 64%;
+  margin: 0;
+  border-radius: 6px;
   background: #fff;
-  box-shadow: 0 24px 50px -22px rgba(6, 20, 70, 0.5);
-  transition: transform 0.9s var(--ease) 0.15s;
+  box-shadow: var(--shadow);
+  transition: transform 0.5s var(--ease);
 }
 
-.scene-send .paper:nth-of-type(1) {
-  left: 13%;
+.pdf img {
+  border-radius: 6px;
+}
+
+.pdf-back {
+  left: 4%;
+  top: 6%;
   transform: rotate(-5deg);
 }
 
-.scene-send .paper:nth-of-type(2) {
-  left: 50%;
-  transform: rotate(4deg);
+.pdf-front {
+  right: 2%;
+  top: 0;
+  transform: rotate(3deg);
 }
 
-.js .flow-screen > .scene-send:not(.on) .paper:nth-of-type(1) { transform: rotate(-13deg) translateX(30px); }
-.js .flow-screen > .scene-send:not(.on) .paper:nth-of-type(2) { transform: rotate(12deg) translateX(-30px); }
-
-.send-ui {
+.pdf figcaption {
   position: absolute;
   left: 50%;
-  bottom: 5%;
-  display: grid;
-  gap: 8px;
-  width: 58%;
-  translate: -50% 0;
+  bottom: -38px;
+  transform: translateX(-50%);
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--canvas);
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 
-.send-ui .reel {
-  box-shadow: 0 18px 40px -18px rgba(6, 20, 70, 0.7);
+.pdfs:hover .pdf-back {
+  transform: rotate(-8deg) translateX(-12px);
+}
+
+.pdfs:hover .pdf-front {
+  transform: rotate(4deg) translateX(10px);
 }
 
 /* ---------- The two documents: the one full blue panel ---------- */
@@ -1782,8 +1561,18 @@ html:has(dialog[open]) {
 
 @media (max-width: 900px) {
   .section-head,
-  .faq {
+  .faq,
+  .feature,
+  .feature.reverse {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .feature.reverse .feature-copy {
+    order: 0;
+  }
+
+  .note {
+    display: none;
   }
 
   .section-head {
@@ -1793,10 +1582,6 @@ html:has(dialog[open]) {
   .tiers {
     grid-template-columns: minmax(0, 1fr);
     max-width: 520px;
-  }
-
-  .send-ui {
-    width: 86%;
   }
 
   .tier-for,
@@ -1842,22 +1627,6 @@ html:has(dialog[open]) {
 @media (max-width: 560px) {
   .docs-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .flow-step {
-    grid-template-columns: 40px minmax(0, 1fr);
-    gap: 14px;
-  }
-
-  .flow-num {
-    width: 40px;
-    height: 40px;
-  }
-
-  .flow-step::before,
-  .flow-step::after {
-    left: 19px;
-    top: 40px;
   }
 
   .hero-actions,
@@ -1943,11 +1712,6 @@ html:has(dialog[open]) {
   }
 
   .hero-shot {
-    transform: none;
-  }
-
-  .js .flow-screen > .scene:not(.on) [data-a] {
-    opacity: 1;
     transform: none;
   }
 }
