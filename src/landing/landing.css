@@ -241,6 +241,21 @@ a {
   padding-inline: var(--gutter);
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Sign in and Sign up only show on builds with accounts switched on */
+.nav [data-accounts="on"] {
+  display: none;
+}
+
+.accounts-on .nav [data-accounts="on"] {
+  display: inline-flex;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;

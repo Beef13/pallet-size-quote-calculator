@@ -11,6 +11,7 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 
 // Passages that differ depending on whether this build has accounts switched on
 const accountsOn = Boolean(import.meta.env.VITE_SUPABASE_URL)
+document.documentElement.classList.toggle('accounts-on', accountsOn)
 for (const node of document.querySelectorAll('[data-accounts]')) {
   if ((node.dataset.accounts === 'on') !== accountsOn) node.remove()
 }

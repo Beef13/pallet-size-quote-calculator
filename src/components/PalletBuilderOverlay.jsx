@@ -405,6 +405,17 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // ----- Account (only when accounts are switched on for this build) -----
   const [account, setAccount] = useState(getAccountState)
   const [showAccount, setShowAccount] = useState(false)
+  // 'signup' only changes the wording: a first sign-in creates the account either way
+  const [accountMode, setAccountMode] = useState('signin')
+  // The landing page's Sign in and Sign up buttons arrive here as #signin or #signup
+  useEffect(() => {
+    if (!accountsEnabled) return
+    const hash = window.location.hash
+    if (hash !== '#signin' && hash !== '#signup') return
+    setAccountMode(hash === '#signup' ? 'signup' : 'signin')
+    setShowAccount(true)
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+  }, [])
   const [signInEmail, setSignInEmail] = useState('')
   const [signInState, setSignInState] = useState({ busy: false, sent: false, error: '' })
   const [confirmDeleteOnline, setConfirmDeleteOnline] = useState(false)
@@ -1572,7 +1583,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           <div className="header-actions">
             {accountsEnabled && (
               <button type="button" className={`icon-btn account-btn ${signedIn ? `is-${account.status}` : ''}`} data-account-button
-                onClick={() => { setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
+                onClick={() => { setAccountMode('signin'); setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
                 title={signedIn ? `Signed in as ${account.email}` : 'Sign in to back up and sync'}
                 aria-label={signedIn ? `Account, signed in as ${account.email}` : 'Sign in to back up and sync'}>
                 <Icon name="user" />
@@ -2341,8 +2352,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               </>
             ) : (
               <>
-                <h3 id="account-title">Sign in to back up and sync</h3>
-                <p>Your prices, presets and quotes are saved to your account and kept in step across your devices. Pallet Quote still works without signing in.</p>
+                <h3 id="account-title">{accountMode === 'signup' ? 'Create your account' : 'Sign in to back up and sync'}</h3>
+                <p>{accountMode === 'signup'
+                  ? 'Enter your email and we will send you a link to get started. Your prices, presets and quotes are then saved to your account and kept in step across your devices.'
+                  : 'Your prices, presets and quotes are saved to your account and kept in step across your devices. Pallet Quote still works without signing in.'}</p>
                 {signInState.sent ? (
                   <>
                     <p className="account-sent" role="status">Check your inbox at <strong>{signInEmail.trim()}</strong> for a sign-in link. Open it on this device to finish.</p>
@@ -2363,14 +2376,14 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <div className="modal-actions">
                       <button type="button" className="btn btn-quiet" onClick={() => setShowAccount(false)}>Not now</button>
                       <button type="submit" className="btn btn-primary" disabled={!signInEmail.trim() || signInState.busy || !account.ready}>
-                        {signInState.busy ? 'Sending…' : 'Email me a sign-in link'}
+                        {signInState.busy ? 'Sending…' : accountMode === 'signup' ? 'Email me a sign-up link' : 'Email me a sign-in link'}
                       </button>
                     </div>
                     {googleSignInEnabled && (
-                      <button type="button" className="btn btn-secondary account-google" onClick={handleGoogleSignIn} disabled={!account.ready}>Sign in with Google</button>
+                      <button type="button" className="btn btn-secondary account-google" onClick={handleGoogleSignIn} disabled={!account.ready}>{accountMode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}</button>
                     )}
                     <p className="account-legal">
-                      No password needed. By signing in you agree to the <a href="../terms/index.html" target="_blank" rel="noopener">terms</a> and <a href="../privacy/index.html" target="_blank" rel="noopener">privacy policy</a>.
+                      No password needed. By {accountMode === 'signup' ? 'creating an account' : 'signing in'} you agree to the <a href="../terms/index.html" target="_blank" rel="noopener">terms</a> and <a href="../privacy/index.html" target="_blank" rel="noopener">privacy policy</a>.
                     </p>
                   </form>
                 )}
