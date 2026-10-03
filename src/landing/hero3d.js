@@ -78,6 +78,12 @@ export async function mountLaptop({ stage, dark }) {
     // The model's own display picture is switched off; ours goes on a panel in front
     if (name === 'Steel_-_Satin') mesh.material = new MeshBasicMaterial({ color: 0x050608 })
     if (mesh.material.isMeshStandardMaterial) mesh.material.envMapIntensity = 1.1
+    // Open, the keyboard deck is seen almost edge-on. Without this its picture is
+    // sampled from a much smaller copy and smears sideways.
+    if (mesh.material.map) {
+      mesh.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy()
+      mesh.material.map.needsUpdate = true
+    }
   }
 
   const screenMat = new MeshBasicMaterial({ map: dark ? darkTex : lightTex, toneMapped: false })
