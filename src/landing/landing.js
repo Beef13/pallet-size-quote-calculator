@@ -229,6 +229,45 @@ if (steps.length && track && grid) {
   window.addEventListener('scroll', () => {
     if (!waiting) { waiting = true; requestAnimationFrame(() => { waiting = false; follow() }) }
   }, { passive: true })
+
+  /* Pinned: a speed limit. Scrolling forward with a wheel or trackpad moves through
+     the section no faster than its frames are meant to play, however hard the wheel
+     is spun, so each action can be taken in. Scrolling back, the keyboard and the
+     scrollbar are left alone. */
+  const LEAD = 260          // how far ahead, in px, a spin of the wheel can queue up
+  let want = null, at = 0, clock = 0, moving = 0
+  const stretch = () => {
+    const top = parseFloat(getComputedStyle(grid).top) || 0
+    const start = track.getBoundingClientRect().top + window.scrollY - top
+    return [start, start + track.offsetHeight - grid.offsetHeight]
+  }
+  // Pixels per millisecond allowed at a given scroll position: each step's frames at their own pace
+  const limit = (y, start) => {
+    let done = (y - start) / window.innerHeight, index = 0
+    while (index < steps.length - 1 && done >= share[index]) done -= share[index++]
+    return 0.74 * share[index] * window.innerHeight / length(scenes[index])
+  }
+  const advance = (now) => {
+    const [start, end] = stretch()
+    // Something else moved the page (keyboard, scrollbar): stop steering
+    if (want === null || Math.abs(window.scrollY - at) > 3 || want <= at + 0.5) { want = null; moving = 0; return }
+    at = Math.min(want, end, at + limit(at, start) * Math.min(50, now - clock))
+    clock = now
+    window.scrollTo({ top: at, behavior: 'instant' })
+    moving = requestAnimationFrame(advance)
+  }
+  window.addEventListener('wheel', (event) => {
+    if (!root.classList.contains('pin') || event.ctrlKey) return
+    if (event.deltaY <= 0) { want = null; return }
+    const [start, end] = stretch()
+    const y = window.scrollY
+    if (y < start || y >= end - 1) return
+    event.preventDefault()
+    const delta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaMode === 2 ? event.deltaY * window.innerHeight : event.deltaY
+    if (want === null) at = y
+    want = Math.min(end, at + LEAD, Math.max(want ?? y, at) + delta)
+    if (!moving) { clock = performance.now(); moving = requestAnimationFrame(advance) }
+  }, { passive: false })
   window.addEventListener('resize', lay)
   wide.addEventListener?.('change', lay)
 
