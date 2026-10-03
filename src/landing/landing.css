@@ -606,8 +606,8 @@ html.accounts-on .sheet [data-accounts="off"] {
   transform: rotate(4deg);
 }
 
-/* The two pages part a little when the pointer is over them, and whichever one it is
-   on comes to the front */
+/* The two pages part a little when the pointer is over them, and the one it is on
+   grows slightly */
 .hero-pdfs:hover .hero-pdf-back {
   transform: rotate(-10deg) translateX(-8px);
 }
@@ -616,10 +616,27 @@ html.accounts-on .sheet [data-accounts="off"] {
   transform: rotate(5deg) translateX(6px);
 }
 
-.hero-pdf:hover,
-.hero-pdf:focus-visible {
-  z-index: 5;
+.hero-pdf-front:hover,
+.hero-pdf-front:focus-visible,
+.hero-pdfs:has(.hero-pdf-back:hover) .hero-pdf-back,
+.hero-pdfs:has(.hero-pdf-back:focus-visible) .hero-pdf-back {
   scale: 1.07;
+}
+
+/* Bringing the breakdown to the front: a copy of it lies over the quote, unseen, and
+   fades in when the breakdown is pointed at, so one page melts through the other
+   instead of jumping in front of it */
+.hero-pdf-ghost {
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.4s var(--ease), scale 0.4s var(--ease), opacity 0.45s ease;
+}
+
+.hero-pdfs:has(.hero-pdf-back:hover) .hero-pdf-ghost,
+.hero-pdfs:has(.hero-pdf-back:focus-visible) .hero-pdf-ghost {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* An expand mark in the middle of the page under the pointer: pressing opens it in full */
@@ -651,8 +668,10 @@ html.accounts-on .sheet [data-accounts="off"] {
   stroke-linejoin: round;
 }
 
-.hero-pdf:hover .hero-pdf-tag,
-.hero-pdf:focus-visible .hero-pdf-tag {
+.hero-pdf-front:hover .hero-pdf-tag,
+.hero-pdf-front:focus-visible .hero-pdf-tag,
+.hero-pdfs:has(.hero-pdf-back:hover) .hero-pdf-ghost .hero-pdf-tag,
+.hero-pdfs:has(.hero-pdf-back:focus-visible) .hero-pdf-ghost .hero-pdf-tag {
   opacity: 1;
   scale: 1;
 }
