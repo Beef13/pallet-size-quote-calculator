@@ -3071,3 +3071,36 @@ html.dark-mode .status-pill.attention-follow-up {
 a.btn {
   text-decoration: none;
 }
+
+/* Demonstration: the message shown when a fixed input is tried */
+/* The demonstration is always shown at desktop size, with the side panel 440px wide on the left */
+.demo-hint {
+  position: fixed;
+  left: 234px;
+  bottom: 100px;
+  z-index: 50;
+  width: max-content;
+  max-width: 400px;
+  padding: 9px 14px;
+  border-radius: 14px;
+  background: #101828;
+  color: #fff;
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.2s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.demo-hint.shown {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* Paragraphs in the panel set their own colour, so say it again with more weight */
+aside.panel p.demo-hint {
+  color: #fff;
+}

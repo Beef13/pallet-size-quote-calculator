@@ -65,7 +65,22 @@ function readLogo(file) {
    Everything works, but nothing is kept: it never reads or writes the visitor's saved data,
    accounts are off, and saving a quote, exporting a PDF and exporting a backup are switched off. */
 const DEMO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo')
-const demoStore = new Map()
+// It starts with the same labour, markup and placeholder business as the sample quote on the landing page
+const demoStore = new Map(DEMO ? [
+  ['timberPrices', JSON.stringify({ pricing: { labourPerPallet: 3, markupPercent: 25 } })],
+  ['palletBusiness', JSON.stringify({ name: 'Example Pallets Pty Ltd', abn: '00 000 000 000', phone: '(03) 0000 0000', email: 'quotes@example.com' })]
+] : [])
+/* The demonstration is for looking round, not for working out a real quote, so the inputs that
+   define a job are fixed: the size, the timber and sizes, the prices, labour and markup, the
+   business and customer details, and the buttons that clear or save. Board and bearer counts,
+   the quantity, the 3D view, the tabs and the theme are left free to try. */
+const demoLocked = (target) => {
+  const el = target.closest?.('select, textarea, input, button, label.switch, label.text-btn')
+  if (!el) return false
+  if (el.matches('select, textarea, label.switch, label.text-btn')) return true
+  if (el.matches('input')) return !(el.type === 'range' || /^Number of/.test(el.getAttribute('aria-label') || ''))
+  return el.matches('.lock-button') || /^(Clear|Save as preset|New quote|Unlock all|Lock all|Edit list|Export|Import|Reset|Use )/.test(el.textContent.trim())
+}
 const accountsLive = accountsEnabled && !DEMO
 
 function readStorage(key) {
@@ -614,6 +629,23 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   // Demonstration: what is switched off, and following the theme of the page it is embedded in
   const [demoNotice, setDemoNotice] = useState(false)
+  // A short message when a fixed input is tried
+  const [demoHint, setDemoHint] = useState(false)
+  const demoHintTimer = useRef(null)
+  const demoBlock = (event) => {
+    if (!demoLocked(event.target)) return
+    event.preventDefault()
+    event.stopPropagation()
+    setDemoHint(true)
+    clearTimeout(demoHintTimer.current)
+    demoHintTimer.current = setTimeout(() => setDemoHint(false), 2400)
+  }
+  const demoGuard = DEMO ? {
+    onPointerDownCapture: demoBlock,
+    onMouseDownCapture: demoBlock,
+    onClickCapture: demoBlock,
+    onKeyDownCapture: (event) => { if (event.key !== 'Tab') demoBlock(event) }
+  } : {}
   useEffect(() => {
     if (!DEMO) return undefined
     const onMessage = (event) => {
@@ -1616,7 +1648,12 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   return (
     <div className={`workbench ${isPanelCollapsed ? 'panel-collapsed' : ''}`}>
       {/* Left panel */}
-      <aside className="panel" aria-hidden={isPanelCollapsed}>
+      <aside className="panel" aria-hidden={isPanelCollapsed} {...demoGuard}>
+        {DEMO && (
+          <p className={`demo-hint ${demoHint ? 'shown' : ''}`} role="status" aria-live="polite">
+            {demoHint ? 'Fixed in this demonstration. Board counts and the quantity can be changed.' : ''}
+          </p>
+        )}
         <header className="panel-header">
           <div className="brand">
             <span className="brand-logo" aria-hidden="true">
