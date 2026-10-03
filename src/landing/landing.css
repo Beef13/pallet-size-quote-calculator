@@ -585,7 +585,7 @@ html.accounts-on .sheet [data-accounts="off"] {
   border-radius: 6px;
   background: #fff;
   box-shadow: 0 24px 44px -22px rgba(6, 20, 70, 0.75);
-  transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease);
+  transition: transform 0.4s var(--ease);
 }
 
 .hero-pdf img {
@@ -598,7 +598,6 @@ html.accounts-on .sheet [data-accounts="off"] {
   left: 0;
   top: 0;
   transform: rotate(-7deg);
-  transform-origin: 30% 35%;
 }
 
 .hero-pdf-front {
@@ -606,26 +605,21 @@ html.accounts-on .sheet [data-accounts="off"] {
   right: 0;
   bottom: 0;
   transform: rotate(4deg);
-  transform-origin: 80% 55%;
 }
 
-/* Whichever page the pointer is on comes to the front, straightens and grows; the
-   other draws back behind it */
+/* The two pages part a little when the pointer is over them, and whichever one it is
+   on comes to the front */
+.hero-pdfs:hover .hero-pdf-back {
+  transform: rotate(-10deg) translateX(-8px);
+}
+
+.hero-pdfs:hover .hero-pdf-front {
+  transform: rotate(5deg) translateX(6px);
+}
+
 .hero-pdf:hover,
 .hero-pdf:focus-visible {
   z-index: 5;
-  transform: rotate(0deg) scale(1.42);
-  box-shadow: 0 50px 90px -30px rgba(6, 20, 70, 0.85);
-}
-
-.hero-pdfs:has(.hero-pdf-front:hover) .hero-pdf-back,
-.hero-pdfs:has(.hero-pdf-front:focus-visible) .hero-pdf-back {
-  transform: rotate(-11deg) translateX(-10%) scale(0.92);
-}
-
-.hero-pdfs:has(.hero-pdf-back:hover) .hero-pdf-front,
-.hero-pdfs:has(.hero-pdf-back:focus-visible) .hero-pdf-front {
-  transform: rotate(8deg) translateX(10%) scale(0.92);
 }
 
 /* An expand mark in the middle of the page under the pointer: pressing opens it in full */
@@ -660,13 +654,12 @@ html.accounts-on .sheet [data-accounts="off"] {
 .hero-pdf:hover .hero-pdf-tag,
 .hero-pdf:focus-visible .hero-pdf-tag {
   opacity: 1;
-  /* Kept the same size on screen while the page itself grows */
-  scale: 0.72;
+  scale: 1;
 }
 
 .hero-pdf:hover img,
 .hero-pdf:focus-visible img {
-  filter: brightness(0.95);
+  filter: brightness(0.93);
 }
 
 /* Where there is no room for the pages, a plain link to the sample instead */
