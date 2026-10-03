@@ -19,7 +19,6 @@ const SCALES = [5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200]
 
 // Line weights (sheet units; 1 unit = 0.16 mm when printed)
 const LW = {
-  border: 2.2,      // sheet border
   primary: 1.6,     // nearest visible edges / profile
   visible: 0.9,     // other visible edges
   secondary: 0.55,  // visible but further back (seen through gaps)
@@ -206,6 +205,8 @@ function ShopDrawing({ q, quantity, today, parts }) {
   const Wp = W * s, Lp = L * s, Hp = H * s
 
   // ----- Layout: third-angle projection + detail + title block -----
+  // Two columns. Everything in the left column starts on the pallet's left edge (planX);
+  // everything in the right column starts on the side elevation's left edge (sideX).
   //  [ PLAN           ] [ ISOMETRIC      ]
   //  [ FRONT ELEVATION] [ SIDE ELEVATION ]
   //  [ DETAIL 1       ] [ NOTES / TITLE  ]
@@ -213,14 +214,16 @@ function ShopDrawing({ q, quantity, today, parts }) {
   const rowB = planY + Lp + 126
   const frontX = planX, frontY = rowB
   const sideX = planX + Wp + colGap, sideY = rowB
-  const rightColX = Math.max(sideX - 20, planX + Wp + 70)
-  const axoX0 = rightColX, axoX1 = SHEET_W - 20
+  const rightColX = sideX
+  // Right edge of the right column: the end of the side elevation, or wide enough for the title block
+  const rightColX1 = Math.min(SHEET_W - 20, Math.max(sideX + Lp, sideX + 320))
+  const axoX0 = rightColX, axoX1 = rightColX1
   const axoY0 = 26, axoY1 = planY + Lp + 40
   const rowC = rowB + Hp + 112
 
   // Detail: end profile at a larger scale, cut off with a break line
   // Show the first top board, the gap and part of the next board
-  const detX = leftM - 14, detY = rowC + 26
+  const detX = planX, detY = rowC + 26
   const detAvailW = rightColX - detX - 180   // leave room for the leader notes
   const cutTarget = Math.min(W, Math.max(
     top.length >= 2 ? top[1].x + Math.min(top[1].w, 40) : (top[0]?.w || 100) + 40,
@@ -455,9 +458,9 @@ function ShopDrawing({ q, quantity, today, parts }) {
       })()}
 
       {/* Matching marker so the detail is easy to find from the elevation */}
-      <circle cx={detX + 8} cy={dy(0) + 45} r={8} fill="#fff" stroke={CALLOUT} strokeWidth={LW.visible} />
-      <text x={detX + 8} y={dy(0) + 45.5} fontSize={10} fontWeight="600" fontFamily={FONT} textAnchor="middle" dominantBaseline="central" fill={CALLOUT}>1</text>
-      <ViewTitle x={detX + 22} y={dy(0) + 50} title="DETAIL 1  END PROFILE" sub={`Scale 1:${detailDenom}`} />
+      <ViewTitle x={detX} y={dy(0) + 50} title="DETAIL 1  END PROFILE" sub={`Scale 1:${detailDenom}`} />
+      <circle cx={detX + 21 * 8.2 + 18} cy={dy(0) + 45} r={8} fill="#fff" stroke={CALLOUT} strokeWidth={LW.visible} />
+      <text x={detX + 21 * 8.2 + 18} y={dy(0) + 45.5} fontSize={10} fontWeight="600" fontFamily={FONT} textAnchor="middle" dominantBaseline="central" fill={CALLOUT}>1</text>
     </g>
   )
 
@@ -473,8 +476,8 @@ function ShopDrawing({ q, quantity, today, parts }) {
   const C = Math.cos(Math.PI / 6), S = 0.5
   const isoRaw = (x, y, z) => [(x - z) * C, (x + z) * S - y]
   const isoW = (W + L) * C, isoH = (W + L) * S + H
-  const k = Math.min((axoX1 - axoX0 - 20) / isoW, (axoY1 - axoY0 - 50) / isoH)
-  const ox = axoX0 + 10 + (axoX1 - axoX0 - 20 - isoW * k) / 2 + L * C * k
+  const k = Math.min((axoX1 - axoX0) / isoW, (axoY1 - axoY0 - 50) / isoH)
+  const ox = axoX0 + L * C * k
   const oy = axoY0 + 10 + H * k
   const iso = (x, y, z) => { const [u, v] = isoRaw(x, y, z); return `${ox + u * k},${oy + v * k}` }
   const axo = (
@@ -490,7 +493,7 @@ function ShopDrawing({ q, quantity, today, parts }) {
         const [u, v] = isoRaw(b.x + b.w * f, yBearer1 + b.t, z + bearerT / 2)
         return <ellipse key={`n${i}-${j}-${n}`} cx={ox + u * k} cy={oy + v * k} rx={1.3} ry={0.75} fill={INK} />
       })))}
-      <ViewTitle x={axoX0 + 10} y={axoY1 + 12} title="ISOMETRIC" sub="Not to scale" />
+      <ViewTitle x={axoX0} y={planY + Lp + 78} title="ISOMETRIC" sub="Not to scale" />
     </g>
   )
 
@@ -503,7 +506,7 @@ function ShopDrawing({ q, quantity, today, parts }) {
     timber ? `Timber: ${timber}.` : null
   ].filter(Boolean)
 
-  const tbX = rightColX, tbX1 = SHEET_W - 20
+  const tbX = rightColX, tbX1 = rightColX1
   const tbY = rowC + 8
   const notesBlock = (
     <g fontFamily={FONT}>
@@ -541,7 +544,6 @@ function ShopDrawing({ q, quantity, today, parts }) {
   return (
     <svg className="shop-drawing" viewBox={`0 0 ${SHEET_W} ${sheetH}`} xmlns="http://www.w3.org/2000/svg"
       style={{ fontFamily: FONT }} shapeRendering="geometricPrecision">
-      <rect x={2} y={2} width={SHEET_W - 4} height={sheetH - 4} fill="none" stroke={INK} strokeWidth={LW.border} />
       {plan}
       {axo}
       {front}
