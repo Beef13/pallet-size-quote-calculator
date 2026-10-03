@@ -20,7 +20,7 @@ import screenDark from './img/app-desktop-dark.webp'
 const HINGE = { y: 1.2639, z: 0.004 }
 const DISPLAY = { halfWidth: 1.742, bottom: 0.15, top: 2.352, y: 1.2619 }
 // Radius of the display's top corners, as a share of its width
-export const CORNER = 0.0109
+export const CORNER = 0.0165
 const LID_PARTS = ['Aluminum_-_Satin', 'Glass_Clear', 'Steel_-_Satin', 'Steel_-_Satin_NONE']
 
 const clamp = (v) => Math.max(0, Math.min(1, v))
@@ -135,8 +135,12 @@ export async function mountLaptop({ stage, dark }) {
   // Open: square to the screen, a little below its middle so the base is in the picture
   const aimOpen = screenCentre.clone().add(new Vector3(0, -0.2, 0))
   // Shut: looking down on the lid from in front, so its edge and thickness show
-  const aimShut = new Vector3(0, -0.8, 0.1)
+  const aimShut = new Vector3(0, -0.5, 0.1)
   const aim = new Vector3()
+  const tip = new Vector3()
+  const lift = new Vector3()
+  // The highest the lid may reach, where 1 is the top edge of the drawing
+  const HEADROOM = 0.94
 
   let progress = -1
   let queued = false
@@ -152,6 +156,23 @@ export async function mountLaptop({ stage, dark }) {
     aim.lerpVectors(aimShut, aimOpen, round)
     camera.position.set(aim.x, aim.y + Math.sin(rise) * DISTANCE, aim.z + Math.cos(rise) * DISTANCE)
     camera.lookAt(aim)
+    // Part-way open, the lid can stand taller in the picture than it does at either
+    // end. If its top edge would pass the top of the drawing, the whole view is
+    // lowered by just that much, so the laptop is never cut off.
+    camera.updateMatrixWorld(true)
+    lid.updateMatrixWorld(true)
+    let peak = -1
+    for (const x of [-1.78, 1.78]) {
+      for (const y of [0, 0.04]) {
+        tip.set(x, y, 2.4 - HINGE.z)
+        peak = Math.max(peak, lid.localToWorld(tip).project(camera).y)
+      }
+    }
+    if (peak > HEADROOM) {
+      const halfHeight = Math.tan(camera.fov * Math.PI / 360) * DISTANCE
+      lift.set(0, 1, 0).applyQuaternion(camera.quaternion)
+      camera.position.addScaledVector(lift, (peak - HEADROOM) * halfHeight)
+    }
     // The display is dark until the lid is most of the way up
     const wake = part(p, 0.45, 0.8)
     screenMat.color.setScalar(wake)

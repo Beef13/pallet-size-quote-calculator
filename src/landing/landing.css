@@ -866,6 +866,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 }
 
 .laptop-canvas {
+  pointer-events: none;
   position: absolute;
   inset: 0;
   width: 100%;
