@@ -155,8 +155,10 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
 const nav = document.getElementById('top')
 const heroShot = document.getElementById('hero-shot')
 const devices = document.querySelector('.devices')
+const lidEl = document.querySelector('.laptop-lid')
 let opened = false
 let started = false
+let home = null
 let queued = false
 const onScroll = () => {
   queued = false
@@ -168,30 +170,44 @@ const onScroll = () => {
     heroShot.style.setProperty('--rise', `${(1 - p) * 36}px`)
     heroShot.style.setProperty('--scale', String(0.965 + p * 0.035))
   }
-  // The laptop opens as it comes up the screen, then the phone steps in beside it.
-  // Once open it stays open, so the demonstration is never shut on someone using it.
-  if (devices && !reduceMotion && !opened) {
-    const top = devices.getBoundingClientRect().top
+  // The laptop starts shut, up under the hero's words, and opens over the first stretch
+  // of scrolling: the base lowers while the top of the lid stays put. Then the phone
+  // steps in beside it. Once open it stays open, so the demonstration is never shut
+  // on someone using it.
+  if (devices && lidEl && !reduceMotion && !opened) {
     const vh = window.innerHeight
-    const p = Math.max(0, Math.min(1, (vh * 0.8 - top) / (vh * 0.6)))
-    // Already well up the screen on arrival (a tall window): open it on a timer instead
-    if (!started && p > 0.35) {
+    if (home === null) home = devices.getBoundingClientRect().top + window.scrollY
+    const ease = (t) => 1 - Math.pow(1 - t, 3)
+    const pose = (p) => {
+      const u = Math.min(1, p / 0.82)
+      const open = u * u * (3 - 2 * u)
+      const phone = ease(Math.max(0, (p - 0.7) / 0.3))
+      // How far the lid's top sits above the hinge at this angle, as the eye sees it
+      // (3200 is the viewing distance set in the stylesheet)
+      const h = lidEl.offsetHeight
+      const tilt = (1 - open) * Math.PI / 2
+      const seen = h * Math.cos(tilt) * 3200 / (3200 - h * Math.sin(tilt))
+      devices.style.setProperty('--open', open.toFixed(3))
+      devices.style.setProperty('--phone', phone.toFixed(3))
+      devices.style.setProperty('--lift', Math.max(0, h - seen).toFixed(1))
+    }
+    // A window tall enough to show it all on arrival: open it on a timer instead
+    if (!started && home < vh * 0.3) {
       opened = true
-      devices.style.setProperty('--open', '0')
-      devices.style.setProperty('--phone', '0')
-      devices.classList.add('auto-open')
-      setTimeout(() => {
-        devices.style.setProperty('--open', '1')
-        devices.style.setProperty('--phone', '1')
-      }, 700)
+      pose(0)
+      const began = performance.now() + 700
+      const step = (now) => {
+        const t = Math.max(0, Math.min(1, (now - began) / 1800))
+        pose(t)
+        if (t < 1) requestAnimationFrame(step)
+      }
+      requestAnimationFrame(step)
       return
     }
     started = true
-    const ease = (t) => 1 - Math.pow(1 - t, 3)
-    const lid = ease(Math.min(1, p / 0.8))
-    const phone = ease(Math.max(0, (p - 0.7) / 0.3))
-    devices.style.setProperty('--open', lid.toFixed(3))
-    devices.style.setProperty('--phone', phone.toFixed(3))
+    const span = Math.max(home - vh * 0.18, vh * 0.45)
+    const p = Math.max(0, Math.min(1, window.scrollY / span))
+    pose(p)
     if (p >= 1) opened = true
   }
 }

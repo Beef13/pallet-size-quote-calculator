@@ -730,8 +730,12 @@ html.accounts-on .sheet [data-accounts="off"] {
     align-items: center;
     width: 94%;
     /* Seen level with the hinge, so the lid rises straight up as it opens */
-    perspective: 1600px;
+    perspective: 3200px;
     perspective-origin: 50% 100%;
+    /* Shut, it sits up under the words above. As the lid opens the base lowers, so the
+       top of the lid stays where it started. Script works out the lift in pixels. */
+    translate: 0 calc(var(--lift, 0) * -1px);
+    will-change: translate;
   }
 
   /* The lid: a dark bezel round the screen, with the camera in the top edge */
@@ -744,7 +748,9 @@ html.accounts-on .sheet [data-accounts="off"] {
     box-shadow: inset 0 0 0 1.5px #3b3f47, 0 40px 80px -40px rgba(8, 24, 80, 0.7);
     /* --open runs 0 (shut) to 1 (open) with the scroll; open where there is no script */
     transform-origin: 50% 100%;
-    transform: rotateX(calc((1 - var(--open, 1)) * -86deg));
+    transform: rotateX(calc((1 - var(--open, 1)) * -90deg));
+    /* Edge-on when shut, so hidden until it starts to lift */
+    opacity: calc(var(--open, 1) * 40);
     will-change: transform;
   }
 
@@ -786,6 +792,20 @@ html.accounts-on .sheet [data-accounts="off"] {
     border-radius: 2px 2px clamp(10px, 1.4vw, 18px) clamp(10px, 1.4vw, 18px);
     background: linear-gradient(180deg, #e6e9ee 0%, #c3c7ce 45%, #8b9099 100%);
     box-shadow: 0 34px 50px -22px rgba(8, 24, 80, 0.65);
+  }
+
+  /* The edge of the shut lid, resting on the base; gone as soon as the lid lifts */
+  .laptop-base::after {
+    content: '';
+    position: absolute;
+    left: 5%;
+    right: 5%;
+    bottom: 100%;
+    height: clamp(7px, 0.9vw, 12px);
+    border-radius: clamp(8px, 1vw, 12px) clamp(8px, 1vw, 12px) 0 0;
+    background: linear-gradient(180deg, #f1f3f6, #cfd3d9);
+    box-shadow: inset 0 0 0 1px #b9bdc5;
+    opacity: calc(1 - var(--open, 1) * 14);
   }
 
   .laptop-base::before {
@@ -836,19 +856,6 @@ html.accounts-on .sheet [data-accounts="off"] {
     border-radius: 999px;
     background: #0c0e12;
   }
-}
-
-/* Opened on a timer rather than by the scroll */
-.auto-open .laptop-lid {
-  transition: transform 1.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.auto-open .laptop-lid::after {
-  transition: opacity 0.9s ease 0.4s;
-}
-
-.auto-open .handset {
-  transition: opacity 0.6s ease 1.1s, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 1.1s;
 }
 
 @media (min-width: 561px) and (max-width: 720px) {
