@@ -20,7 +20,6 @@
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
-    <div class="progress" aria-hidden="true"></div>
 
     <div class="sheet">
       <header class="nav" id="top">
@@ -33,9 +32,7 @@
           </a>
           <nav class="nav-links" aria-label="Sections">
             <a href="#how">How it works</a>
-            <a href="#features">Features</a>
             <a href="#sample">Documents</a>
-            <a href="#covers" data-billing="off">Pricing</a>
             <a href="#pricing" data-billing="on">Pricing</a>
             <a href="#questions">Questions</a>
           </nav>
@@ -54,17 +51,14 @@
       <main id="main">
         <section class="hero">
           <div class="hero-head">
-            <p class="tag"><i aria-hidden="true"></i>For Australian pallet manufacturers</p>
             <h1><span>Itemised pallet quotes.</span> <span>Drawn to scale.</span></h1>
-            <p class="lede">Enter the pallet dimensions and select your timber. Pallet Quote costs every board and bearer by the metre at your rates, applies your labour and markup, and produces a scaled shop drawing for customer approval.</p>
+            <p class="lede">Enter the size, choose your timber, and send a priced quote with a scaled shop drawing.</p>
             <div class="hero-actions">
               <a class="btn btn-primary btn-go" href="./app/index.html">Create a quote<span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 16l8-8M9.5 8H16v6.5"/></svg></span></a>
             </div>
-            <p class="hero-note" data-accounts="off"><span data-billing="off">Free to use at present.</span><span data-billing="on">The calculator is free.</span> No installation required.</p>
-            <p class="hero-note" data-accounts="on"><span data-billing="off">Free to use at present, with no installation or account required. <a href="./app/index.html#signup">Sign up</a> to back up your prices and quotes and keep them synchronised across your devices.</span><span data-billing="on">The calculator is free, with no installation or account required. Online backup and synchronisation across your devices is <a href="#pricing">$29 per month</a>.</span></p>
+            <p class="hero-note"><span data-billing="off">Free to use at present.</span><span data-billing="on">The calculator is free.</span> Nothing to install.</p>
           </div>
 
-          <span class="ghost" aria-hidden="true">Pallet Quote</span>
           <div class="hero-shot" id="hero-shot">
             <div class="frame device">
               <img class="on-light wide" src="/src/landing/img/shot-hero-light.webp" width="2000" height="1250" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
@@ -75,31 +69,9 @@
           </div>
         </section>
 
-        <section class="glance" aria-label="At a glance">
-          <ul class="glance-list" data-stagger>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 21h8M12 18v3"/></svg>
-              <div><strong>Runs in the browser</strong><span>No installation required</span></div>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0"/><path d="M3 3l18 18"/></svg>
-              <div><strong>Works offline</strong><span>No connection needed once loaded</span></div>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-              <div><strong>Any device</strong><span>Phone, tablet or computer</span></div>
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></svg>
-              <div><strong data-billing="off">Free at present</strong><strong data-billing="on">Free calculator</strong><span>No account required</span></div>
-            </li>
-          </ul>
-        </section>
-
         <section class="flow" id="how" aria-labelledby="how-title">
           <div class="section-head" data-reveal>
             <div class="section-lead">
-              <p class="tag">How it works</p>
               <h2 id="how-title" class="section-title">From your rates to a sent quote</h2>
             </div>
             <p class="section-intro">Four steps, and the first is only done once.</p>
@@ -330,153 +302,46 @@
           </div>
         </section>
 
-        <section class="features" id="features" aria-labelledby="features-title">
-          <div class="section-head" data-reveal>
-            <div class="section-lead">
-              <p class="tag">Features</p>
-              <h2 id="features-title" class="section-title">Built for pallet manufacturers</h2>
-            </div>
-            <p class="section-intro">Each of these is taken from the calculator as it runs today.</p>
-          </div>
-          <ul class="feat-grid" data-stagger>
-            <li class="feat" data-spot>
-              <div class="feat-shot">
-                <img class="on-light" src="/src/landing/img/shot-feat-3d-light.webp" width="880" height="600" loading="lazy" alt="A 3D model of a pallet with its dimensions and gaps marked" />
-                <img class="on-dark" src="/src/landing/img/shot-feat-3d-dark.webp" width="880" height="600" loading="lazy" alt="A 3D model of a pallet with its dimensions and gaps marked" />
-              </div>
-              <h3>Live 3D model</h3>
-              <p>The pallet is modelled to scale as each component is selected, and the board count cannot exceed what the width allows.</p>
-            </li>
-            <li class="feat" data-spot>
-              <div class="feat-shot">
-                <img class="on-light" src="/src/landing/img/shot-feat-leader-light.webp" width="880" height="600" loading="lazy" alt="The top boards section with leader boards switched on and a wider leader size chosen" />
-                <img class="on-dark" src="/src/landing/img/shot-feat-leader-dark.webp" width="880" height="600" loading="lazy" alt="The top boards section with leader boards switched on and a wider leader size chosen" />
-              </div>
-              <h3>Leader boards</h3>
-              <p>Specify wider or thicker boards on the outside edges. The gaps are recalculated and each size is costed on its own line.</p>
-            </li>
-            <li class="feat" data-spot>
-              <div class="feat-shot">
-                <img class="on-light" src="/src/landing/img/shot-feat-markup-light.webp" width="880" height="600" loading="lazy" alt="Labour and markup settings stating that a 25 percent markup gives a 20 percent gross margin" />
-                <img class="on-dark" src="/src/landing/img/shot-feat-markup-dark.webp" width="880" height="600" loading="lazy" alt="Labour and markup settings stating that a 25 percent markup gives a 20 percent gross margin" />
-              </div>
-              <h3>Markup and margin</h3>
-              <p>Markup is displayed alongside the gross margin it produces, so the two are never confused.</p>
-            </li>
-            <li class="feat" data-spot>
-              <div class="feat-shot">
-                <img class="on-light" src="/src/landing/img/shot-feat-locks-light.webp" width="880" height="600" loading="lazy" alt="A list of timber sizes, each with a price per metre and a closed padlock" />
-                <img class="on-dark" src="/src/landing/img/shot-feat-locks-dark.webp" width="880" height="600" loading="lazy" alt="A list of timber sizes, each with a price per metre and a closed padlock" />
-              </div>
-              <h3>Protected pricing</h3>
-              <p>Rates remain locked until you choose to edit them, which prevents accidental changes.</p>
-            </li>
-            <li class="feat" data-spot>
-              <div class="feat-shot">
-                <img class="on-light" src="/src/landing/img/shot-feat-presets-light.webp" width="880" height="600" loading="lazy" alt="Three saved pallet presets listed by name and size" />
-                <img class="on-dark" src="/src/landing/img/shot-feat-presets-dark.webp" width="880" height="600" loading="lazy" alt="Three saved pallet presets listed by name and size" />
-              </div>
-              <h3>Saved presets</h3>
-              <p>Store the pallets you quote regularly and reuse them with a new quantity.</p>
-            </li>
-            <li class="feat" data-spot>
-              <div class="feat-shot">
-                <img class="on-light" src="/src/landing/img/shot-feat-history-light.webp" width="880" height="600" loading="lazy" alt="A list of saved quotes marked accepted, lost, sent and draft" />
-                <img class="on-dark" src="/src/landing/img/shot-feat-history-dark.webp" width="880" height="600" loading="lazy" alt="A list of saved quotes marked accepted, lost, sent and draft" />
-              </div>
-              <h3>Quote history</h3>
-              <p>Each quote is numbered and stored with the rates it was priced on. Record it as sent, accepted or lost, or duplicate it for a repeat order.</p>
-            </li>
-          </ul>
-        </section>
-
         <section class="docs" id="sample" aria-labelledby="docs-title">
           <div class="section-head" data-reveal>
             <div class="section-lead">
-              <p class="tag">Documents</p>
               <h2 id="docs-title" class="section-title">One quote, two documents</h2>
             </div>
-            <p class="section-intro">Both are produced from the same figures and carry the same quote number. Select either document to view it in full.</p>
+            <p class="section-intro">Both carry the same quote number. Select either to view it in full.</p>
           </div>
           <div class="docs-grid">
             <article class="doc" data-reveal style="--d: 0">
-              <a class="doc-sheet" data-tilt href="./sample-quote.pdf" data-doc="customer" aria-label="View the sample customer copy">
+              <a class="doc-sheet" href="./sample-quote.pdf" data-doc="customer" aria-label="View the sample customer copy">
                 <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" loading="lazy"
                   alt="Sample customer quote: business details, a scaled shop drawing of a 1165 by 1165 pallet, the specification table and the total including GST" />
                 <span class="doc-open">View</span>
               </a>
               <h3>Customer copy</h3>
-              <p>The quotation you send for approval.</p>
-              <ul class="ticks">
-                <li>Your business details, quote number and validity date</li>
-                <li>Scaled shop drawing and specification table</li>
-                <li>Price per pallet, quantity, GST and total</li>
-              </ul>
-              <ul class="ticks ticks-no">
-                <li>Does not show your rates, labour or markup</li>
-              </ul>
+              <p>The quotation you send for approval. Your rates, labour and markup are not shown.</p>
             </article>
             <article class="doc" data-reveal style="--d: 1">
-              <a class="doc-sheet" data-tilt href="./sample-breakdown.pdf" data-doc="breakdown" aria-label="View the sample cost breakdown">
+              <a class="doc-sheet" href="./sample-breakdown.pdf" data-doc="breakdown" aria-label="View the sample cost breakdown">
                 <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy"
                   alt="Sample cost breakdown: the same drawing, each component with its rate per metre and cost, then materials, labour, markup, margin and gross profit" />
                 <span class="doc-open">View</span>
               </a>
               <h3>Your copy</h3>
-              <p>The cost breakdown kept for your own records.</p>
-              <ul class="ticks">
-                <li>Rate per metre and cost of every component</li>
-                <li>Materials, labour and cost per pallet</li>
-                <li>Markup, margin and gross profit on the quote</li>
-                <li>Marked as an internal record, with the date the rates applied</li>
-              </ul>
+              <p>The cost breakdown you keep: every rate, your markup, margin and gross profit.</p>
             </article>
           </div>
           <p class="fine docs-note">Produced by Pallet Quote using placeholder business details.</p>
-        </section>
-
-        <section class="covers" id="covers" aria-labelledby="covers-title">
-          <div class="section-head" data-reveal>
-            <div class="section-lead">
-              <p class="tag">Costing</p>
-              <h2 id="covers-title" class="section-title">What the price includes</h2>
-            </div>
-          </div>
-          <div class="covers-grid">
-            <div class="covers-set">
-              <h3>Included</h3>
-              <ul class="chips" data-stagger>
-                <li>Timber for every board and bearer, by the metre at your rates</li>
-                <li>Nails, at your price per nail</li>
-                <li>Labour per pallet</li>
-                <li>Markup on cost, with the gross margin shown</li>
-                <li>GST</li>
-              </ul>
-            </div>
-            <div class="covers-set">
-              <h3>Not yet included</h3>
-              <ul class="chips chips-no" data-stagger>
-                <li>Freight and delivery</li>
-                <li>Heat treatment</li>
-                <li>Waste allowance</li>
-                <li>Minimum order charge</li>
-              </ul>
-              <p class="fine">Allow for these separately until they are supported.</p>
-            </div>
-          </div>
         </section>
 
         <!-- Plans: only in builds with a payment link (VITE_STRIPE_PAYMENT_LINK) -->
         <section class="pricing" id="pricing" aria-labelledby="pricing-title" data-billing="on">
           <div class="section-head" data-reveal>
             <div class="section-lead">
-              <p class="tag">Plans</p>
               <h2 id="pricing-title" class="section-title">Plans and pricing</h2>
             </div>
             <p class="section-intro">The calculator is free. A subscription adds online backup and synchronisation across your devices. There is no setup fee and no contract.</p>
           </div>
           <div class="tiers" data-stagger>
-            <article class="tier" data-spot aria-labelledby="tier-free">
+            <article class="tier" aria-labelledby="tier-free">
               <h3 id="tier-free">Free</h3>
               <p class="tier-for">For quoting on one device.</p>
               <p class="tier-price"><span class="tier-amount">$0</span></p>
@@ -507,7 +372,7 @@
               </ul>
             </article>
 
-            <article class="tier tier-later" data-spot aria-labelledby="tier-team">
+            <article class="tier tier-later" aria-labelledby="tier-team">
               <h3 id="tier-team">Team <span class="tier-tag">Not yet available</span></h3>
               <p class="tier-for">For businesses where more than one person quotes.</p>
               <p class="tier-price"><span class="tier-amount tier-amount-quiet">Price to be announced</span></p>
@@ -526,7 +391,6 @@
         <section class="faq" id="questions" aria-labelledby="faq-title">
           <div class="section-head" data-reveal>
             <div class="section-lead">
-              <p class="tag">Questions</p>
               <h2 id="faq-title" class="section-title">Frequently asked questions</h2>
             </div>
           </div>
@@ -557,59 +421,25 @@
 
         <!-- Closing call -->
         <section class="final" aria-labelledby="final-title" data-reveal>
-          <div class="final-art" aria-hidden="true">
-            <div class="frame device">
-              <img class="on-light" src="/src/landing/img/shot-hero-panel-light.webp" width="880" height="1544" loading="lazy" alt="" />
-              <img class="on-dark" src="/src/landing/img/shot-hero-panel-dark.webp" width="880" height="1544" loading="lazy" alt="" />
-            </div>
-          </div>
-          <div class="final-copy">
-            <h2 id="final-title">Prepare your next quote with Pallet Quote.</h2>
-            <ul class="facts">
-              <li data-billing="off">Free at present</li>
-              <li data-billing="on">Free to start</li>
-              <li>No installation</li>
-              <li>Phone, tablet or computer</li>
-            </ul>
-            <a class="btn btn-primary btn-go" href="./app/index.html">Create a quote<span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 16l8-8M9.5 8H16v6.5"/></svg></span></a>
-            <p class="contact">Questions, or a cost you need that is not covered? Email <a href="mailto:contact@palletquoter.com">contact@palletquoter.com</a>.</p>
-          </div>
+          <h2 id="final-title">Prepare your next quote.</h2>
+          <a class="btn btn-primary btn-go" href="./app/index.html">Create a quote<span class="go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 16l8-8M9.5 8H16v6.5"/></svg></span></a>
+          <p class="contact">Questions? Email <a href="mailto:contact@palletquoter.com">contact@palletquoter.com</a>.</p>
         </section>
       </main>
 
       <footer class="foot">
-        <div class="foot-top" data-stagger>
-          <div class="foot-about">
-            <span class="brand">
-              <span class="brand-logo" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="7" width="18" height="3.5" rx="1"/><rect x="4" y="12" width="3.5" height="4" rx="0.8"/><rect x="10.25" y="12" width="3.5" height="4" rx="0.8"/><rect x="16.5" y="12" width="3.5" height="4" rx="0.8"/><rect x="3" y="17" width="18" height="2.5" rx="1"/></svg></span>
-              Pallet Quote
-            </span>
-            <p>Quoting and shop drawings for Australian timber pallet manufacturers.</p>
-            <p><a href="mailto:contact@palletquoter.com">contact@palletquoter.com</a></p>
-          </div>
-          <nav class="foot-col" aria-label="Product">
-            <h3>Product</h3>
-            <a href="#how">How it works</a>
-            <a href="#features">Features</a>
-            <a href="#sample">Documents</a>
-            <a href="#covers" data-billing="off">Pricing</a>
-            <a href="#pricing" data-billing="on">Pricing</a>
-          </nav>
-          <nav class="foot-col" aria-label="Calculator">
-            <h3>Calculator</h3>
-            <a href="./app/index.html">Open the calculator</a>
-            <a href="./app/index.html#signin" data-accounts="on">Log in</a>
-            <a href="./app/index.html#signup" data-accounts="on">Sign up</a>
-          </nav>
-          <nav class="foot-col" aria-label="Support">
-            <h3>Support</h3>
-            <a href="#questions">Questions</a>
-            <a href="./terms/index.html">Terms</a>
-            <a href="./privacy/index.html">Privacy</a>
-          </nav>
-        </div>
-        <p class="foot-mark" data-letters aria-hidden="true">Pallet Quote</p>
-        <p class="foot-legal">© 2026 Pallet Quote. All rights reserved.</p>
+        <span class="brand brand-small">
+          <span class="brand-logo" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="7" width="18" height="3.5" rx="1"/><rect x="4" y="12" width="3.5" height="4" rx="0.8"/><rect x="10.25" y="12" width="3.5" height="4" rx="0.8"/><rect x="16.5" y="12" width="3.5" height="4" rx="0.8"/><rect x="3" y="17" width="18" height="2.5" rx="1"/></svg>
+          </span>
+          Pallet Quote
+        </span>
+        <span class="foot-legal">© 2026 Pallet Quote</span>
+        <nav class="foot-links" aria-label="Footer">
+          <a href="mailto:contact@palletquoter.com">Contact</a>
+          <a href="./terms/index.html">Terms</a>
+          <a href="./privacy/index.html">Privacy</a>
+        </nav>
       </footer>
     </div>
 

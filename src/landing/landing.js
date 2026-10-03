@@ -33,19 +33,7 @@ for (const node of document.querySelectorAll('[data-interest]')) {
 const groups = document.querySelectorAll('[data-stagger]')
 groups.forEach(group => [...group.children].forEach((child, i) => child.style.setProperty('--i', i)))
 
-// The name in the footer comes up a letter at a time
-for (const node of document.querySelectorAll('[data-letters]')) {
-  const letters = [...node.textContent]
-  node.textContent = ''
-  letters.forEach((letter, i) => {
-    const span = document.createElement('span')
-    span.textContent = letter === ' ' ? '\u00a0' : letter
-    span.style.setProperty('--i', i)
-    node.append(span)
-  })
-}
-
-const reveals = document.querySelectorAll('[data-reveal], [data-stagger], [data-letters]')
+const reveals = document.querySelectorAll('[data-reveal], [data-stagger]')
 if (reduceMotion || !('IntersectionObserver' in window)) {
   reveals.forEach(node => node.classList.add('in'))
 } else {
@@ -59,10 +47,8 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
   reveals.forEach(node => seen.observe(node))
 }
 
-// On scroll: the top bar tightens into a floating pill, the hero screen tips
-// upright as it comes up the window, and the large name behind it drifts
+// On scroll: the top bar tightens into a floating pill, and the hero screen settles into place
 const nav = document.getElementById('top')
-const hero = document.querySelector('.hero')
 const heroShot = document.getElementById('hero-shot')
 let queued = false
 const onScroll = () => {
@@ -73,12 +59,8 @@ const onScroll = () => {
   if (heroShot && !reduceMotion) {
     const rect = heroShot.getBoundingClientRect()
     if (rect.bottom > 0) {
-      // 0 while the screen is low in the window, 1 once its top reaches the upper third
       const p = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight * 0.8)))
       heroShot.style.setProperty('--rise', `${(1 - p) * 24}px`)
-      heroShot.style.setProperty('--scale', String(0.96 + p * 0.04))
-      heroShot.style.setProperty('--tilt', `${(1 - p) * 16}deg`)
-      hero.style.setProperty('--drift', `${window.scrollY * 0.14}px`)
     }
   }
 }
@@ -102,39 +84,6 @@ if (links.length && 'IntersectionObserver' in window) {
   for (const id of byId.keys()) {
     const section = document.getElementById(id)
     if (section) spy.observe(section)
-  }
-}
-
-/* Pointer effects, for devices with a mouse only. A soft light follows the
-   pointer across the hero and across cards marked data-spot, and the sample
-   pages marked data-tilt lean towards it. */
-if (!reduceMotion && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-  const track = (node, fn) => {
-    let frame = 0
-    node.addEventListener('pointermove', (event) => {
-      if (frame) return
-      frame = requestAnimationFrame(() => {
-        frame = 0
-        const rect = node.getBoundingClientRect()
-        fn((event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height)
-      })
-    })
-  }
-  const light = (node) => track(node, (x, y) => {
-    node.style.setProperty('--mx', `${x * 100}%`)
-    node.style.setProperty('--my', `${y * 100}%`)
-  })
-  if (hero) light(hero)
-  document.querySelectorAll('[data-spot]').forEach(light)
-  for (const node of document.querySelectorAll('[data-tilt]')) {
-    track(node, (x, y) => {
-      node.style.setProperty('--ry', `${(x - 0.5) * 7}deg`)
-      node.style.setProperty('--rx', `${(0.5 - y) * 5}deg`)
-    })
-    node.addEventListener('pointerleave', () => {
-      node.style.setProperty('--ry', '0deg')
-      node.style.setProperty('--rx', '0deg')
-    })
   }
 }
 
