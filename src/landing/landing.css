@@ -835,13 +835,13 @@ html.accounts-on .sheet [data-accounts="off"] {
   object-position: top;
 }
 
-/* The calculator itself, on wide screens: drawn at 1280 x 800 and scaled to the frame by script */
+/* The calculator itself, on wide screens: drawn at 1760 x 1100, a full desktop window, and scaled to the frame by script */
 .demo iframe {
   position: absolute;
   left: 0;
   top: 0;
-  width: 1280px;
-  height: 800px;
+  width: 1760px;
+  height: 1100px;
   border: 0;
   transform-origin: 0 0;
   opacity: 0;

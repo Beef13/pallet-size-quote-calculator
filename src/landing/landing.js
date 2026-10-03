@@ -37,7 +37,7 @@ for (const node of document.querySelectorAll('[data-interest]')) {
 
 /* The hero picture.
    Wide screens: the calculator itself, running in demonstration mode inside a frame.
-   It is drawn at 1280 x 800 and scaled to fit, loads once the page is idle, and only
+   It is drawn at 1760 x 1100, a full desktop window, and scaled to fit, loads once the page is idle, and only
    takes clicks and scrolling after "Try it here" is pressed, so it never traps the
    page's own scrolling. It goes quiet again when it leaves the screen.
    Narrower screens: a recording of the calculator in use (phone-sized on phones),
@@ -71,7 +71,7 @@ if (video) {
 
   // The calculator: fetched once, when the page has finished loading and is idle
   let asked = false
-  const fit = () => { frame.style.transform = `scale(${demo.clientWidth / 1280})` }
+  const fit = () => { frame.style.transform = `scale(${demo.clientWidth / 1760})` }
   const quiet = () => { demo.classList.remove('live'); frame.tabIndex = -1 }
   const loadApp = () => {
     if (asked || !frame) return
