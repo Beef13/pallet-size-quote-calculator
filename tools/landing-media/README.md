@@ -12,7 +12,11 @@ They expect the app running locally (`BASE_PATH=/ npx vite --port 5196 --strictP
 installed, and a Chromium at `/opt/pw-browsers/chromium`; adjust the port and browser path inside
 each script for your machine. Frames from the video scripts are encoded with ffmpeg.
 
-`steps.mjs` captures the frames for the "How it works" panels: close crops of the real calculator
-taken one after another as it is driven through each step (`node tools/landing-media/steps.mjs <folder> light`,
-then `dark`). Convert the PNGs to `src/landing/img/step-<name>-<frame>-<theme>.webp`; the 3D crops are
-scaled to 990 x 750. The page shows each set of frames in turn, so nothing in those panels is drawn by hand.
+`steps.mjs` captures the frames for the "How it works" panels: close crops of the real calculator,
+one frame per click and per keystroke as it is driven through each step
+(`node tools/landing-media/steps.mjs <folder> light`, then `dark`). It also writes `steps-<theme>.json`,
+which records for every frame what led to it (a click, a key, a change of section) and where on the crop
+the click landed. From those, the frames are converted to `src/landing/img/step-<name>-<frame>-<theme>.webp`
+(3D crops scaled to 990 x 750) and each reel in `index.html` gets its `data-times` and `data-cursor`.
+The page shows the frames in turn and moves a pointer to each recorded position, so nothing in those
+panels is drawn by hand except the pointer itself.

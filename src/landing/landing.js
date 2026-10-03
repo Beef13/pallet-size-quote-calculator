@@ -152,28 +152,84 @@ const stage = document.getElementById('flow-screen')
 const track = document.getElementById('flow-track')
 const grid = track?.querySelector('.flow-grid')
 
-const timers = new WeakMap()
-const times = (reel) => reel.dataset.times.split(',').map(Number)
+// What each reel holds: when each frame appears, and where the pointer is for it.
+// A pointer entry is [x%, y%, kind]: 'c' the frame follows a click there, 't' a key typed
+// there, 'n' nothing happened and the pointer stays put.
+const reels = new Map()
+for (const reel of document.querySelectorAll('.scene .reel')) {
+  const info = { times: reel.dataset.times.split(',').map(Number), cursor: null, pointer: null }
+  if (reel.dataset.cursor) {
+    info.cursor = reel.dataset.cursor.split(';').map(entry => {
+      if (!entry) return null
+      const [x, y, kind] = entry.split(',')
+      return { x: Number(x), y: Number(y), kind }
+    })
+    const acts = info.cursor.map((c, k) => (c && c.kind !== 'n' ? k : -1)).filter(k => k >= 0)
+    info.from = info.times[acts[0]] - 520      // the pointer appears just before its first move
+    info.until = info.times[acts.at(-1)] + 450
+    info.pointer = document.createElement('span')
+    info.pointer.className = 'pointer'
+    info.pointer.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8.5-6.2 1.3 3.6 6.6-2.6 1.4-3.6-6.7L5 19z"/></svg>'
+    reel.append(info.pointer)
+  }
+  reels.set(reel, info)
+}
 const frame = (reel, k) => {
   if (reel.dataset.at === String(k)) return
   reel.dataset.at = k
-  for (const img of reel.children) img.classList.toggle('show', Number(img.dataset.k) === k)
+  for (const img of reel.querySelectorAll('img')) img.classList.toggle('show', Number(img.dataset.k) === k)
 }
-const stop = (reel) => (timers.get(reel) || []).forEach(clearTimeout)
-const settle = (reel) => { stop(reel); frame(reel, times(reel).length - 1) }
-const play = (reel) => {
-  stop(reel)
-  frame(reel, 0)
-  timers.set(reel, times(reel).slice(1).map((at, i) => setTimeout(() => frame(reel, i + 1), at)))
-}
-// How long a panel's frames run for, and the frame a reel shows at a given moment
-const length = (scene) => Math.max(...[...scene.querySelectorAll('.reel')].map(reel => times(reel).at(-1)))
-const scrub = (scene, f) => {
-  // The frames play across the middle of the step, with a pause at each end
-  const at = Math.max(0, Math.min(1, (f - 0.06) / 0.74)) * length(scene)
+const ease = (p) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2)
+// Show a panel as it is t milliseconds into its run: the right frame in every reel, and the pointer on its way
+const render = (scene, t) => {
   for (const reel of scene.querySelectorAll('.reel')) {
-    frame(reel, times(reel).findLastIndex(t => t <= at))
+    const { times, cursor, pointer, from, until } = reels.get(reel)
+    const k = Math.max(0, times.findLastIndex(at => at <= t))
+    frame(reel, k)
+    if (!pointer) continue
+    const here = cursor[k] || { x: 88, y: 92 }
+    const next = cursor[k + 1]
+    let x = here.x, y = here.y
+    if (next && next.kind === 'c') {
+      // Travel during the last part of the wait, arriving as the click lands
+      const span = Math.min(420, times[k + 1] - times[k])
+      const p = ease(Math.max(0, Math.min(1, (t - (times[k + 1] - span)) / span)))
+      x += (next.x - here.x) * p
+      y += (next.y - here.y) * p
+    }
+    pointer.style.left = `${x}%`
+    pointer.style.top = `${y}%`
+    pointer.classList.toggle('shown', t >= from && t <= until)
+    pointer.classList.toggle('tap', cursor[k]?.kind === 'c' && t - times[k] < 260)
   }
+}
+const length = (scene) => Math.max(...[...scene.querySelectorAll('.reel')].map(reel => reels.get(reel).times.at(-1)))
+// A panel is never hurried through, however few frames it has
+const pace = (scene) => Math.max(2600, length(scene))
+const clocks = new WeakMap()
+const settle = (scene) => { cancelAnimationFrame(clocks.get(scene)); render(scene, Infinity) }
+const play = (scene) => {
+  cancelAnimationFrame(clocks.get(scene))
+  const began = performance.now(), end = length(scene) + 500
+  const tick = (now) => {
+    render(scene, now - began)
+    if (now - began < end) clocks.set(scene, requestAnimationFrame(tick))
+  }
+  clocks.set(scene, requestAnimationFrame(tick))
+}
+// Pinned: f is how far through the step the scroll is. The frames run across the middle, with a pause at each end
+const scrub = (scene, f) => render(scene, Math.max(0, Math.min(1, (f - 0.06) / 0.74)) * (length(scene) + 300))
+
+// Fetch a panel's frames a little before they are needed, so none is missing when its turn comes
+if ('IntersectionObserver' in window) {
+  const near = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue
+      near.disconnect()
+      document.querySelectorAll('.scene img').forEach(img => { img.loading = 'eager' })
+    }
+  }, { rootMargin: '100% 0px' })
+  if (track) near.observe(track)
 }
 
 if (steps.length && track && grid) {
@@ -192,7 +248,7 @@ if (steps.length && track && grid) {
   const wide = window.matchMedia('(min-width: 901px)')
   const pinned = () => wide.matches && !reduceMotion && Boolean(stage)
   // Scroll given to each step, in window heights: more for the panels with more frames
-  const share = scenes.map(scene => 0.55 + Math.min(0.75, length(scene) / 8000))
+  const share = scenes.map(scene => 0.5 + pace(scene) / 9000)
   const whole = share.reduce((a, b) => a + b, 0)
 
   const lay = () => {
@@ -202,7 +258,7 @@ if (steps.length && track && grid) {
     track.style.height = pin ? `${grid.offsetHeight + whole * window.innerHeight}px` : ''
     if (!pin) {
       steps.forEach(step => step.style.removeProperty('--f'))
-      scenes.forEach(scene => scene?.querySelectorAll('.reel').forEach(settle))
+      scenes.forEach(scene => scene && settle(scene))
     }
     current = -1
     follow()
@@ -222,7 +278,7 @@ if (steps.length && track && grid) {
     scenes.forEach((scene, i) => {
       if (!scene) return
       if (i === index) scrub(scene, f)
-      else scene.querySelectorAll('.reel').forEach(reel => frame(reel, i < index ? times(reel).length - 1 : 0))
+      else render(scene, i < index ? Infinity : -1)
     })
   }
   let waiting = false
@@ -245,7 +301,7 @@ if (steps.length && track && grid) {
   const limit = (y, start) => {
     let done = (y - start) / window.innerHeight, index = 0
     while (index < steps.length - 1 && done >= share[index]) done -= share[index++]
-    return 0.74 * share[index] * window.innerHeight / length(scenes[index])
+    return 0.74 * share[index] * window.innerHeight / pace(scenes[index])
   }
   const advance = (now) => {
     const [start, end] = stretch()
@@ -281,7 +337,7 @@ if (steps.length && track && grid) {
         if (!mark(index)) continue
         steps.forEach((step, i) => step.style.setProperty('--f', i < index ? 1 : 0))
         scenes.forEach((scene, i) => {
-          scene?.querySelectorAll('.reel').forEach(i === index && !reduceMotion ? play : settle)
+          if (scene) (i === index && !reduceMotion ? play : settle)(scene)
         })
       }
     }, { rootMargin: '-45% 0px -45% 0px' })

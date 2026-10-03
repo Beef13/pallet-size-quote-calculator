@@ -1181,6 +1181,67 @@ html.accounts-on .sheet [data-accounts="off"] {
   opacity: 1;
 }
 
+/* Frames follow each other closely now, so they change without a fade */
+.reel img {
+  transition: opacity 0.08s linear;
+}
+
+/* The pointer that makes each move. Its tip is the top-left corner of the box. */
+.pointer {
+  position: absolute;
+  z-index: 2;
+  width: 22px;
+  aspect-ratio: 1;
+  margin: -2px 0 0 -4px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.pointer.shown {
+  opacity: 1;
+}
+
+.pointer svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: #101828;
+  stroke: #fff;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 3px rgba(13, 21, 48, 0.35));
+  transition: transform 0.12s ease;
+}
+
+/* A click: the pointer dips and a ring spreads from its tip */
+.pointer::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 70%, transparent);
+  opacity: 0;
+  transform: scale(1.4);
+  transition: opacity 0.35s ease, transform 0.35s var(--ease);
+}
+
+.pointer.tap::before {
+  opacity: 1;
+  transform: scale(0.5);
+  transition-duration: 0.05s;
+}
+
+.pointer.tap svg {
+  transform: scale(0.86);
+}
+
 /* The reels of a panel arrive one after another */
 .scene [data-a] {
   transition: opacity 0.45s var(--ease), transform 0.55s var(--ease);
@@ -1276,12 +1337,17 @@ html.accounts-on .sheet [data-accounts="off"] {
 .js .flow-screen > .scene-send:not(.on) .paper:nth-of-type(1) { transform: rotate(-13deg) translateX(30px); }
 .js .flow-screen > .scene-send:not(.on) .paper:nth-of-type(2) { transform: rotate(12deg) translateX(-30px); }
 
-.reel-sent {
+.send-ui {
   position: absolute;
   left: 50%;
-  bottom: 7%;
-  width: 56%;
+  bottom: 5%;
+  display: grid;
+  gap: 8px;
+  width: 58%;
   translate: -50% 0;
+}
+
+.send-ui .reel {
   box-shadow: 0 18px 40px -18px rgba(6, 20, 70, 0.7);
 }
 
@@ -2170,8 +2236,8 @@ html:has(dialog[open]) {
     max-width: 520px;
   }
 
-  .reel-sent {
-    width: 84%;
+  .send-ui {
+    width: 86%;
   }
 
   .tier-for,
