@@ -17,7 +17,9 @@ import screenLight from './img/app-desktop-light.webp'
 import screenDark from './img/app-desktop-dark.webp'
 
 // Measurements taken from the model, in its own units (x across, y front to back, z up)
-const HINGE = { y: 1.2639, z: 0.004 }
+// The hinge line is inside the back of the base. Turning the lid about it brings the
+// lid's face down flat on the deck with its front edge level with the base's.
+const HINGE = { y: 1.205, z: -0.057 }
 const DISPLAY = { halfWidth: 1.742, bottom: 0.15, top: 2.352, y: 1.2619 }
 // Radius of the display's top corners, as a share of its width
 export const CORNER = 0.0165
@@ -163,8 +165,8 @@ export async function mountLaptop({ stage, dark }) {
     lid.updateMatrixWorld(true)
     let peak = -1
     for (const x of [-1.78, 1.78]) {
-      for (const y of [0, 0.04]) {
-        tip.set(x, y, 2.4 - HINGE.z)
+      for (const y of [1.2639, 1.3]) {
+        tip.set(x, y - HINGE.y, 2.4 - HINGE.z)
         peak = Math.max(peak, lid.localToWorld(tip).project(camera).y)
       }
     }
