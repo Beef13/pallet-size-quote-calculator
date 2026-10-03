@@ -310,7 +310,7 @@ a {
   display: flex;
   align-items: flex-end;
   gap: 0;
-  height: 46%;
+  height: 34%;
   overflow: hidden;
   pointer-events: none;
 }
@@ -338,6 +338,11 @@ a {
 .glass i:nth-child(2) { height: 76%; }
 .glass i:nth-child(3) { height: 52%; }
 
+/* One statement per line */
+.measured span:not(.dim) {
+  display: block;
+}
+
 .hero-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -348,10 +353,10 @@ a {
 .measured {
   position: relative;
   justify-self: start;
-  font-size: clamp(3.1rem, 0.9rem + 9vw, 7.2rem);
+  font-size: clamp(2.5rem, 0.9rem + 6.2vw, 5.6rem);
   font-weight: 500;
-  letter-spacing: -0.045em;
-  line-height: 0.96;
+  letter-spacing: -0.04em;
+  line-height: 1;
   text-wrap: nowrap;
 }
 
@@ -777,13 +782,8 @@ a {
 }
 
 @media (max-width: 560px) {
-  /* Two lines on a phone, so the headline can stay big */
-  .measured span:not(.dim) {
-    display: block;
-  }
-
   .measured {
-    font-size: clamp(3.4rem, 19vw, 5rem);
+    font-size: clamp(1.9rem, 8.6vw, 3rem);
   }
 
   .hero-actions .btn {
