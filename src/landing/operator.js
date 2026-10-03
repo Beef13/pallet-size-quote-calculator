@@ -3,7 +3,7 @@
 export const operator = {
   name: 'Saverio Curcio',     // legal name of the business or person, e.g. "Example Pallets Pty Ltd"
   abn: '53 795 324 705',      // e.g. "12 345 678 901" (leave blank if none)
-  email: 'saveriocurcio13@gmail.com',    // contact address for questions and privacy requests
+  email: 'contact@palletquoter.com',    // contact address for questions and privacy requests
   state: 'Victoria'     // Australian state or territory whose law applies, e.g. "Victoria"
 }
 
