@@ -23,6 +23,7 @@
         <nav class="nav-links" aria-label="Sections">
           <a href="#how">How it works</a>
           <a href="#try">Try it</a>
+          <a href="#pricing" data-billing="on">Pricing</a>
           <a href="#questions">Questions</a>
         </nav>
         <a class="btn btn-primary btn-small" href="./app/index.html">Open the calculator</a>
@@ -265,6 +266,62 @@
         </div>
       </section>
 
+      <!-- Pricing: only in builds with a payment link (VITE_STRIPE_PAYMENT_LINK) -->
+      <section class="pricing" id="pricing" aria-labelledby="pricing-title" data-billing="on">
+        <div class="wrap">
+          <div class="pricing-head">
+            <h2 id="pricing-title" class="section-title">Simple pricing, all of it on this page</h2>
+            <p>The calculator is free. You pay only if you want your quotes backed up online and on every device. No setup fee, no contract, no card needed to start.</p>
+          </div>
+          <div class="tiers">
+            <article class="tier" aria-labelledby="tier-free">
+              <h3 id="tier-free">Free</h3>
+              <p class="tier-for">For quoting on one device.</p>
+              <p class="tier-price"><span class="tier-amount">$0</span></p>
+              <p class="tier-terms">No account and no card. Free for as long as you use it.</p>
+              <a class="btn btn-ghost" href="./app/index.html">Start a quote</a>
+              <ul class="tier-list">
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Unlimited quotes and pallet sizes</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Your own timber prices, labour and markup</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Live 3D view and shop drawings</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Customer PDF and breakdown PDF</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Saved presets and quote history</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Back up to a file whenever you like</li>
+              </ul>
+            </article>
+
+            <article class="tier tier-main" aria-labelledby="tier-pro">
+              <h3 id="tier-pro">Pro</h3>
+              <p class="tier-for">For quoting from the office, the yard and the truck.</p>
+              <p class="tier-price"><span class="tier-amount">$29</span><span class="tier-per">a month</span></p>
+              <p class="tier-terms">Billed monthly. Cancel any time and you keep it until the month you paid for ends.</p>
+              <a class="btn btn-primary" data-pay href="./app/index.html">Subscribe to Pro</a>
+              <ul class="tier-list">
+                <li class="tier-plus">Everything in Free, plus:</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>An account you sign in to with your email</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Quotes, prices and presets backed up online</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>The same data on your phone, tablet and computer</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Email support</li>
+              </ul>
+            </article>
+
+            <article class="tier tier-later" aria-labelledby="tier-team">
+              <h3 id="tier-team">Team <span class="tier-tag">Not available yet</span></h3>
+              <p class="tier-for">For yards where more than one person quotes.</p>
+              <p class="tier-price"><span class="tier-amount tier-amount-quiet">Price to come</span></p>
+              <p class="tier-terms">We haven't built this yet, so we aren't selling it. The price will be published here before it goes on sale.</p>
+              <a class="btn btn-ghost" data-interest href="./app/index.html">Tell us you're interested</a>
+              <ul class="tier-list">
+                <li class="tier-plus">Planned, on top of Pro:</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>A sign-in for each person who quotes</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>One shared price list and quote history</li>
+              </ul>
+            </article>
+          </div>
+          <p class="pricing-note">Prices are in Australian dollars. The full amount is shown at the checkout before you pay, and payment is handled by Stripe. Your quotes stay on your device if you cancel. The details are in the <a href="./terms/index.html">terms</a>.</p>
+        </div>
+      </section>
+
       <!-- Questions -->
       <section class="faq" id="questions" aria-labelledby="faq-title">
         <div class="wrap faq-grid">
@@ -293,6 +350,10 @@
             <details>
               <summary>What does the customer see, and what stays with me?</summary>
               <p>The customer PDF shows your business details, the drawings, the parts and sizes, the price per pallet, GST and the total. Your rates, labour, markup and line-by-line costs only appear on the breakdown PDF, which is for your own records.</p>
+            </details>
+            <details data-billing="on">
+              <summary>What does it cost?</summary>
+              <p>The calculator is free, with no account and no limit on quotes. Pro is $29 a month in Australian dollars and adds an account, online backup and your data on all your devices. There's no setup fee or contract, and you can cancel any time. <a href="#pricing">See the pricing</a>.</p>
             </details>
             <details>
               <summary>Where is my data kept?</summary>
