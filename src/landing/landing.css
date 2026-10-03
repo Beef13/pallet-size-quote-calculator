@@ -816,6 +816,73 @@ html.accounts-on .sheet [data-accounts="off"] {
   }
 }
 
+/* The 3D laptop (wide screens, with script and WebGL). The drawn mockup above is what
+   shows until the model is ready, and what stays if it never is. The model fills a
+   stage; the working calculator is laid exactly over the model's display once open. */
+.devices.model-pending .laptop,
+.devices.model .laptop {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.39;
+}
+
+.laptop-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.devices.model-pending .laptop-lid,
+.devices.model .laptop-lid {
+  position: absolute;
+  width: auto;
+  padding: 0;
+  border-radius: 2px;
+  background: none;
+  box-shadow: none;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.devices.model.is-open .laptop-lid {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.devices.model-pending .laptop-lid::before,
+.devices.model .laptop-lid::before,
+.devices.model-pending .laptop-base,
+.devices.model .laptop-base {
+  display: none;
+}
+
+.devices.model-pending .frame.demo,
+.devices.model .frame.demo {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+/* The phone steps in once the laptop is open */
+.devices.model-pending .handset,
+.devices.model .handset {
+  bottom: 2%;
+  opacity: var(--phone, 0);
+  transform: translateY(calc((1 - var(--phone, 0)) * 48px)) scale(calc(0.92 + var(--phone, 0) * 0.08));
+  transform-origin: 50% 100%;
+}
+
+.footer-credit {
+  flex-basis: 100%;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
 @media (min-width: 561px) and (max-width: 720px) {
   .laptop {
     width: 100%;

@@ -155,6 +155,68 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
 const nav = document.getElementById('top')
 const heroShot = document.getElementById('hero-shot')
 let queued = false
+
+/* The laptop as a 3D model: wide screens with WebGL, and not for reduced motion.
+   It starts shut, seen from above; the first stretch of scrolling opens it and brings
+   the view round to the front, then the working calculator takes over its display
+   and the phone steps in. It runs both ways with the scroll until someone starts the
+   demonstration, then it stays open. Everything is loaded on demand; if any of it
+   fails, the drawn mockup stays. */
+const devices = document.querySelector('.devices')
+const stage = devices?.querySelector('.laptop')
+const lidBox = devices?.querySelector('.laptop-lid')
+let model = null
+let home = null
+let latched = false
+const clamp01 = (v) => Math.max(0, Math.min(1, v))
+const showAt = (p) => {
+  model.pose(p)
+  devices.classList.toggle('is-open', p >= 0.995)
+  const t = clamp01((p - 0.86) / 0.14)
+  devices.style.setProperty('--phone', (1 - Math.pow(1 - t, 3)).toFixed(3))
+}
+const placeScreen = () => {
+  const box = model.openRect()
+  lidBox.style.left = `${box.left}px`
+  lidBox.style.top = `${box.top}px`
+  lidBox.style.width = `${box.width}px`
+  lidBox.style.height = `${box.height}px`
+}
+const canModel = () => {
+  try {
+    const probe = document.createElement('canvas')
+    return Boolean(probe.getContext('webgl2') || probe.getContext('webgl'))
+  } catch { return false }
+}
+if (stage && lidBox && !reduceMotion && window.matchMedia('(min-width: 900px)').matches && canModel()) {
+  devices.classList.add('model-pending')
+  const fallBack = () => { if (!model) devices.classList.remove('model-pending') }
+  const giveUp = setTimeout(fallBack, 8000)
+  import('./hero3d.js')
+    .then(({ mountLaptop }) => mountLaptop({ stage, dark: isDark() }))
+    .then((api) => {
+      clearTimeout(giveUp)
+      model = api
+      devices.classList.add('model-pending')
+      devices.classList.replace('model-pending', 'model')
+      placeScreen()
+      onThemeChange(() => api.setDark(isDark()))
+      if ('ResizeObserver' in window) new ResizeObserver(() => { api.resize(); placeScreen() }).observe(stage)
+      home = devices.getBoundingClientRect().top + window.scrollY
+      // A window tall enough to show it all on arrival: play it through on a timer
+      if (home < window.innerHeight * 0.3) {
+        latched = true
+        const began = performance.now() + 600
+        const step = (now) => {
+          const t = clamp01((now - began) / 2400)
+          showAt(t)
+          if (t < 1) requestAnimationFrame(step)
+        }
+        requestAnimationFrame(step)
+      } else onScroll()
+    })
+    .catch(() => { clearTimeout(giveUp); fallBack() })
+}
 const onScroll = () => {
   queued = false
   nav?.classList.toggle('scrolled', window.scrollY > 12)
@@ -164,6 +226,12 @@ const onScroll = () => {
     const p = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight * 0.85)))
     heroShot.style.setProperty('--rise', `${(1 - p) * 36}px`)
     heroShot.style.setProperty('--scale', String(0.965 + p * 0.035))
+  }
+  if (model && !latched) {
+    if (devices.querySelector('.demo.live')) { latched = true; showAt(1); return }
+    const vh = window.innerHeight
+    const span = Math.max(home - vh * 0.14, vh * 0.5)
+    showAt(clamp01(window.scrollY / span))
   }
 }
 window.addEventListener('scroll', () => {
