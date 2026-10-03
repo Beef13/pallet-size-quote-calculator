@@ -324,7 +324,7 @@ function ShopDrawing({ q, quantity, today, parts }) {
         })
       })()}
 
-      <ViewTitle x={planX} y={pz(L) + 78} title="PLAN" sub={`Scale 1:${denom}`} />
+      <ViewTitle x={planX} y={pz(L) + 78} title="TOP" sub={`Scale 1:${denom}`} />
     </g>
   )
 
@@ -368,7 +368,7 @@ function ShopDrawing({ q, quantity, today, parts }) {
           </g>
         )
       })()}
-      <ViewTitle x={frontX} y={fy(0) + 80} title="FRONT ELEVATION" sub={`Scale 1:${denom}`} />
+      <ViewTitle x={frontX} y={fy(0) + 80} title="SIDE" sub={`Scale 1:${denom}`} />
     </g>
   )
 
@@ -392,7 +392,7 @@ function ShopDrawing({ q, quantity, today, parts }) {
         <Dim a={[sx(bearers[0] + bearerT / 2), sy(H)]} b={[sx(bearers[1] + bearerT / 2), sy(H)]} off={-16}
           label={`${dimText(bearers[1] - bearers[0])} CRS`} s={s} size={9} />
       )}
-      <ViewTitle x={sideX} y={sy(0) + 80} title="SIDE ELEVATION" sub={`Scale 1:${denom}`} />
+      <ViewTitle x={sideX} y={sy(0) + 80} title="FRONT" sub={`Scale 1:${denom}`} />
     </g>
   )
 
@@ -497,7 +497,8 @@ function ShopDrawing({ q, quantity, today, parts }) {
         const [u, v] = isoRaw(b.x + b.w * f, yBearer1 + b.t, z + bearerT / 2)
         return <ellipse key={`n${i}-${j}-${n}`} cx={ox + u * k} cy={oy + v * k} rx={1.3} ry={0.75} fill={INK} />
       })))}
-      <ViewTitle x={axoX0} y={planY + Lp + 78} title="ISOMETRIC" sub="Not to scale" />
+      {/* Title sits just under the lowest corner of the view, as close as the other titles are to theirs */}
+      <ViewTitle x={axoX0} y={oy + (W + L) * S * k + 34} title="ISOMETRIC" sub="Not to scale" />
     </g>
   )
 
