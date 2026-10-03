@@ -64,18 +64,31 @@
               <p class="lede">Enter the pallet dimensions and select your timber. Pallet Quote costs every board and bearer by the metre at your rates, applies your labour and markup, and produces a scaled shop drawing for customer approval.</p>
               <div class="hero-actions">
                 <a class="btn btn-white" href="./app/index.html">Create a quote</a>
+                <a class="hero-sample" href="./sample-quote.pdf" data-doc="customer">View a sample quote</a>
                 <p class="hero-note" data-accounts="off"><span data-billing="off">Free to use at present.</span><span data-billing="on">The calculator is free.</span> No installation required.</p>
                 <p class="hero-note" data-accounts="on"><span data-billing="off">Free to use at present, with no installation or account required. <a href="./app/index.html#signup">Sign up</a> to back up your prices and quotes and keep them synchronised across your devices.</span><span data-billing="on">The calculator is free, with no installation or account required. Online backup and synchronisation across your devices is <a href="#pricing">$29 per month</a>.</span></p>
               </div>
             </div>
+            <div class="hero-pdfs">
+              <a class="hero-pdf hero-pdf-back" href="./sample-breakdown.pdf" data-doc="breakdown" aria-label="View the sample cost breakdown, the copy you keep">
+                <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" alt="Sample cost breakdown: each component with its rate per metre and cost, then materials, labour, markup, margin and gross profit" />
+              </a>
+              <a class="hero-pdf hero-pdf-front" href="./sample-quote.pdf" data-doc="customer" aria-label="View the sample customer quote in full">
+                <img src="/src/landing/img/sample-quote.webp" width="1240" height="1754" alt="Sample customer quote: business details, a scaled shop drawing of a 1165 by 1165 pallet, the specification table and the total including GST" />
+                <span class="hero-pdf-tag">View a sample quote</span>
+              </a>
+            </div>
           </div>
 
           <div class="hero-shot" id="hero-shot">
-            <div class="frame">
-              <img class="on-light wide" src="/src/landing/img/shot-hero-light.webp" width="2000" height="1250" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
-              <img class="on-dark wide" src="/src/landing/img/shot-hero-dark.webp" width="2000" height="1250" loading="lazy" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
-              <img class="on-light phone" src="/src/landing/img/shot-hero-panel-light.webp" width="880" height="1544" loading="lazy" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
-              <img class="on-dark phone" src="/src/landing/img/shot-hero-panel-dark.webp" width="880" height="1544" loading="lazy" alt="The Pallet Quote calculator showing an itemised quote for a 1165 by 1165 pallet beside its 3D model, with a total for 250 pallets" />
+            <div class="frame demo">
+              <video id="hero-video" muted loop playsinline preload="none" width="1600" height="826"
+                poster="/src/landing/img/app-demo-poster-light.webp"
+                aria-label="Screen recording of a 1165 by 1165 pallet being built and priced in Pallet Quote, ending on the quote for 250 pallets"></video>
+              <button type="button" class="demo-toggle" id="demo-toggle" aria-label="Pause the demonstration" title="Pause">
+                <svg class="pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+                <svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>
+              </button>
             </div>
           </div>
         </section>

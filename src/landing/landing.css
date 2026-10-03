@@ -468,15 +468,16 @@ html.accounts-on .sheet [data-accounts="off"] {
 
 .hero-head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(24px, 3vw, 36px);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(24px, 3vw, 36px) clamp(20px, 3vw, 44px);
+  align-items: center;
   color: #fff;
 }
 
 .measured {
   position: relative;
   justify-self: start;
-  font-size: clamp(2.5rem, 0.9rem + 6.2vw, 5.6rem);
+  font-size: clamp(2.5rem, 0.9rem + 5.6vw, 5.1rem);
   font-weight: 500;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -547,9 +548,8 @@ html.accounts-on .sheet [data-accounts="off"] {
 
 .hero-side {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  align-items: end;
-  gap: clamp(20px, 4vw, 56px);
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(18px, 2.4vw, 28px);
 }
 
 .lede {
@@ -562,9 +562,76 @@ html.accounts-on .sheet [data-accounts="off"] {
 .hero-actions {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 16px;
-  text-align: right;
+}
+
+/* The sample quote and the cost breakdown, beside the headline. Each opens in full. */
+.hero-pdfs {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: clamp(210px, 21vw, 270px);
+  aspect-ratio: 1 / 1.2;
+  animation: arrive 0.9s var(--ease) 0.35s backwards;
+}
+
+.hero-pdf {
+  position: absolute;
+  display: block;
+  width: 72%;
+  padding: 4px;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 24px 44px -22px rgba(6, 20, 70, 0.75);
+  transition: transform 0.4s var(--ease);
+}
+
+.hero-pdf img {
+  width: 100%;
+  border-radius: 3px;
+}
+
+.hero-pdf-back {
+  left: 0;
+  top: 0;
+  transform: rotate(-7deg);
+}
+
+.hero-pdf-front {
+  right: 0;
+  bottom: 0;
+  transform: rotate(4deg);
+}
+
+.hero-pdfs:hover .hero-pdf-back {
+  transform: rotate(-10deg) translateX(-8px);
+}
+
+.hero-pdfs:hover .hero-pdf-front {
+  transform: rotate(5deg) translateX(6px);
+}
+
+.hero-pdf-tag {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  translate: -50% 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Where there is no room for the pages, a plain link to the sample instead */
+.hero-sample {
+  display: none;
+  color: #fff;
+  font-weight: 500;
 }
 
 .hero-note {
@@ -618,6 +685,68 @@ html.accounts-on .sheet [data-accounts="off"] {
 .hero-shot .frame {
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.35), 0 40px 80px -40px rgba(16, 40, 110, 0.6);
   animation: arrive 1s var(--ease) 0.5s backwards;
+}
+
+/* The demo: a recording of the calculator being used */
+.demo {
+  position: relative;
+  aspect-ratio: 1600 / 826;
+}
+
+.demo video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+/* Pause and play for the demonstration */
+.demo-toggle {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(16, 24, 40, 0.62);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s var(--ease);
+}
+
+.demo-toggle:hover {
+  opacity: 1;
+  transform: scale(1.06);
+}
+
+.demo-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.demo-toggle .play {
+  fill: currentColor;
+  stroke-width: 1.5;
+}
+
+.demo-toggle .play,
+.demo-toggle[data-paused] .pause {
+  display: none;
+}
+
+.demo-toggle[data-paused] .play {
+  display: block;
 }
 
 @keyframes arrive {
@@ -1571,16 +1700,21 @@ html:has(dialog[open]) {
   .flow-inline.flow-papers img:last-child { transform: rotate(4deg); }
 }
 
-@media (max-width: 820px) {
-  .hero-side {
+@media (max-width: 980px) {
+  .hero-head {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .hero-actions {
-    align-items: flex-start;
-    text-align: left;
+  .hero-pdfs {
+    display: none;
   }
 
+  .hero-sample {
+    display: inline;
+  }
+}
+
+@media (max-width: 820px) {
   .glass {
     display: none;
   }
@@ -1614,10 +1748,12 @@ html:has(dialog[open]) {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* The phone hero shows the top of the calculator's panel, like a handset */
-  .hero-shot .frame {
-    max-height: 430px;
-    border-radius: 24px;
+  /* Phones get the recording made at phone size, shown as a handset */
+  .hero-shot .demo {
+    width: min(300px, 82%);
+    margin-inline: auto;
+    aspect-ratio: 720 / 1292;
+    border-radius: 30px;
   }
 
   .flow-inline:not(.flow-papers) {
