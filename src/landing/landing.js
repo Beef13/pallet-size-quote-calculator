@@ -2,6 +2,7 @@ import '@fontsource-variable/outfit'
 import './landing.css'
 import timberData from '../data/timber-prices.json'
 import { deckGapSize, maxDeckBoards, timberCost, formatCurrency } from '../utils/calculations'
+import { setupWalkthrough } from './walkthrough'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -234,9 +235,16 @@ function setupCalculator() {
 
 /* ------------------------------------------------------------------ */
 
+// Passages that differ depending on whether this build has accounts switched on
+const accountsOn = Boolean(import.meta.env.VITE_SUPABASE_URL)
+for (const node of document.querySelectorAll('[data-accounts]')) {
+  if ((node.dataset.accounts === 'on') !== accountsOn) node.remove()
+}
+
 buildHero()
 setMoney(document.getElementById('ticket-total'), ticketSteps.reduce((s, x) => s + x.add, 0) * QTY)
 setupCalculator()
+setupWalkthrough()
 
 // Play the build once the fonts are in, so the ticket doesn't reflow mid-way
 const start = () => playHero()

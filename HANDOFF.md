@@ -164,6 +164,7 @@ The owner wants accounts with online storage on **Supabase**, hosted on **Vercel
 
 ## 6. Design rules the owner has set
 
+- **Landing page walkthrough** (`src/landing/walkthrough.js` + `walkthrough.css`, section `#how` in `index.html`): six steps of one example phone enquiry, with a pinned working model (`#stage`) that is scrubbed by the scroll position: size typed, parts drop in, the top-board slider goes 7 to 9 and back with the gaps re-spacing, labour/markup/GST stack up, the drawing arrives as a sheet, then both PDFs. All figures come from the app's own price list and `calculations.js`, so keep the step copy in `index.html` in line with them (77.5 mm and 33 mm gaps, $19.90 a pallet, $5,472.50). On phones the stage pins to the top and each step's words hold under it. Reduced motion shows each step's finished state. Landing copy that depends on accounts uses `data-accounts="on|off"` like the legal pages.
 - Clean, sleek look that doesn't read as AI-made: soft grey canvas, white rounded cards, pill tabs and buttons, blue accent (`--accent` `#2563d9`, dark mode `#6ea3f7`), Outfit font. Green is reserved for status and money (`--ready` / `--ready-soft`: completed ticks, cost badges, profit, accepted status, synced marker); don't use it for buttons or links. The owner rejected a stencil font as "tacky".
 - No text clipping anywhere, and every count must be typeable as well as steppable.
 - Shop drawings should look like real drafting: line weights that show hierarchy, third-angle projection, a standard scale, and a red rounded-rectangle detail callout.

@@ -1,0 +1,786 @@
+/* ------------------------------------------------------------------
+   Walkthrough: steps on the left, a pinned working model on the right.
+   The model is positioned by walkthrough.js from the scroll position;
+   this file only gives it its look.
+   ------------------------------------------------------------------ */
+
+.walk {
+  padding-block: clamp(64px, 9vw, 120px) clamp(40px, 6vw, 80px);
+}
+
+.walk-head {
+  max-width: 34em;
+}
+
+.walk-head p {
+  margin-top: 14px;
+  color: var(--ink-2);
+  font-size: var(--step-1);
+  line-height: 1.45;
+}
+
+.walk-grid {
+  --stage-h: clamp(480px, 74vh, 640px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr);
+  gap: clamp(28px, 4vw, 64px);
+  margin-top: clamp(20px, 3vw, 40px);
+}
+
+/* ---------- Steps ---------- */
+
+.walk-steps {
+  margin: 0;
+  /* room for the last step to finish while the stage is still pinned */
+  padding: 0 0 26vh;
+  list-style: none;
+}
+
+.walk-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 84vh;
+  padding-left: 26px;
+  color: var(--ink-3);
+  transition: color 0.35s ease;
+}
+
+.walk-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* A dimension line down the side, with a tick where each step sits */
+.walk-step::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--rule);
+}
+
+.walk-step::after {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  width: 11px;
+  height: 1px;
+  background: var(--ink-3);
+  transform: rotate(-45deg);
+  transition: background-color 0.35s ease;
+}
+
+.walk-step.active {
+  color: var(--ink);
+}
+
+.walk-step.active::after {
+  background: var(--accent);
+  height: 2px;
+}
+
+.walk-time {
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: inherit;
+}
+
+.walk-step.active .walk-time {
+  color: var(--accent);
+}
+
+.walk-step h3 {
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1.12;
+  color: inherit;
+}
+
+.walk-step p {
+  max-width: 26em;
+  color: var(--ink-2);
+  opacity: 0.55;
+  transition: opacity 0.35s ease;
+}
+
+.walk-step.active p {
+  opacity: 1;
+}
+
+/* ---------- The pinned stage ---------- */
+
+.walk-pin {
+  position: sticky;
+  top: calc((100vh - var(--stage-h)) / 2 + 24px);
+  height: var(--stage-h);
+  align-self: start;
+  /* line the stage up with the middle of the first and last steps */
+  margin-block: calc((84vh - var(--stage-h)) / 2);
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 14px;
+  border-radius: 28px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.stage-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px 12px;
+  font-size: var(--step--1);
+}
+
+.stage-call {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--field);
+  color: var(--ink-2);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.stage-call b {
+  min-width: 2.2em;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.stage-call-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: background-color 0.3s ease;
+}
+
+.stage-call.sent {
+  background: var(--ready-soft);
+  color: var(--ready);
+}
+
+.stage-call.sent b {
+  color: var(--ready);
+}
+
+.stage-call.sent .stage-call-dot {
+  background: var(--done);
+}
+
+.stage-ref {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+}
+
+.stage-tag {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--field);
+  color: var(--ink-2);
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.stage-tag.sent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.stage-body {
+  --dim: 1;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 230px) minmax(0, 1fr);
+  gap: 14px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+/* ---------- Left: the build panel ---------- */
+
+.stage-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 4px 4px 6px;
+  opacity: var(--dim);
+}
+
+.stage-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.stage-row-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stage-row-title {
+  margin-right: auto;
+  font-weight: 600;
+  font-size: 0.98rem;
+}
+
+.stage-row-summary {
+  min-height: 1.3em;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+
+.stage-row.todo .stage-row-summary {
+  color: var(--ink-3);
+}
+
+.stage-cost {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--ready-soft);
+  color: var(--ready);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Same marker as the app: an outline that fills, then a green tick */
+.ring {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.ring-track {
+  stroke: color-mix(in srgb, var(--ink) 14%, transparent);
+  stroke-width: 2;
+}
+
+.ring-progress {
+  stroke: var(--ink-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 50.27;
+  stroke-dashoffset: 50.27;
+}
+
+.stage-row.todo .ring-progress {
+  opacity: 0;
+}
+
+.ring-disc {
+  fill: var(--done);
+  transform-origin: 10px 10px;
+  transform: scale(0);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ring-tick {
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 12;
+  stroke-dashoffset: 12;
+  transition: stroke-dashoffset 0.2s ease;
+}
+
+.stage-row.done .ring-disc {
+  transform: scale(1);
+}
+
+.stage-row.done .ring-tick {
+  stroke-dashoffset: 0;
+  transition-delay: 0.15s;
+}
+
+.stage-slider {
+  margin-top: 12px;
+  padding: 12px 14px 16px;
+  border-radius: 16px;
+  background: var(--field);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stage-slider.live {
+  background: var(--accent-soft);
+}
+
+.stage-slider-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+
+.stage-slider-head b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.stage-slider-track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+.stage-slider-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.stage-slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  border: 3px solid var(--paper);
+  background: var(--accent);
+  box-shadow: 0 1px 4px rgba(17, 19, 22, 0.25);
+}
+
+/* ---------- Right: the 3D view and the price ---------- */
+
+.stage-view {
+  position: relative;
+  border-radius: 18px;
+  background: var(--field);
+  opacity: var(--dim);
+  overflow: hidden;
+}
+
+.stage-pallet {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.stage-pallet .part {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.footprint {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.2;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.stage-dims {
+  opacity: 0;
+}
+
+.gap-note {
+  opacity: 0;
+}
+
+.gap-note line {
+  stroke: var(--accent);
+  stroke-width: 1.2;
+}
+
+.gap-note rect {
+  fill: var(--accent);
+}
+
+.gap-note text {
+  fill: var(--accent-ink);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stage-card {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.stage-card-label {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+
+.stage-card-value {
+  font-size: 1.9rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.stage-card-value .cents,
+.sheet-page .cents {
+  color: var(--ink-3);
+}
+
+.stage-card-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+
+.stage-card.open .stage-card-lines {
+  margin-top: 6px;
+  border-top: 1px solid var(--rule);
+}
+
+.stage-card-lines li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.stage-card-lines em {
+  font-style: normal;
+  color: var(--ink-3);
+}
+
+.stage-card-lines b {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.stage-card-lines .cents {
+  color: inherit;
+}
+
+/* ---------- The sheets: the drawing, then both PDFs ---------- */
+
+.stage-sheets {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Sheets are always white paper with black ink, whatever the theme */
+.sheet-page {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 420px;
+  height: 594px;
+  padding: 18px 21px;
+  transform-origin: 0 0;
+  background: #fff;
+  color: #111316;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(17, 19, 22, 0.12), 0 22px 44px -22px rgba(17, 19, 22, 0.5);
+  font-size: 9px;
+  line-height: 1.4;
+  will-change: transform;
+}
+
+.sheet-yours {
+  opacity: 0;
+}
+
+.sheet-page-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  height: 26px;
+  border-bottom: 1.5px solid #111316;
+}
+
+.sheet-page-head b {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sheet-page-head span {
+  color: #6b7078;
+}
+
+.sheet-customer img {
+  width: 378px;
+  height: 354px;
+  margin-top: 10px;
+  object-fit: contain;
+  border: 1px solid #111316;
+}
+
+.sheet-kicker {
+  margin: 10px 0 4px;
+  color: #6b7078;
+}
+
+.sheet-rows {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sheet-rows li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid #e2e3e6;
+}
+
+.sheet-rows em {
+  margin-left: 8px;
+  font-style: normal;
+  color: #6b7078;
+}
+
+.sheet-rows b {
+  font-weight: 600;
+}
+
+.sheet-spec li > span:first-child {
+  flex: 1;
+}
+
+.sheet-spec li > span:nth-child(2) {
+  width: 70px;
+  color: #6b7078;
+}
+
+.sheet-spec b {
+  width: 20px;
+  text-align: right;
+}
+
+.sheet-total {
+  margin-left: 190px;
+}
+
+.sheet-total .grand {
+  border-bottom: 0;
+  border-top: 1.5px solid #111316;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sheet-yours .sheet-rows li {
+  padding: 9px 0;
+  font-size: 11px;
+}
+
+.sheet-yours .rule {
+  border-top: 1.5px solid #111316;
+  font-weight: 600;
+}
+
+.sheet-yours .profit {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #e5f3eb;
+  color: #178a52;
+  font-weight: 600;
+}
+
+.sheet-yours .profit .cents {
+  color: inherit;
+}
+
+/* ---------- The real thing ---------- */
+
+.proof {
+  padding-block: clamp(56px, 8vw, 110px);
+  background: var(--paper);
+}
+
+.proof-head {
+  max-width: 36em;
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+
+.proof-head p {
+  margin-top: 14px;
+  color: var(--ink-2);
+}
+
+.proof-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(24px, 3vw, 36px);
+}
+
+/* ---------- Tablet and phone: the stage pins to the top, steps pass beneath ---------- */
+
+@media (max-width: 960px) {
+  .walk-grid {
+    --stage-h: min(50svh, 440px);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .walk-pin {
+    order: -1;
+    top: 0;
+    z-index: 2;
+    margin-block: 0;
+    margin-inline: calc(var(--gutter) * -0.5);
+    /* covers the strip behind the navigation too, so passing text never shows through */
+    padding: 68px 0 14px;
+    height: calc(var(--stage-h) + 82px);
+    background: linear-gradient(var(--canvas) calc(100% - 14px), transparent);
+  }
+
+  .stage {
+    padding: 10px;
+    border-radius: 22px;
+  }
+
+  .stage-bar {
+    padding-bottom: 8px;
+  }
+
+  .stage-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .stage-view {
+    order: -1;
+  }
+
+  /* Only the control the story is on */
+  .stage-panel {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
+    padding: 0;
+  }
+
+  .stage-row {
+    display: none;
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--field);
+  }
+
+  .stage-row.focus {
+    display: flex;
+  }
+
+  .stage-slider {
+    flex: 1;
+    margin-top: 0;
+    padding: 8px 12px 14px;
+    display: none;
+  }
+
+  .stage-slider.live {
+    display: block;
+  }
+
+  .stage-slider-head {
+    margin-bottom: 10px;
+  }
+
+  .stage-card {
+    top: 8px;
+    right: 8px;
+    min-width: 150px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .stage-card-value {
+    font-size: 1.4rem;
+  }
+
+  .stage-card-lines {
+    font-size: 0.74rem;
+  }
+
+  /* Each step is a stretch of scrolling; its words hold still under the stage until the next step takes over */
+  .walk-steps {
+    padding-bottom: 0;
+  }
+
+  .walk-step {
+    min-height: 78svh;
+    justify-content: flex-start;
+  }
+
+  .walk-step:last-child {
+    min-height: calc(78svh + 30svh);
+  }
+
+  .walk-copy {
+    position: sticky;
+    top: calc(68px + var(--stage-h) + 22px);
+    gap: 8px;
+    padding-bottom: 20px;
+  }
+
+  .walk-step h3 {
+    font-size: var(--step-1);
+  }
+
+  .walk-step p {
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+
+  .walk-step::after {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .stage-ref {
+    font-size: 0;
+  }
+
+  .stage-tag {
+    font-size: 0.8rem;
+  }
+}
