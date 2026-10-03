@@ -573,6 +573,7 @@ html.accounts-on .sheet [data-accounts="off"] {
   grid-row: 1 / span 2;
   width: clamp(210px, 21vw, 270px);
   aspect-ratio: 1 / 1.2;
+  margin-bottom: 52px;
   animation: arrive 0.9s var(--ease) 0.35s backwards;
 }
 
@@ -614,9 +615,11 @@ html.accounts-on .sheet [data-accounts="off"] {
 
 .hero-pdf-tag {
   position: absolute;
+  /* Below the page, clear of the quote itself, and level despite the page's tilt */
   left: 50%;
-  bottom: 10px;
+  top: calc(100% + 16px);
   translate: -50% 0;
+  rotate: -4deg;
   padding: 6px 12px;
   border-radius: 999px;
   background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
