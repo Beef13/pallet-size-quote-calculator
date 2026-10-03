@@ -1,5 +1,6 @@
 import '@fontsource-variable/outfit'
 import './landing.css'
+import { isDark, onThemeChange } from './theme'
 import demoLight from './img/app-demo-light.mp4'
 import demoDark from './img/app-demo-dark.mp4'
 import demoLightWebm from './img/app-demo-light.webm'
@@ -21,20 +22,20 @@ for (const node of document.querySelectorAll('[data-accounts]')) {
    screen. With reduced motion it stays on its poster and gets controls. */
 const video = document.getElementById('hero-video')
 if (video) {
-  const dark = window.matchMedia('(prefers-color-scheme: dark)')
   let onScreen = true
   const play = () => { if (!reduceMotion && onScreen) video.play().catch(() => {}) }
   const load = () => {
-    video.poster = dark.matches ? posterDark : posterLight
+    const dark = isDark()
+    video.poster = dark ? posterDark : posterLight
     // MP4 wherever the browser can play it, WebM otherwise
     const webm = video.canPlayType('video/webm; codecs="vp9"') !== ''
     const mp4 = video.canPlayType('video/mp4; codecs="avc1.64001f"') !== ''
-    video.src = dark.matches ? (mp4 || !webm ? demoDark : demoDarkWebm) : (mp4 || !webm ? demoLight : demoLightWebm)
+    video.src = dark ? (mp4 || !webm ? demoDark : demoDarkWebm) : (mp4 || !webm ? demoLight : demoLightWebm)
     if (reduceMotion) video.controls = true
     else play()
   }
   load()
-  dark.addEventListener?.('change', load)
+  onThemeChange(load)
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(([entry]) => {
       onScreen = entry.isIntersecting

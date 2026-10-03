@@ -1,6 +1,7 @@
 import '@fontsource-variable/outfit'
 import './landing.css'
 import './legal.css'
+import './theme'
 import { operator, lastUpdated, accounts } from './operator'
 
 // Two versions of some passages: one for when accounts exist, one for when they don't

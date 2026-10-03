@@ -247,6 +247,47 @@ a {
   gap: 8px;
 }
 
+/* Light and dark switch */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.3s var(--ease);
+}
+
+.theme-toggle:hover {
+  color: var(--accent);
+  transform: rotate(15deg);
+}
+
+.theme-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Moon while it is light, sun while it is dark */
+.theme-toggle .sun,
+.theme-toggle[data-dark] .moon {
+  display: none;
+}
+
+.theme-toggle[data-dark] .sun {
+  display: block;
+}
+
 /* Passages for builds with accounts switched on stay hidden until the script
    confirms it, so the page never shows both versions at once */
 html:not(.accounts-on) .sheet [data-accounts="on"],

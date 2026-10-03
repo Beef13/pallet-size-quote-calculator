@@ -8,6 +8,7 @@
     <meta name="theme-color" content="#2563d9" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
     <link rel="apple-touch-icon" href="/icons/icon.svg" />
+    <script>try{var t=localStorage.getItem('palletDarkMode');if(t==='true'||t==='false')document.documentElement.dataset.theme=t==='true'?'dark':'light'}catch(e){}</script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
@@ -20,7 +21,13 @@
           </span>
           Pallet Quote
         </a>
-        <a class="btn btn-primary btn-small" href="../app/index.html">Open the calculator</a>
+        <div class="nav-actions">
+            <button type="button" class="theme-toggle" data-theme-toggle aria-label="Use dark theme" title="Use dark theme">
+              <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+              <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            </button>
+          <a class="btn btn-primary btn-small" href="../app/index.html">Open the calculator</a>
+        </div>
       </div>
     </header>
 
