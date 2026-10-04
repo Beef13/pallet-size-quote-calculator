@@ -1801,6 +1801,199 @@ html.accounts-on .sheet [data-accounts="off"] {
   color: var(--ink-2);
 }
 
+/* ---------- The demonstration at full size ---------- */
+
+/* The way in: a small pill by each screen, once the demonstration is running */
+.expand-open {
+  position: absolute;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 13px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(8, 14, 34, 0.78);
+  color: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: opacity 0.2s ease, transform 0.2s var(--ease), background-color 0.2s ease;
+}
+
+.expand-open svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Brightest for whichever screen the pointer is on */
+.expand-open:hover,
+.expand-open:focus-visible,
+.devices:has(.laptop-lid:hover) #expand-desktop,
+.devices:has(.handset:hover) #expand-mobile {
+  opacity: 1;
+  background: var(--blue-top);
+  transform: translateY(-1px);
+}
+
+.devices:not(:has(.demo.live)) .expand-open {
+  display: none;
+}
+
+.expand {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  overflow: hidden;
+}
+
+.expand[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Everything behind goes dim and out of focus */
+.expand::backdrop {
+  background: rgba(6, 12, 34, 0.66);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.expand.shown::backdrop {
+  opacity: 1;
+}
+
+.expand-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 64px;
+  flex: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.expand.shown .expand-bar {
+  opacity: 1;
+}
+
+.expand-bar .viewer-close {
+  position: absolute;
+  right: 16px;
+}
+
+.expand-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.expand-tabs button {
+  height: 36px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.expand-tabs button[aria-selected="true"] {
+  background: #fff;
+  color: var(--blue-top);
+}
+
+.expand-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 24px 24px;
+}
+
+.expand-view {
+  grid-area: 1 / 1;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 50px 120px -40px rgba(0, 0, 0, 0.8);
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.expand-view[hidden] {
+  display: none;
+}
+
+.expand-view iframe {
+  display: block;
+  border: 0;
+}
+
+/* The calculator in a window of its own, nearly the size of the screen */
+.expand-desktop {
+  width: min(100%, calc((100dvh - 88px) * 1.6));
+  height: min(100%, calc((100vw - 48px) / 1.6));
+  border-radius: 14px;
+}
+
+.expand-desktop iframe {
+  width: 100%;
+  height: 100%;
+}
+
+/* The calculator on a phone at its real size: 390 x 844, shrunk only if the window is shorter */
+.expand-mobile {
+  width: 390px;
+  height: 844px;
+  border-radius: 46px;
+  box-shadow: 0 0 0 10px #0c0e12, 0 0 0 11.5px #3b3f47, 0 50px 120px -40px rgba(0, 0, 0, 0.8);
+  zoom: var(--fit, 1);
+}
+
+.expand-mobile iframe {
+  position: absolute;
+  left: 0;
+  top: 47px;
+  width: 390px;
+  height: 797px;
+}
+
+.expand-island {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 11px;
+  width: 108px;
+  height: 30px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: #0c0e12;
+}
+
 /* ---------- Popup viewer ---------- */
 
 html:has(dialog[open]) {

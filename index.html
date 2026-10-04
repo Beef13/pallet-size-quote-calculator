@@ -117,6 +117,9 @@
               <!-- The calculator itself at phone size, loaded once "Try it here" is pressed -->
               <span class="handset-live"><iframe id="hero-phone-app" title="Pallet Quote calculator at phone size, a working demonstration" tabindex="-1" hidden></iframe></span>
             </figure>
+            <!-- Shown once the demonstration is running: open either screen at full size -->
+            <button type="button" class="expand-open" id="expand-desktop" data-kind="desktop" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg>Expand view</button>
+            <button type="button" class="expand-open" id="expand-mobile" data-kind="mobile" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg>Expand</button>
             </div>
           </div>
         </section>
@@ -508,6 +511,28 @@
           <span class="viewer-title">Your breakdown</span>
           <img src="/src/landing/img/sample-breakdown.webp" width="1240" height="1754" loading="lazy" alt="Sample cost breakdown, full page: each component's rate and cost, then materials, labour, markup, margin and profit" />
         </button>
+      </div>
+    </dialog>
+
+    <!-- The demonstration at full size, over the dimmed page -->
+    <dialog class="expand" id="expand" aria-label="The demonstration at full size">
+      <div class="expand-bar">
+        <div class="expand-tabs" role="tablist" aria-label="Screen">
+          <button type="button" role="tab" data-kind="desktop" aria-selected="true">Desktop</button>
+          <button type="button" role="tab" data-kind="mobile" aria-selected="false">Mobile</button>
+        </div>
+        <button type="button" class="viewer-close" id="expand-close" aria-label="Close and return to the page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="expand-stage" id="expand-stage">
+        <div class="expand-view expand-desktop" data-kind="desktop">
+          <iframe title="Pallet Quote calculator, a working demonstration at full size"></iframe>
+        </div>
+        <div class="expand-view expand-mobile" data-kind="mobile" hidden>
+          <span class="expand-island" aria-hidden="true"></span>
+          <iframe title="Pallet Quote calculator at phone size, a working demonstration"></iframe>
+        </div>
       </div>
     </dialog>
 

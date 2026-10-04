@@ -9,6 +9,8 @@ import '../styles/Pallet3DLive.css'
 // The demonstration embedded in the landing page: zoom is off there, so the wheel
 // scrolls the page rather than the model
 const DEMO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo')
+// ...except in the expanded view (?zoom), which has the window to itself
+const LOCK_ZOOM = DEMO && !new URLSearchParams(window.location.search).has('zoom')
 
 // If the labels ever fail to render, hide them instead of breaking the whole app
 class LabelErrorBoundary extends React.Component {
@@ -650,7 +652,7 @@ function Pallet3DLive({ previewData, dark = false, outline = null }) {
         <OrbitControls
           makeDefault
           enablePan={true}
-          enableZoom={!DEMO}
+          enableZoom={!LOCK_ZOOM}
           enableRotate={true}
           autoRotate={false}
           minDistance={5}

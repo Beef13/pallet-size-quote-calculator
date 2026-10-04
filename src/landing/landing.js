@@ -345,6 +345,105 @@ if (steps.length && 'IntersectionObserver' in window) {
   steps.forEach(step => watcher.observe(step))
 }
 
+/* The demonstration at full size. A pill by each screen opens it; the screen grows
+   from where it sits on the page into a window of its own (the laptop's into one nearly
+   the size of the display, the phone's into a phone at real size) while the page dims
+   and blurs behind. A switch at the top changes between the two. Closing shrinks it
+   back to where it came from. These are their own copies of the calculator, loaded
+   the first time each is opened. */
+const expand = document.getElementById('expand')
+if (expand && devices && typeof expand.showModal === 'function') {
+  const openers = [...devices.querySelectorAll('.expand-open')]
+  const views = Object.fromEntries([...expand.querySelectorAll('.expand-view')].map(v => [v.dataset.kind, v]))
+  const tabs = [...expand.querySelectorAll('[role="tab"]')]
+  const stageEl = document.getElementById('expand-stage')
+  const sources = { desktop: () => devices.querySelector('.laptop-lid'), mobile: () => devices.querySelector('.handset-live') }
+  const address = { desktop: './app/index.html?demo=1&zoom=1', mobile: './app/index.html?demo=1&zoom=1&tab=quote' }
+  const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
+  let current = 'desktop'
+  let busy = false
+
+  // The pills sit just above the top right corner of their screens
+  const place = () => {
+    const base = devices.getBoundingClientRect()
+    for (const opener of openers) {
+      const box = sources[opener.dataset.kind]().getBoundingClientRect()
+      opener.style.left = `${box.right - base.left - opener.offsetWidth}px`
+      opener.style.top = `${box.top - base.top - opener.offsetHeight - 10}px`
+    }
+  }
+  const reveal = () => { openers.forEach(o => { o.hidden = false }); place() }
+  document.getElementById('demo-start')?.addEventListener('click', () => setTimeout(reveal, 50))
+  window.addEventListener('resize', () => { if (!openers[0].hidden) place() })
+
+  const fitPhone = () => {
+    views.mobile.style.setProperty('--fit', Math.min(1, (window.innerHeight - 64 - 44) / 844).toFixed(3))
+  }
+  const ready = (kind) => {
+    const frame = views[kind].querySelector('iframe')
+    views.mobile.style.background = isDark() ? '#0e1011' : '#ececee'
+    if (!frame.getAttribute('src')) frame.src = `${address[kind]}&theme=${isDark() ? 'dark' : 'light'}`
+    else frame.contentWindow?.postMessage({ type: 'pallet-theme', dark: isDark() }, window.location.origin)
+  }
+  const select = (kind) => {
+    current = kind
+    for (const [name, view] of Object.entries(views)) view.hidden = name !== kind
+    tabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.kind === kind)))
+    ready(kind)
+  }
+  // The transform that puts a view over the spot on the page it came from
+  const fromSource = (kind) => {
+    const view = views[kind]
+    const to = view.getBoundingClientRect()
+    const from = sources[kind]().getBoundingClientRect()
+    const fit = kind === 'mobile' ? Number(view.style.getPropertyValue('--fit')) || 1 : 1
+    // (the phone carries its own scale, applied before this transform)
+    return `translate(${(from.left - to.left) / fit}px, ${(from.top - to.top) / fit}px) scale(${from.width / to.width}, ${from.height / to.height})`
+  }
+  const glide = (kind, opening) => {
+    const view = views[kind]
+    const shrunk = { transform: fromSource(kind), borderRadius: '6px' }
+    const grown = { transform: 'none' }
+    return reduceMotion
+      ? Promise.resolve()
+      : view.animate(opening ? [shrunk, grown] : [grown, shrunk], { duration: opening ? 520 : 400, easing: EASE, fill: 'both' }).finished
+          .then((a) => { if (opening) a.cancel() })
+  }
+
+  const open = async (kind) => {
+    if (busy || expand.open) return
+    busy = true
+    fitPhone()
+    expand.showModal()
+    select(kind)
+    requestAnimationFrame(() => expand.classList.add('shown'))
+    await glide(kind, true)
+    busy = false
+  }
+  const close = async () => {
+    if (busy || !expand.open) return
+    busy = true
+    expand.classList.remove('shown')
+    await glide(current, false)
+    expand.close()
+    views[current].getAnimations().forEach(a => a.cancel())
+    busy = false
+  }
+  const swap = (kind) => {
+    if (kind === current || busy) return
+    select(kind)
+    if (!reduceMotion) views[kind].animate([{ opacity: 0, transform: 'scale(0.96)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: EASE })
+  }
+
+  openers.forEach(opener => opener.addEventListener('click', () => open(opener.dataset.kind)))
+  tabs.forEach(tab => tab.addEventListener('click', () => swap(tab.dataset.kind)))
+  document.getElementById('expand-close').addEventListener('click', close)
+  // Escape, or a click anywhere outside the screen, goes back to the page
+  expand.addEventListener('cancel', (event) => { event.preventDefault(); close() })
+  expand.addEventListener('click', (event) => { if (event.target === expand || event.target === stageEl || event.target.classList.contains('expand-bar')) close() })
+  window.addEventListener('resize', fitPhone)
+}
+
 /* Sample documents open in a popup over the page rather than a new tab.
    Without script, the links still open the PDFs directly. */
 const viewer = document.getElementById('viewer')
