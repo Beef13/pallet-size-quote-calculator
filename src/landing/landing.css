@@ -426,6 +426,47 @@ html.accounts-on .sheet [data-accounts="off"] {
   height: var(--hold, 0px);
 }
 
+/* The second, longer pause: once the four points under the laptop have come up into
+   view, the laptop and the points stay put together while the page scrolls through
+   the space script adds below them. The two pauses add up to the one there was before. */
+.hero-stay.holds > .hero-stay-body {
+  position: sticky;
+}
+
+.hero-stay.holds::after {
+  content: '';
+  display: block;
+  height: var(--hold, 0px);
+}
+
+/* Held, the points sit close under the laptop so the laptop barely has to move up
+   to make room for them */
+.hero-stay.holds .glance {
+  padding-top: 4px;
+}
+
+/* They arrive one after another, quickly, as soon as the row comes into view */
+.js .hero-stay.holds .glance-list[data-reveal] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+.js .hero-stay.holds .glance-list li {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.45s var(--ease), transform 0.55s var(--ease);
+}
+
+.js .hero-stay.holds .glance-list li:nth-child(2) { transition-delay: 70ms; }
+.js .hero-stay.holds .glance-list li:nth-child(3) { transition-delay: 140ms; }
+.js .hero-stay.holds .glance-list li:nth-child(4) { transition-delay: 210ms; }
+
+.js .hero-stay.holds .glance-list.in li {
+  opacity: 1;
+  transform: none;
+}
+
 /* The blue panel stops short of the bottom, so the demo hangs over its edge */
 .hero::before {
   content: '';

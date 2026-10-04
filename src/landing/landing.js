@@ -195,6 +195,10 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v))
 // at that moment; the space for the pause is added below it.
 const pin = document.querySelector('.hero-pin')
 const heroEl = pin?.querySelector('.hero')
+// The laptop and the four points under it, which are held together for the second pause
+const stay = document.querySelector('.hero-stay')
+const stayBody = stay?.querySelector('.hero-stay-body')
+const glance = stayBody?.querySelector('.glance')
 // How far the page has scrolled when the laptop is fully open: the point at which the
 // whole laptop, lid to base, sits in the middle of the window below the top bar
 let screenBox = null
@@ -205,8 +209,10 @@ const openPoint = () => {
   const lidTop = Math.max(76, (vh - tall) / 2 + 52)
   return Math.max(home + screenBox.top - lidTop, vh * 0.35)
 }
+let closer = 0
 const measure = () => {
-  const pinTop = pin ? pin.getBoundingClientRect().top + window.scrollY : 0
+  // Taken from the outer wrapper, which never sticks, so this holds mid-pause too
+  const pinTop = (stay || pin) ? (stay || pin).getBoundingClientRect().top + window.scrollY : 0
   // Measured through the layout, not from where things are drawn, so the hero's own
   // entrance and scroll movement cannot throw it off
   let within = 0
@@ -214,8 +220,25 @@ const measure = () => {
   home = pinTop + within
   if (!pin || home < window.innerHeight * 0.3) return
   heroEl.style.top = `${Math.round(pinTop - openPoint())}px`
-  pin.style.setProperty('--hold', `${Math.round(window.innerHeight * 0.5)}px`)
+  // Half a window of pause in all, as before, now in two parts: a short one with the
+  // laptop alone, then, once the points below it have come up into view, a longer one
+  // with both. The points arrive after a little scrolling, not after the whole pause.
+  const vh = window.innerHeight
+  const whole = Math.round(vh * 0.5)
+  const first = stay && glance ? Math.round(vh * 0.1) : whole
+  pin.style.setProperty('--hold', `${first}px`)
   pin.classList.add('holds')
+  if (stay && glance) {
+    // The space the points give up by sitting closer to the laptop goes into the pause,
+    // so the next section is exactly as far away as it was
+    const before = stay.classList.contains('holds') ? closer : parseFloat(getComputedStyle(glance).paddingTop)
+    stay.classList.add('holds')
+    closer = before
+    const saved = Math.max(0, before - parseFloat(getComputedStyle(glance).paddingTop))
+    stay.style.setProperty('--hold', `${Math.round(whole - first + saved)}px`)
+    // Held with the points just clear of the bottom of the window
+    stayBody.style.top = `${Math.round(vh - stayBody.offsetHeight - 24)}px`
+  }
 }
 const showAt = (p) => {
   model.pose(p)
@@ -354,8 +377,18 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
   near.observe(phoneStage)
 }
 
+// The four points under the laptop show themselves as soon as the row is a little way
+// into the window. (The general reveal waits for more of a section to show than this
+// row ever does while it is held at the bottom of the window.)
+const glanceList = glance?.querySelector('.glance-list')
+const greet = () => {
+  if (!glanceList || glanceList.classList.contains('in') || !stay.classList.contains('holds')) return
+  if (glanceList.getBoundingClientRect().top < window.innerHeight - 34) glanceList.classList.add('in')
+}
+
 const onScroll = () => {
   queued = false
+  greet()
   nav?.classList.toggle('scrolled', window.scrollY > 12)
   scrubPhone?.()
   if (heroShot && !reduceMotion) {
