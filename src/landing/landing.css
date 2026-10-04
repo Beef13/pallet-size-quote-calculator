@@ -1284,9 +1284,12 @@ html.accounts-on .sheet [data-accounts="off"] {
   margin-bottom: 0;
 }
 
-/* A size up from the other sections' headings: this one stands alone on its panel */
+/* Set like the hero's headline: same size, tracking and leading */
 .anywhere-panel .section-title {
-  font-size: calc(var(--step-3) * 1.18);
+  font-size: clamp(2.5rem, 0.9rem + 4.6vw, 4.4rem);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-wrap: balance;
 }
 
 .anywhere-panel .section-intro {
