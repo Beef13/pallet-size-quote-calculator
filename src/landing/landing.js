@@ -204,30 +204,6 @@ const showAt = (p) => {
   const t = clamp01((p - 0.86) / 0.14)
   devices.style.setProperty('--phone', (1 - Math.pow(1 - t, 3)).toFixed(3))
 }
-// The scroll says how far open the laptop should be; the laptop moves towards that at
-// a limited pace, so a fast scroll cannot snap it open or shut. Shut to open takes at
-// least OPEN_TIME however quickly the page is scrolled; a slow scroll is followed exactly.
-const OPEN_TIME = 1600
-let wanted = 0
-let shown = 0
-let chasing = false
-let lastTick = 0
-const chase = (now) => {
-  const step = Math.min(250, now - lastTick) / OPEN_TIME
-  lastTick = now
-  const gap = wanted - shown
-  shown = Math.abs(gap) <= step ? wanted : shown + Math.sign(gap) * step
-  showAt(shown)
-  if (shown !== wanted) requestAnimationFrame(chase)
-  else chasing = false
-}
-const follow = (p) => {
-  wanted = p
-  if (chasing || wanted === shown) return
-  chasing = true
-  lastTick = performance.now()
-  requestAnimationFrame(chase)
-}
 const placeScreen = () => {
   const box = model.openRect()
   screenBox = box
@@ -289,7 +265,7 @@ const onScroll = () => {
   if (model && !latched) {
     if (devices.querySelector('.demo.live')) { latched = true; showAt(1); return }
     const vh = window.innerHeight
-    follow(clamp01(window.scrollY / openPoint()))
+    showAt(clamp01(window.scrollY / openPoint()))
   }
 }
 window.addEventListener('scroll', () => {
