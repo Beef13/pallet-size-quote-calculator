@@ -293,7 +293,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   })
   
   // Tab state
-  const [activeTab, setActiveTab] = useState('calculator')
+  // The demonstration can be opened on a given tab (?tab=quote)
+  const [activeTab, setActiveTab] = useState(() => {
+    const asked = DEMO && new URLSearchParams(window.location.search).get('tab')
+    return ['quote', 'history', 'prices'].includes(asked) ? asked : 'calculator'
+  })
   
   // Form state
   const [palletWidth, setPalletWidth] = useState('')

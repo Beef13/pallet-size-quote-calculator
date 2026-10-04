@@ -82,10 +82,29 @@ if (video) {
     fit()
     if ('ResizeObserver' in window) new ResizeObserver(fit).observe(demo)
   }
+  // The phone beside the laptop: its picture is replaced by the calculator at phone
+  // size the first time the demonstration is started
+  const handset = document.querySelector('.handset')
+  const phoneFrame = document.getElementById('hero-phone-app')
+  const phoneLive = phoneFrame?.parentElement
+  const phoneBand = () => { if (phoneLive) phoneLive.style.background = isDark() ? '#0e1011' : '#ececee' }
+  const fitPhone = () => { phoneFrame.style.transform = `scale(${phoneLive.clientWidth / 390})` }
+  let phoneAsked = false
+  const loadPhone = () => {
+    if (phoneAsked || !phoneFrame || !handset.offsetParent) return
+    phoneAsked = true
+    phoneBand()
+    phoneFrame.addEventListener('load', () => setTimeout(() => handset.classList.add('loaded'), 600), { once: true })
+    phoneFrame.hidden = false
+    phoneFrame.src = `./app/index.html?demo=1&tab=quote&theme=${isDark() ? 'dark' : 'light'}`
+    fitPhone()
+    if ('ResizeObserver' in window) new ResizeObserver(fitPhone).observe(phoneLive)
+  }
   start?.addEventListener('click', () => {
     demo.classList.add('live')
     frame.tabIndex = 0
     frame.focus()
+    loadPhone()
   })
 
   const load = () => {
@@ -97,6 +116,7 @@ if (video) {
       video.pause()
       video.removeAttribute('src')
       if (asked) frame.contentWindow?.postMessage({ type: 'pallet-theme', dark: isDark() }, window.location.origin)
+      if (phoneAsked) { phoneBand(); phoneFrame.contentWindow?.postMessage({ type: 'pallet-theme', dark: isDark() }, window.location.origin) }
       else if (document.readyState === 'complete') (window.requestIdleCallback || setTimeout)(loadApp)
       else window.addEventListener('load', () => (window.requestIdleCallback || setTimeout)(loadApp), { once: true })
       return
