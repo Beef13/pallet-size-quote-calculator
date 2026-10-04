@@ -1226,7 +1226,8 @@ html.accounts-on .sheet [data-accounts="off"] {
   padding: clamp(64px, 9vw, 120px) var(--pad) 0;
 }
 
-/* A blue panel, lit softly from the upper left, with the phone held up in the middle */
+/* The same blue panel as the hero: ruled grid, top-to-bottom gradient and the glass
+   blocks in its lower corners */
 .anywhere-panel {
   position: relative;
   isolation: isolate;
@@ -1234,9 +1235,15 @@ html.accounts-on .sheet [data-accounts="off"] {
   padding: clamp(40px, 5.5vw, 76px) clamp(18px, 4vw, 56px) 0;
   border-radius: var(--radius-lg);
   background:
-    radial-gradient(ellipse 60% 70% at 12% 30%, rgba(255, 255, 255, 0.34), transparent 70%),
-    linear-gradient(160deg, var(--blue-low) 0%, var(--blue-mid) 45%, var(--blue-top) 100%);
+    linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 100% 64px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px) 50% 0 / 64px 100%,
+    linear-gradient(180deg, var(--blue-top) 0%, var(--blue-mid) 52%, var(--blue-low) 100%);
   color: #fff;
+}
+
+.anywhere-panel .glass {
+  bottom: 0;
+  height: 30%;
 }
 
 .anywhere-panel .section-head {
@@ -1252,31 +1259,6 @@ html.accounts-on .sheet [data-accounts="off"] {
   width: min(100%, 760px);
   height: clamp(460px, 50vw, 700px);
   margin-inline: auto;
-}
-
-/* Two pale slabs crossing behind the phone */
-.anywhere-shard {
-  position: absolute;
-  z-index: -1;
-  border-radius: clamp(14px, 2vw, 26px);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.16));
-}
-
-.anywhere-shard-a {
-  left: 8%;
-  top: 16%;
-  width: 46%;
-  height: 58%;
-  transform: skewY(-34deg);
-}
-
-.anywhere-shard-b {
-  right: 6%;
-  top: 30%;
-  width: 40%;
-  height: 46%;
-  transform: skewY(-34deg);
-  opacity: 0.75;
 }
 
 /* The plain picture: a handset at the same tilt, for screens without the model */

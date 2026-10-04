@@ -16,7 +16,8 @@ import screenLight from './img/app-phone-light.webp'
 import screenDark from './img/app-phone-dark.webp'
 
 // Where the display sits within the model's screen picture (measured from the model)
-const SCREEN_UV = { u0: 0.048, u1: 0.952, v0: 0.022, v1: 0.977 }
+// (the display takes up the whole of it, edge to edge)
+const SCREEN_UV = { u0: 0.0023, u1: 0.9976, v0: 0.0014, v1: 0.9979 }
 // Where it comes to rest: turned a little to one side, leaning back slightly
 // tipped over to the left, turned so its left edge shows, leaning back a little:
 // the way a phone sits when held up in the right hand
