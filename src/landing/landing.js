@@ -304,24 +304,25 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
       ? 72 + (vh - 72 - panel.offsetHeight) / 2
       : vh / 2 - (scene.offsetTop + scene.offsetHeight / 2)
     hold = Math.round(vh * 0.9)
-    approach = vh * 0.75
+    approach = vh * 0.55
     stickAt = panelTop - stuck
     panel.style.top = `${Math.round(stuck)}px`
     section.style.setProperty('--hold', `${hold}px`)
     section.classList.add('holds')
   }
 
-  // One sequence, all of it tied to the scroll: the heading rises in first, then the
-  // line under it, then the phone spins up; the callouts follow during the hold
+  // One sequence, all of it tied to the scroll and closely overlapped: the heading
+  // rises in, the line under it follows, and the phone is already spinning up as they
+  // settle; the callouts follow during the hold
   const part = (v, from, to) => clamp01((v - from) / (to - from))
   const soft = (t) => t * t * (3 - 2 * t)
   scrubPhone = () => {
     const y = window.scrollY
     const coming = clamp01((y - (stickAt - approach)) / approach)
-    panel.style.setProperty('--title', soft(part(coming, 0.1, 0.45)).toFixed(3))
-    panel.style.setProperty('--intro', soft(part(coming, 0.24, 0.6)).toFixed(3))
+    panel.style.setProperty('--title', soft(part(coming, 0, 0.4)).toFixed(3))
+    panel.style.setProperty('--intro', soft(part(coming, 0.14, 0.55)).toFixed(3))
     if (!phone) return
-    phone.pose(part(coming, 0.3, 1))
+    phone.pose(part(coming, 0.1, 1))
     const through = clamp01((y - stickAt) / hold)
     notes.forEach((note, i) => note.classList.toggle('on', through > 0.08 + turn[i] * 0.2))
   }
