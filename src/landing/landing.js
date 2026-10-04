@@ -311,16 +311,28 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
     section.classList.add('holds')
   }
 
+  // One sequence, all of it tied to the scroll: the heading rises in first, then the
+  // line under it, then the phone spins up; the callouts follow during the hold
+  const part = (v, from, to) => clamp01((v - from) / (to - from))
+  const soft = (t) => t * t * (3 - 2 * t)
   scrubPhone = () => {
-    if (!phone) return
     const y = window.scrollY
-    phone.pose(clamp01((y - (stickAt - approach)) / approach))
+    const coming = clamp01((y - (stickAt - approach)) / approach)
+    panel.style.setProperty('--title', soft(part(coming, 0.1, 0.45)).toFixed(3))
+    panel.style.setProperty('--intro', soft(part(coming, 0.24, 0.6)).toFixed(3))
+    if (!phone) return
+    phone.pose(part(coming, 0.3, 1))
     const through = clamp01((y - stickAt) / hold)
     notes.forEach((note, i) => note.classList.toggle('on', through > 0.08 + turn[i] * 0.2))
   }
 
   // The plain picture steps aside while the model is on its way
   phoneStage.classList.add('model')
+  panel.classList.add('scrub')
+  layout()
+  if ('ResizeObserver' in window) new ResizeObserver(() => { layout(); scrubPhone() }).observe(document.body)
+  window.addEventListener('resize', () => { layout(); scrubPhone() })
+  scrubPhone()
   const near = new IntersectionObserver(([entry]) => {
     if (!entry.isIntersecting) return
     near.disconnect()
@@ -330,10 +342,6 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
         phone = api
         scene.classList.add('scrub')
         layout()
-        window.addEventListener('resize', () => { layout(); scrubPhone() })
-        // The page above can change height after this (the hero adds its own hold), so
-        // the measurements are taken again whenever the page's height changes
-        if ('ResizeObserver' in window) new ResizeObserver(() => { layout(); scrubPhone() }).observe(document.body)
         onThemeChange(() => api.setDark(isDark()))
         if ('ResizeObserver' in window) new ResizeObserver(() => api.resize()).observe(phoneStage)
         scrubPhone()

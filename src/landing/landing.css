@@ -1379,6 +1379,25 @@ html.accounts-on .sheet [data-accounts="off"] {
     width: calc((var(--reach) - var(--x)) * 1cqh - 12px);
   }
 
+  /* The heading and the line under it rise in with the scroll too (script sets how far
+     along each is, 0 to 1), ahead of the phone */
+  .anywhere-panel.scrub .section-head {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .anywhere-panel.scrub .section-title {
+    opacity: var(--title, 1);
+    transform: translateY(calc((1 - var(--title, 1)) * 34px)) scale(calc(0.94 + var(--title, 1) * 0.06));
+    filter: blur(calc((1 - var(--title, 1)) * 6px));
+  }
+
+  .anywhere-panel.scrub .section-intro {
+    opacity: var(--intro, 1);
+    transform: translateY(calc((1 - var(--intro, 1)) * 22px));
+  }
+
   /* With the 3D phone, each callout comes in at its own point in the scroll */
   .anywhere-scene.scrub .note:not(.on) {
     opacity: 0;
