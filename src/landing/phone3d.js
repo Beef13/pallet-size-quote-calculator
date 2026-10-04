@@ -18,7 +18,9 @@ import screenDark from './img/app-phone-dark.webp'
 // Where the display sits within the model's screen picture (measured from the model)
 const SCREEN_UV = { u0: 0.048, u1: 0.952, v0: 0.022, v1: 0.977 }
 // Where it comes to rest: turned a little to one side, leaning back slightly
-const REST = { yaw: -0.42, pitch: 0.1, roll: 0.07 }
+// tipped over to the left, turned so its left edge shows, leaning back a little:
+// the way a phone sits when held up in the right hand
+const REST = { yaw: 0.5, pitch: -0.2, roll: 0.4 }
 const SPIN = Math.PI * 3
 const DURATION = 2000
 
@@ -95,11 +97,13 @@ export async function mountPhone({ stage, dark }) {
   fitted.applyMatrix4(upright)
   fitted.scale.multiplyScalar(2 / size[long])
   const phone = new Group()
+  // Spun about its own long axis first, then leant back, then tipped in the picture
+  phone.rotation.order = 'ZXY'
   phone.add(fitted)
   scene.add(phone)
 
   const camera = new PerspectiveCamera(22, 1, 0.1, 50)
-  camera.position.set(0, 0, 6.5)
+  camera.position.set(0, 0, 6.9)
 
   let queued = false
   const draw = () => { queued = false; renderer.render(scene, camera) }
@@ -108,7 +112,7 @@ export async function mountPhone({ stage, dark }) {
   // 0: out of sight below, small, turned away. 1: at rest.
   const pose = (t) => {
     const e = 1 - Math.pow(1 - t, 3)
-    phone.rotation.set(REST.pitch + (1 - e) * 0.5, REST.yaw + (1 - e) * SPIN, REST.roll * e)
+    phone.rotation.set(REST.pitch * e, REST.yaw - (1 - e) * SPIN, REST.roll * e)
     phone.position.y = (1 - e) * -1.5
     phone.scale.setScalar(0.55 + 0.45 * e)
     canvas.style.opacity = String(Math.min(1, t * 4))
