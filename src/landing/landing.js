@@ -272,15 +272,53 @@ if (stage && lidBox && !reduceMotion && window.matchMedia('(min-width: 900px)').
     })
     .catch(() => { clearTimeout(giveUp); fallBack() })
 }
-/* The phone in "Quote from anywhere": a 3D model that spins up into view as the section
-   arrives. Loaded only as the section comes near, on wide screens with WebGL, and not
-   for reduced motion; otherwise the plain picture of the phone stays. */
+/* The phone in "Quote from anywhere": a 3D model whose spin is tied to the scroll.
+   As the section comes up the screen the phone spins up into place, forwards or back
+   with the scroll. When it has landed the panel holds still in the middle of the window,
+   and scrolling on brings the callouts in one after another; then the page carries on.
+   Wide screens with WebGL only, and not for reduced motion; otherwise the plain
+   picture of the phone stays, with the callouts beside it. */
 const phoneStage = document.getElementById('anywhere-stage')
+let scrubPhone = null
 if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
     window.matchMedia('(min-width: 900px)').matches && canModel()) {
+  const section = document.getElementById('anywhere')
+  const panel = section.querySelector('.anywhere-panel')
+  const scene = phoneStage.parentElement
+  const notes = [...scene.querySelectorAll('.note')]
+  // The order they arrive in: top left, top right, lower left, lower right
+  const turn = [0, 2, 1, 3]
   let phone = null
-  let inView = false
-  const landed = () => phoneStage.parentElement.classList.add('landed')
+  let stickAt = 0   // how far the page has scrolled when the panel starts to hold
+  let hold = 0
+  let approach = 0
+
+  const layout = () => {
+    const vh = window.innerHeight
+    let top = 0
+    for (let node = section; node; node = node.offsetParent) top += node.offsetTop
+    const panelTop = top + parseFloat(getComputedStyle(section).paddingTop)
+    // Held with the whole panel in view under the top bar where it fits; otherwise
+    // with the phone in the middle of the window
+    const stuck = panel.offsetHeight <= vh - 84
+      ? 72 + (vh - 72 - panel.offsetHeight) / 2
+      : vh / 2 - (scene.offsetTop + scene.offsetHeight / 2)
+    hold = Math.round(vh * 0.9)
+    approach = vh * 0.75
+    stickAt = panelTop - stuck
+    panel.style.top = `${Math.round(stuck)}px`
+    section.style.setProperty('--hold', `${hold}px`)
+    section.classList.add('holds')
+  }
+
+  scrubPhone = () => {
+    if (!phone) return
+    const y = window.scrollY
+    phone.pose(clamp01((y - (stickAt - approach)) / approach))
+    const through = clamp01((y - stickAt) / hold)
+    notes.forEach((note, i) => note.classList.toggle('on', through > 0.08 + turn[i] * 0.2))
+  }
+
   // The plain picture steps aside while the model is on its way
   phoneStage.classList.add('model')
   const near = new IntersectionObserver(([entry]) => {
@@ -290,25 +328,25 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
       .then(({ mountPhone }) => mountPhone({ stage: phoneStage, dark: isDark() }))
       .then((api) => {
         phone = api
+        scene.classList.add('scrub')
+        layout()
+        window.addEventListener('resize', () => { layout(); scrubPhone() })
+        // The page above can change height after this (the hero adds its own hold), so
+        // the measurements are taken again whenever the page's height changes
+        if ('ResizeObserver' in window) new ResizeObserver(() => { layout(); scrubPhone() }).observe(document.body)
         onThemeChange(() => api.setDark(isDark()))
         if ('ResizeObserver' in window) new ResizeObserver(() => api.resize()).observe(phoneStage)
-        if (inView) api.play(landed)
+        scrubPhone()
       })
       .catch(() => phoneStage.classList.remove('model'))
-  }, { rootMargin: '900px 0px' })
+  }, { rootMargin: '1400px 0px' })
   near.observe(phoneStage)
-  const arrive = new IntersectionObserver(([entry]) => {
-    if (!entry.isIntersecting) return
-    inView = true
-    arrive.disconnect()
-    phone?.play(landed)
-  }, { threshold: 0.4 })
-  arrive.observe(phoneStage)
 }
 
 const onScroll = () => {
   queued = false
   nav?.classList.toggle('scrolled', window.scrollY > 12)
+  scrubPhone?.()
   if (heroShot && !reduceMotion) {
     const rect = heroShot.getBoundingClientRect()
     // 0 while the screenshot is low on the screen, 1 once its top reaches the upper third

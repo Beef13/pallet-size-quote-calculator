@@ -1,5 +1,5 @@
 /* The phone in "Quote from anywhere, anytime", as a real 3D model.
-   It spins up into view when the section arrives and comes to rest at an angle,
+   It spins up into view as the section is scrolled to, coming to rest at an angle,
    showing the calculator on its screen.
 
    Model: "iPhone 17 Pro" by Ranguel (sketchfab.com/Ranguel), CC BY 4.0. Its
@@ -23,7 +23,6 @@ const SCREEN_UV = { u0: 0.0023, u1: 0.9976, v0: 0.0014, v1: 0.9979 }
 // the way a phone sits when held up in the right hand
 const REST = { yaw: 0.5, pitch: -0.2, roll: 0.4 }
 const SPIN = Math.PI * 3
-const DURATION = 2000
 
 export async function mountPhone({ stage, dark }) {
   const canvas = document.createElement('canvas')
@@ -110,9 +109,11 @@ export async function mountPhone({ stage, dark }) {
   const draw = () => { queued = false; renderer.render(scene, camera) }
   const ask = () => { if (!queued) { queued = true; requestAnimationFrame(draw) } }
 
+  let at = -1
   // 0: out of sight below, small, turned away. 1: at rest.
   const pose = (t) => {
-    const e = 1 - Math.pow(1 - t, 3)
+    // Eased at both ends, so it neither lurches off nor stops dead when scrubbed
+    const e = t * t * (3 - 2 * t)
     phone.rotation.set(REST.pitch * e, REST.yaw - (1 - e) * SPIN, REST.roll * e)
     phone.position.y = (1 - e) * -1.5
     phone.scale.setScalar(0.55 + 0.45 * e)
@@ -134,21 +135,10 @@ export async function mountPhone({ stage, dark }) {
   resize()
   pose(0)
 
-  let played = false
   return {
     resize,
-    play: (onDone) => {
-      if (played) return
-      played = true
-      const began = performance.now()
-      const step = (now) => {
-        const t = Math.min(1, (now - began) / DURATION)
-        pose(t)
-        if (t < 1) requestAnimationFrame(step)
-        else onDone?.()
-      }
-      requestAnimationFrame(step)
-    },
+    // 0 to 1, set from the scroll
+    pose: (t) => { if (t !== at) { at = t; pose(t) } },
     setDark: (on) => { screenMat.map = on ? darkTex : lightTex; screenMat.needsUpdate = true; ask() }
   }
 }

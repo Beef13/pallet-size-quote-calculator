@@ -1327,7 +1327,6 @@ html.accounts-on .sheet [data-accounts="off"] {
 
 @media (min-width: 900px) {
   .anywhere-scene {
-    height: clamp(460px, 50vw, 700px);
     container-type: size;
   }
 
@@ -1380,38 +1379,30 @@ html.accounts-on .sheet [data-accounts="off"] {
     width: calc((var(--reach) - var(--x)) * 1cqh - 12px);
   }
 
-  /* The dot where it lands */
-  .note::before {
-    content: '';
-    position: absolute;
-    z-index: 1;
-    top: 8px;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--blue-top);
-    box-shadow: 0 0 0 2.5px #fff, 0 0 0 7px rgba(27, 87, 220, 0.22);
-  }
-
-  .note-l::before {
-    left: calc(100% + (var(--reach) + var(--x)) * 1cqh - 4px);
-  }
-
-  .note-r::before {
-    right: calc(100% + (var(--reach) - var(--x)) * 1cqh - 4px);
-  }
-
-  /* With the 3D phone, the callouts wait until it has landed, then come in one by one */
-  .anywhere-scene:has(.anywhere-stage.model):not(.landed) .note {
+  /* With the 3D phone, each callout comes in at its own point in the scroll */
+  .anywhere-scene.scrub .note:not(.on) {
     opacity: 0;
   }
 
-  .anywhere-scene:has(.anywhere-stage.model):not(.landed) .note-l { translate: -14px 0; }
-  .anywhere-scene:has(.anywhere-stage.model):not(.landed) .note-r { translate: 14px 0; }
+  .anywhere-scene.scrub .note-l:not(.on) { translate: -16px 0; }
+  .anywhere-scene.scrub .note-r:not(.on) { translate: 16px 0; }
 
-  .note:nth-child(2) { transition-delay: 0.3s; }
-  .note:nth-child(3) { transition-delay: 0.15s; }
-  .note:nth-child(4) { transition-delay: 0.45s; }
+  /* The panel holds still while they do: it sticks, and the section is lengthened
+     by the distance of the hold (real content, since padding would not do) */
+  .anywhere.holds .anywhere-panel {
+    position: sticky;
+  }
+
+  .anywhere.holds::after {
+    content: '';
+    display: block;
+    height: var(--hold, 0px);
+  }
+
+  /* Short windows: a smaller scene, so the heading and the phone both fit while held */
+  .anywhere-scene {
+    height: clamp(420px, min(50vw, 100dvh - 330px), 700px);
+  }
 }
 
 /* The plain picture: a handset at the same tilt, for screens without the model */
