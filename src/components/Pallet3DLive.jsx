@@ -140,7 +140,8 @@ function CameraFit({ width, length, height }) {
   const aspect = viewport.width / Math.max(1, viewport.height)
   const narrowFactor = aspect < 1.2 ? 1.2 / aspect : 1
   useEffect(() => {
-    const distance = size * 2.8 * narrowFactor
+    // The landing page's demonstration sits a little closer, as its zoom is locked
+    const distance = size * (DEMO ? 2.35 : 2.8) * narrowFactor
     const dir = camera.position.clone()
     if (dir.lengthSq() < 1e-6) dir.set(14, 10, 14)
     dir.normalize().multiplyScalar(distance)
