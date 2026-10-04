@@ -935,40 +935,6 @@ html.accounts-on .sheet [data-accounts="off"] {
   z-index: 3;
 }
 
-/* Comic-book motion lines over the 3D models. Script draws them and marks the layer
-   as moving; at rest the layer is clear, so the page looks exactly as it did. */
-.sketch-lines {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-  /* Both models sit on the blue panels, in either theme, so the lines are chalk white */
-  color: #ffffff;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.sketch-lines.moving {
-  opacity: calc(0.4 + var(--strength, 1) * 0.55);
-  transition-duration: 0.06s;
-}
-
-.sketch-fill {
-  fill: currentColor;
-}
-
-.sketch-stroke {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.75;
-}
-
 .laptop-canvas {
   pointer-events: none;
   position: absolute;
