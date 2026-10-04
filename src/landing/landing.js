@@ -320,7 +320,7 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
     const y = window.scrollY
     const coming = clamp01((y - (stickAt - approach)) / approach)
     panel.style.setProperty('--title', soft(part(coming, 0, 0.4)).toFixed(3))
-    panel.style.setProperty('--intro', soft(part(coming, 0.14, 0.55)).toFixed(3))
+    panel.style.setProperty('--intro', soft(part(coming, 0.5, 0.9)).toFixed(3))
     if (!phone) return
     phone.pose(part(coming, 0.1, 1))
     const through = clamp01((y - stickAt) / hold)
