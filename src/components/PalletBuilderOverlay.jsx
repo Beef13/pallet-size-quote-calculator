@@ -6,7 +6,7 @@ import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
 import PrintableQuote from './PrintableQuote'
 import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
-import { quoteAttention } from '../utils/quotes'
+import { quoteAttention, sentSummary, groupQuotes, quotesByMonth, quotesTotal } from '../utils/quotes'
 import {
   accountsEnabled, googleSignInEnabled, initAccounts, subscribeAccount, getAccountState, setOnApplied,
   noteLocalChange, noteQuoteDeleted, signInWithEmail, signInWithGoogle, signOut, syncNow, deleteOnlineData, dismissNotice
@@ -218,7 +218,7 @@ function StatusMark({ status, ratio = 0 }) {
 }
 
 // A panel section that folds down to its heading and a one-line summary
-function Fold({ id, title, summary, cost, aside, status, ratio, open, onToggle, className = 'form-section', children }) {
+function Fold({ id, title, count, summary, cost, aside, status, ratio, open, onToggle, className = 'form-section', children }) {
   return (
     <section className={`${className} fold ${open ? 'open' : ''}`} aria-label={title} data-fold={id}>
       <div className="section-head fold-head">
@@ -226,6 +226,7 @@ function Fold({ id, title, summary, cost, aside, status, ratio, open, onToggle, 
           <button type="button" className="fold-toggle" aria-expanded={open} aria-controls={`fold-${id}`} onClick={() => onToggle(id)}>
             <span className="chevron" aria-hidden="true" />
             {title}
+            {count != null && <span className="fold-count">{count}</span>}
           </button>
         </h2>
         <div className="fold-aside">
@@ -412,7 +413,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [ratesFromQuote, setRatesFromQuote] = useState(null)
   const [historyNotice, setHistoryNotice] = useState('')
   const [historySearch, setHistorySearch] = useState('')
-  const [historyStatus, setHistoryStatus] = useState('all')
+  const [statusUndo, setStatusUndo] = useState(null) // { before: quote as it was, to: new status } after a one-tap status change
   const [openQuoteId, setOpenQuoteId] = useState(null) // the one History row that is expanded
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
@@ -1066,6 +1067,19 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     }))
   }
 
+  // One-tap Accepted / Lost from a History row. The quote moves to another section,
+  // so the change can be undone from a banner at the top of the list.
+  const quickStatus = (quote, status) => {
+    setStatusUndo({ before: quote, to: status })
+    setQuoteStatus(quote.id, status)
+    setOpenQuoteId(null)
+  }
+  const undoQuickStatus = () => {
+    if (!statusUndo) return
+    persistQuotes(quotes.map(q => (q.id === statusUndo.before.id ? statusUndo.before : q)))
+    setStatusUndo(null)
+  }
+
   const deleteQuote = (id) => {
     noteQuoteDeleted(id)
     persistQuotes(quotes.filter(q => q.id !== id))
@@ -1343,16 +1357,97 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Profit can only be shown once there is a price with a markup on it
   const canShowProfit = liveQuote.hasAnyPrice && (liveQuote.markupPerPallet || 0) > 0
 
-  // History tab: search text and status chip together
-  const attentionFor = (q) => quoteAttention(q, Date.now(), business.validDays)
-  const attentionCount = quotes.filter(q => attentionFor(q)).length
+  // History tab: quotes grouped by what needs doing next, narrowed by the search text
+  const historyNow = Date.now()
+  const attentionFor = (q) => quoteAttention(q, historyNow, business.validDays)
+  const historyTerm = historySearch.trim().toLowerCase()
   const shownQuotes = quotes.filter(q => {
-    if (historyStatus === 'attention') { if (!attentionFor(q)) return false }
-    else if (historyStatus !== 'all' && q.status !== historyStatus) return false
-    const term = historySearch.trim().toLowerCase()
-    if (!term) return true
-    return [q.number, q.customerName, q.customerRef, q.summary?.size].filter(Boolean).join(' ').toLowerCase().includes(term)
+    if (!historyTerm) return true
+    return [q.number, q.customerName, q.customerRef, q.summary?.size].filter(Boolean).join(' ').toLowerCase().includes(historyTerm)
   })
+  const grouped = groupQuotes(shownQuotes, historyNow, business.validDays)
+  const customerSummary = (list) => {
+    const names = [...new Set(list.map(q => q.customerName || 'No customer'))]
+    if (names.length <= 2) return names.join(' and ')
+    return `${names.slice(0, 2).join(', ')} and ${names.length - 2} more`
+  }
+  const acceptedCount = grouped.decided.filter(q => q.status === 'accepted').length
+  const historyGroups = [
+    { id: 'historyChase', key: 'chase', title: 'To chase', quotes: grouped.chase, summary: customerSummary(grouped.chase) },
+    { id: 'historyDrafts', key: 'drafts', title: 'Drafts', quotes: grouped.drafts, summary: customerSummary(grouped.drafts) },
+    { id: 'historyWaiting', key: 'waiting', title: 'Waiting on customer', quotes: grouped.waiting, summary: customerSummary(grouped.waiting) },
+    // The badge on Decided is the value won; adding lost quotes to it would mean nothing
+    { id: 'historyDecided', key: 'decided', title: 'Decided', quotes: grouped.decided, months: quotesByMonth(grouped.decided),
+      total: quotesTotal(grouped.decided.filter(q => q.status === 'accepted')),
+      summary: `${acceptedCount} accepted · ${grouped.decided.length - acceptedCount} lost` }
+  ].filter(g => g.quotes.length > 0)
+
+  // One row in the History tab
+  const quoteRow = (q) => {
+    const expanded = openQuoteId === q.id
+    const attention = attentionFor(q)
+    const date = new Date(q.updatedAt || q.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+    return (
+      <li key={q.id} className={`quote-item ${q.id === currentQuoteId ? 'current' : ''} ${expanded ? 'open' : ''}`} data-quote={q.number}>
+        <button type="button" className="quote-summary" aria-expanded={expanded} aria-controls={`quote-${q.id}`}
+          onClick={() => { setOpenQuoteId(expanded ? null : q.id); setConfirmDeleteId(null) }}>
+          <span className="quote-line">
+            <span className="quote-customer">{q.customerName || 'No customer'}</span>
+            <span className="quote-total">{formatCurrency(q.summary?.totalExGst || 0)}</span>
+          </span>
+          <span className="quote-line quote-line-sub">
+            <span className="quote-meta">
+              {q.number} · {q.summary?.size ? `${q.summary.size} mm` : 'Pallet'} · {q.quantity} pallet{q.quantity === 1 ? '' : 's'}{q.customerRef ? ` · ${q.customerRef}` : ''}
+            </span>
+            <span className="quote-tags">
+              {attention && <span className={`status-pill attention-${attention.kind}`} title={attention.detail}>{attention.label}</span>}
+              {/* The section heading already says draft or sent; only decided quotes need their own tag */}
+              {(q.status === 'accepted' || q.status === 'lost') && <span className={`status-pill status-${q.status}`}>{STATUS_LABELS[q.status]}</span>}
+            </span>
+          </span>
+        </button>
+        {q.status === 'sent' && (
+          <div className="quote-quick">
+            <span className="quote-quick-note">{sentSummary(q, historyNow, business.validDays)}</span>
+            <span className="quote-quick-actions">
+              <button type="button" className="quick-btn" data-quick-status="accepted" aria-label={`Mark ${q.number} accepted`}
+                onClick={() => quickStatus(q, 'accepted')}>Accepted</button>
+              <button type="button" className="quick-btn" data-quick-status="lost" aria-label={`Mark ${q.number} lost`}
+                onClick={() => quickStatus(q, 'lost')}>Lost</button>
+            </span>
+          </div>
+        )}
+        <Reveal open={expanded} id={`quote-${q.id}`}>
+          <div className="quote-detail">
+            <p className="quote-detail-note">
+              {attention ? `${attention.detail}.` : `Last changed ${date}.`}
+            </p>
+            {confirmDeleteId === q.id ? (
+              // The question takes the whole row, so it never has to squeeze in beside the other actions
+              <div className="quote-row-actions">
+                <span className="confirm-question">Delete {q.number}? This can't be undone.</span>
+                <button type="button" className="text-btn danger" onClick={() => deleteQuote(q.id)}>Delete</button>
+                <button type="button" className="text-btn" onClick={() => setConfirmDeleteId(null)}>Keep</button>
+              </div>
+            ) : (
+              <div className="quote-row-actions">
+                <label className="quote-status-field">
+                  <span>Status</span>
+                  <select className={`status-select status-${q.status}`} value={q.status}
+                    onChange={(e) => setQuoteStatus(q.id, e.target.value)} aria-label={`Status of ${q.number}`}>
+                    {Object.entries(STATUS_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+                  </select>
+                </label>
+                <button type="button" className="text-btn" onClick={() => openQuote(q)}>Open</button>
+                <button type="button" className="text-btn" onClick={() => duplicateQuote(q)} title="Start a new quote from this one, priced at today's rates">Duplicate</button>
+                <button type="button" className="text-btn muted-btn" onClick={() => setConfirmDeleteId(q.id)}>Delete</button>
+              </div>
+            )}
+          </div>
+        </Reveal>
+      </li>
+    )
+  }
 
   const timberOptions = timberTypes.map(type => (
     <option key={type.id} value={type.id} title={type.name}>{type.shortName || type.name}</option>
@@ -1364,9 +1459,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   const maxNote = (max) => (max > 0 && max < 15 ? <span className="field-note">up to {max}</span> : null)
 
-  // Sections start open, except: presets when there are none yet, and business details
-  // once they were already filled in when the app opened.
-  const sectionDefaults = { presets: savedPresets.length > 0, business: businessOpenByDefault }
+  // Sections start open, except: presets when there are none yet, business details
+  // once they were already filled in when the app opened, and decided quotes in History.
+  const sectionDefaults = { presets: savedPresets.length > 0, business: businessOpenByDefault, historyDecided: false }
   const isOpen = (id) => openSections[id] ?? sectionDefaults[id] ?? true
   const toggleSection = (id) => {
     const next = { ...openSections, [id]: !isOpen(id) }
@@ -1916,22 +2011,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               <div className="history-head">
                 <input type="text" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)}
                   placeholder="Search by customer, number or size" aria-label="Search saved quotes" data-field="history-search" />
-                {quotes.length > 0 && (
-                  <div className="status-filter" role="group" aria-label="Show quotes by status">
-                    {[['all', 'All'], ...(attentionCount > 0 || historyStatus === 'attention' ? [['attention', 'To chase']] : []), ...Object.entries(STATUS_LABELS)].map(([value, label]) => {
-                      const count = value === 'all' ? quotes.length : value === 'attention' ? attentionCount : quotes.filter(q => q.status === value).length
-                      return (
-                        <button key={value} type="button" data-status-filter={value}
-                          className={`chip ${historyStatus === value ? 'active' : ''}`} aria-pressed={historyStatus === value}
-                          disabled={count === 0 && historyStatus !== value}
-                          onClick={() => setHistoryStatus(value)}>
-                          {label}<span className="chip-count">{count}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
               </div>
+              {statusUndo && quotes.some(q => q.id === statusUndo.before.id && q.status === statusUndo.to) && (
+                <div className="banner" role="status" data-status-undo>
+                  <p>{statusUndo.before.number} marked {STATUS_LABELS[statusUndo.to].toLowerCase()}.</p>
+                  <button type="button" className="text-btn" onClick={undoQuickStatus}>Undo</button>
+                </div>
+              )}
               {quotes.length === 0 ? (
                 <div className="empty">
                   <h2>No saved quotes yet</h2>
@@ -1941,65 +2027,25 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               ) : shownQuotes.length === 0 ? (
                 <div className="empty">
                   <h2>No quotes match</h2>
-                  <p>Nothing fits that search or status.</p>
-                  <button type="button" className="btn btn-secondary" onClick={() => { setHistorySearch(''); setHistoryStatus('all') }}>Show all quotes</button>
+                  <p>Nothing fits that search.</p>
+                  <button type="button" className="btn btn-secondary" onClick={() => setHistorySearch('')}>Show all quotes</button>
                 </div>
               ) : (
-                <ul className="quote-list">
-                  {shownQuotes.map(q => {
-                    const isOpen = openQuoteId === q.id
-                    const attention = attentionFor(q)
-                    const date = new Date(q.updatedAt || q.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
-                    return (
-                      <li key={q.id} className={`quote-item ${q.id === currentQuoteId ? 'current' : ''} ${isOpen ? 'open' : ''}`} data-quote={q.number}>
-                        <button type="button" className="quote-summary" aria-expanded={isOpen} aria-controls={`quote-${q.id}`}
-                          onClick={() => { setOpenQuoteId(isOpen ? null : q.id); setConfirmDeleteId(null) }}>
-                          <span className="quote-line">
-                            <span className="quote-customer">{q.customerName || 'No customer'}</span>
-                            <span className="quote-total">{formatCurrency(q.summary?.totalExGst || 0)}</span>
-                          </span>
-                          <span className="quote-line quote-line-sub">
-                            <span className="quote-meta">
-                              {q.number} · {q.summary?.size ? `${q.summary.size} mm` : 'Pallet'} · {q.quantity} pallet{q.quantity === 1 ? '' : 's'}{q.customerRef ? ` · ${q.customerRef}` : ''}
-                            </span>
-                            <span className="quote-tags">
-                              {attention && <span className={`status-pill attention-${attention.kind}`} title={attention.detail}>{attention.label}</span>}
-                              <span className={`status-pill status-${q.status}`}>{STATUS_LABELS[q.status]}</span>
-                            </span>
-                          </span>
-                        </button>
-                        <Reveal open={isOpen} id={`quote-${q.id}`}>
-                          <div className="quote-detail">
-                            <p className="quote-detail-note">
-                              {attention ? `${attention.detail}.` : `Last changed ${date}.`}
-                            </p>
-                            {confirmDeleteId === q.id ? (
-                              // The question takes the whole row, so it never has to squeeze in beside the other actions
-                              <div className="quote-row-actions">
-                                <span className="confirm-question">Delete {q.number}? This can't be undone.</span>
-                                <button type="button" className="text-btn danger" onClick={() => deleteQuote(q.id)}>Delete</button>
-                                <button type="button" className="text-btn" onClick={() => setConfirmDeleteId(null)}>Keep</button>
-                              </div>
-                            ) : (
-                              <div className="quote-row-actions">
-                                <label className="quote-status-field">
-                                  <span>Status</span>
-                                  <select className={`status-select status-${q.status}`} value={q.status}
-                                    onChange={(e) => setQuoteStatus(q.id, e.target.value)} aria-label={`Status of ${q.number}`}>
-                                    {Object.entries(STATUS_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
-                                  </select>
-                                </label>
-                                <button type="button" className="text-btn" onClick={() => openQuote(q)}>Open</button>
-                                <button type="button" className="text-btn" onClick={() => duplicateQuote(q)} title="Start a new quote from this one, priced at today's rates">Duplicate</button>
-                                <button type="button" className="text-btn muted-btn" onClick={() => setConfirmDeleteId(q.id)}>Delete</button>
-                              </div>
-                            )}
-                          </div>
-                        </Reveal>
-                      </li>
-                    )
-                  })}
-                </ul>
+                <div className="history-groups">
+                  {historyGroups.map(g => (
+                    <Fold key={g.id} {...fold(g.id)} open={!!historyTerm || isOpen(g.id)} className="form-section history-group"
+                      title={g.title} count={g.quotes.length} cost={g.total ?? quotesTotal(g.quotes)} summary={g.summary}>
+                      {g.months ? g.months.map(m => (
+                        <div key={m.key} className="history-month">
+                          <h3>{m.label}<span className="history-month-count">{m.quotes.length}</span></h3>
+                          <ul className="quote-list">{m.quotes.map(quoteRow)}</ul>
+                        </div>
+                      )) : (
+                        <ul className="quote-list">{g.quotes.map(quoteRow)}</ul>
+                      )}
+                    </Fold>
+                  ))}
+                </div>
               )}
             </div>
             <footer className="panel-footer">
