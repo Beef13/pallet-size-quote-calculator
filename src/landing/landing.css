@@ -1863,8 +1863,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 /* Brightest for whichever screen the pointer is on */
 .expand-open:hover,
 .expand-open:focus-visible,
-.devices:has(.laptop-lid:hover) #expand-desktop,
-.devices:has(.handset:hover) #expand-mobile {
+.devices:has(.laptop-lid:hover) #expand-desktop {
   opacity: 1;
   background: var(--blue-top);
   transform: translateY(-1px);

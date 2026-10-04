@@ -412,13 +412,13 @@ if (expand && devices && typeof expand.showModal === 'function') {
   let current = 'desktop'
   let busy = false
 
-  // The pills sit just above the top right corner of their screens
+  // The pill sits above the middle of the laptop's screen, clear of the lid
   const place = () => {
     const base = devices.getBoundingClientRect()
     for (const opener of openers) {
       const box = sources[opener.dataset.kind]().getBoundingClientRect()
-      opener.style.left = `${box.right - base.left - opener.offsetWidth}px`
-      opener.style.top = `${box.top - base.top - opener.offsetHeight - 10}px`
+      opener.style.left = `${box.left + box.width / 2 - base.left - opener.offsetWidth / 2}px`
+      opener.style.top = `${box.top - base.top - opener.offsetHeight - 36}px`
     }
   }
   const reveal = () => { openers.forEach(o => { o.hidden = false }); place() }
