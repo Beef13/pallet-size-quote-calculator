@@ -260,6 +260,7 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
     window.matchMedia('(min-width: 900px)').matches && canModel()) {
   let phone = null
   let inView = false
+  const landed = () => phoneStage.parentElement.classList.add('landed')
   // The plain picture steps aside while the model is on its way
   phoneStage.classList.add('model')
   const near = new IntersectionObserver(([entry]) => {
@@ -271,7 +272,7 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
         phone = api
         onThemeChange(() => api.setDark(isDark()))
         if ('ResizeObserver' in window) new ResizeObserver(() => api.resize()).observe(phoneStage)
-        if (inView) api.play()
+        if (inView) api.play(landed)
       })
       .catch(() => phoneStage.classList.remove('model'))
   }, { rootMargin: '900px 0px' })
@@ -280,7 +281,7 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
     if (!entry.isIntersecting) return
     inView = true
     arrive.disconnect()
-    phone?.play()
+    phone?.play(landed)
   }, { threshold: 0.4 })
   arrive.observe(phoneStage)
 }

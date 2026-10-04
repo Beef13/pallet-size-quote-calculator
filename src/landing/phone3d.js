@@ -137,7 +137,7 @@ export async function mountPhone({ stage, dark }) {
   let played = false
   return {
     resize,
-    play: () => {
+    play: (onDone) => {
       if (played) return
       played = true
       const began = performance.now()
@@ -145,6 +145,7 @@ export async function mountPhone({ stage, dark }) {
         const t = Math.min(1, (now - began) / DURATION)
         pose(t)
         if (t < 1) requestAnimationFrame(step)
+        else onDone?.()
       }
       requestAnimationFrame(step)
     },

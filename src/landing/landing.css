@@ -1222,6 +1222,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 
 /* ---------- Quote from anywhere: the phone ---------- */
 
+/* The panel spans the same width as the hero's */
 .anywhere {
   padding: clamp(64px, 9vw, 120px) var(--pad) 0;
 }
@@ -1232,6 +1233,8 @@ html.accounts-on .sheet [data-accounts="off"] {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  /* Out to the hero panel's edges */
+  margin-inline: calc(var(--pad) * -1);
   padding: clamp(40px, 5.5vw, 76px) clamp(18px, 4vw, 56px) 0;
   border-radius: var(--radius-lg);
   background:
@@ -1254,11 +1257,130 @@ html.accounts-on .sheet [data-accounts="off"] {
   color: rgba(255, 255, 255, 0.88);
 }
 
+.anywhere-scene {
+  position: relative;
+  width: min(100%, 1080px);
+  margin-inline: auto;
+}
+
 .anywhere-stage {
   position: relative;
-  width: min(100%, 760px);
   height: clamp(460px, 50vw, 700px);
-  margin-inline: auto;
+}
+
+/* Callouts: a label, a line, and a dot on the part of the screen it describes.
+   Positions are in hundredths of the scene's height, since the phone is sized by it. */
+.anywhere-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
+  margin: 0;
+  padding: 8px 0 clamp(28px, 4vw, 44px);
+  list-style: none;
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: var(--step--1);
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.note strong {
+  color: #fff;
+  font-size: var(--step-0);
+  font-weight: 500;
+}
+
+@media (min-width: 900px) {
+  .anywhere-scene {
+    height: clamp(460px, 50vw, 700px);
+    container-type: size;
+  }
+
+  .anywhere-stage {
+    height: 100%;
+  }
+
+  .anywhere-notes {
+    display: block;
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .note {
+    --reach: 40;
+    position: absolute;
+    top: calc(var(--y) * 1cqh - 12px);
+    width: min(230px, calc(50% - var(--reach) * 1cqh));
+    transition: opacity 0.6s ease, translate 0.6s var(--ease);
+  }
+
+  .note-l {
+    right: calc(50% + var(--reach) * 1cqh);
+    text-align: right;
+    align-items: flex-end;
+  }
+
+  .note-r {
+    left: calc(50% + var(--reach) * 1cqh);
+  }
+
+  /* The leader line, from the label to the screen */
+  .note::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    height: 1.5px;
+    background: rgba(255, 255, 255, 0.75);
+  }
+
+  .note-l::after {
+    left: calc(100% + 12px);
+    width: calc((var(--reach) + var(--x)) * 1cqh - 12px);
+  }
+
+  .note-r::after {
+    right: calc(100% + 12px);
+    width: calc((var(--reach) - var(--x)) * 1cqh - 12px);
+  }
+
+  /* The dot where it lands */
+  .note::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: 8px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--blue-top);
+    box-shadow: 0 0 0 2.5px #fff, 0 0 0 7px rgba(27, 87, 220, 0.22);
+  }
+
+  .note-l::before {
+    left: calc(100% + (var(--reach) + var(--x)) * 1cqh - 4px);
+  }
+
+  .note-r::before {
+    right: calc(100% + (var(--reach) - var(--x)) * 1cqh - 4px);
+  }
+
+  /* With the 3D phone, the callouts wait until it has landed, then come in one by one */
+  .anywhere-scene:has(.anywhere-stage.model):not(.landed) .note {
+    opacity: 0;
+  }
+
+  .anywhere-scene:has(.anywhere-stage.model):not(.landed) .note-l { translate: -14px 0; }
+  .anywhere-scene:has(.anywhere-stage.model):not(.landed) .note-r { translate: 14px 0; }
+
+  .note:nth-child(2) { transition-delay: 0.3s; }
+  .note:nth-child(3) { transition-delay: 0.15s; }
+  .note:nth-child(4) { transition-delay: 0.45s; }
 }
 
 /* The plain picture: a handset at the same tilt, for screens without the model */
