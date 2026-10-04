@@ -1220,6 +1220,64 @@ html.accounts-on .sheet [data-accounts="off"] {
   color: var(--ink-2);
 }
 
+/* ---------- Quote from anywhere: the phone ---------- */
+
+.anywhere {
+  padding: clamp(64px, 9vw, 120px) var(--pad) 0;
+}
+
+.anywhere-stage {
+  position: relative;
+  width: min(100%, 560px);
+  height: clamp(440px, 46vw, 640px);
+  margin-inline: auto;
+}
+
+/* The ground it stands over */
+.anywhere-stage::after {
+  content: '';
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 0;
+  height: 26px;
+  background: radial-gradient(closest-side, rgba(6, 20, 70, 0.3), transparent);
+}
+
+/* The plain picture: a handset at the same angle, for screens without the model */
+.anywhere-still {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 88%;
+  aspect-ratio: 1170 / 2532;
+  padding: 7px;
+  border-radius: 13% / 6%;
+  background: #0c0e12;
+  box-shadow: inset 0 0 0 1.5px #3b3f47, 0 34px 60px -30px rgba(8, 24, 80, 0.7);
+  translate: -50% -50%;
+  rotate: 4deg;
+  transition: opacity 0.3s ease;
+}
+
+.anywhere-still img {
+  width: 100%;
+  height: 100%;
+  border-radius: 11.5% / 5.3%;
+}
+
+.anywhere-stage.model .anywhere-still {
+  opacity: 0;
+}
+
+.phone-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 /* ---------- At a glance ---------- */
 
 .glance {

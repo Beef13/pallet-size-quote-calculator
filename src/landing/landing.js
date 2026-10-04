@@ -252,6 +252,39 @@ if (stage && lidBox && !reduceMotion && window.matchMedia('(min-width: 900px)').
     })
     .catch(() => { clearTimeout(giveUp); fallBack() })
 }
+/* The phone in "Quote from anywhere": a 3D model that spins up into view as the section
+   arrives. Loaded only as the section comes near, on wide screens with WebGL, and not
+   for reduced motion; otherwise the plain picture of the phone stays. */
+const phoneStage = document.getElementById('anywhere-stage')
+if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
+    window.matchMedia('(min-width: 900px)').matches && canModel()) {
+  let phone = null
+  let inView = false
+  // The plain picture steps aside while the model is on its way
+  phoneStage.classList.add('model')
+  const near = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) return
+    near.disconnect()
+    import('./phone3d.js')
+      .then(({ mountPhone }) => mountPhone({ stage: phoneStage, dark: isDark() }))
+      .then((api) => {
+        phone = api
+        onThemeChange(() => api.setDark(isDark()))
+        if ('ResizeObserver' in window) new ResizeObserver(() => api.resize()).observe(phoneStage)
+        if (inView) api.play()
+      })
+      .catch(() => phoneStage.classList.remove('model'))
+  }, { rootMargin: '900px 0px' })
+  near.observe(phoneStage)
+  const arrive = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) return
+    inView = true
+    arrive.disconnect()
+    phone?.play()
+  }, { threshold: 0.4 })
+  arrive.observe(phoneStage)
+}
+
 const onScroll = () => {
   queued = false
   nav?.classList.toggle('scrolled', window.scrollY > 12)
