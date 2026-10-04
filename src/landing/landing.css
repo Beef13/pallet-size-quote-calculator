@@ -1003,46 +1003,81 @@ html.accounts-on .sheet [data-accounts="off"] {
   pointer-events: auto;
 }
 
-/* Until it is pressed, the demonstration is only a picture: the page scrolls past it freely */
+/* Until it is pressed, the demonstration is only a picture: the page scrolls past it
+   freely. The invitation sits in the middle of the screen, which dims behind it. */
 .demo-start {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 0 16px clamp(18px, 3vw, 34px);
+  justify-content: center;
+  gap: 14px;
+  padding: 16px;
   border: 0;
-  background: linear-gradient(180deg, transparent 55%, rgba(13, 21, 48, 0.34));
+  background: rgba(8, 14, 34, 0.52);
   font: inherit;
   cursor: pointer;
 }
 
 .demo-start-pill {
-  padding: 13px 28px;
+  padding: 14px 32px;
   border-radius: 999px;
   background: #fff;
-  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.3), 0 16px 30px -14px rgba(8, 30, 90, 0.7);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.28), 0 18px 36px -14px rgba(0, 0, 0, 0.7);
   color: #1b57dc;
-  font-size: var(--step-0);
+  font-size: var(--step-1);
   font-weight: 500;
-  transition: transform 0.2s var(--ease);
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
 }
 
 .demo-start:hover .demo-start-pill {
-  transform: translateY(-2px);
+  transform: scale(1.04);
+  box-shadow: 0 0 0 9px rgba(255, 255, 255, 0.3), 0 18px 36px -14px rgba(0, 0, 0, 0.7);
 }
 
 .demo-start-note {
-  max-width: 84%;
-  padding: 6px 14px;
-  border-radius: 16px;
+  max-width: 30ch;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: var(--step--1);
+  line-height: 1.35;
   text-align: center;
   text-wrap: balance;
-  background: rgba(13, 21, 48, 0.72);
-  color: #fff;
-  font-size: var(--step--1);
+}
+
+/* With the 3D laptop, the screen is seen lit first; then it dims and the invitation
+   comes forward, once the laptop is open */
+.devices.model .demo-start {
+  opacity: 0;
+  transition: opacity 0.7s ease 0.35s;
+}
+
+.devices.model .demo-start-pill {
+  scale: 0.86;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), scale 0.7s var(--ease) 0.35s;
+}
+
+.devices.model.is-open .demo-start {
+  opacity: 1;
+}
+
+.devices.model.is-open .demo-start-pill {
+  scale: 1;
+}
+
+/* The phone dims along with the laptop's screen while the invitation is up */
+.handset img {
+  transition: filter 0.7s ease 0.35s;
+}
+
+.devices:not(.model):not(.model-pending):has(.demo.loaded.with-app:not(.live)) .handset img,
+.devices.model.is-open:has(.demo.loaded.with-app:not(.live)) .handset img {
+  filter: brightness(0.5);
+}
+
+.devices:has(.demo.live) .handset img {
+  transition-delay: 0s;
+  transition-duration: 0.3s;
 }
 
 .demo.live .demo-start,
