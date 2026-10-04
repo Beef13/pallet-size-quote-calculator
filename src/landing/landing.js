@@ -169,6 +169,34 @@ let model = null
 let home = null
 let latched = false
 const clamp01 = (v) => Math.max(0, Math.min(1, v))
+// Where the laptop sits on the page, and the pause. Once the laptop is open the hero is
+// held in place for half a window of scrolling, long enough to notice the demonstration
+// and try it, then the page carries on. The hero is held by sticking it where it is
+// at that moment; the space for the pause is added below it.
+const pin = document.querySelector('.hero-pin')
+const heroEl = pin?.querySelector('.hero')
+// How far the page has scrolled when the laptop is fully open: the point at which the
+// whole laptop, lid to base, sits in the middle of the window below the top bar
+let screenBox = null
+const openPoint = () => {
+  const vh = window.innerHeight
+  if (!screenBox) return Math.max(home - vh * 0.14, vh * 0.5)
+  const tall = screenBox.ground.y - screenBox.top + 14
+  const lidTop = Math.max(76, (vh - tall) / 2 + 52)
+  return Math.max(home + screenBox.top - lidTop, vh * 0.35)
+}
+const measure = () => {
+  const pinTop = pin ? pin.getBoundingClientRect().top + window.scrollY : 0
+  // Measured through the layout, not from where things are drawn, so the hero's own
+  // entrance and scroll movement cannot throw it off
+  let within = 0
+  for (let node = devices; node && node !== heroEl; node = node.offsetParent) within += node.offsetTop
+  home = pinTop + within
+  if (!pin || home < window.innerHeight * 0.3) return
+  heroEl.style.top = `${Math.round(pinTop - openPoint())}px`
+  pin.style.setProperty('--hold', `${Math.round(window.innerHeight * 0.5)}px`)
+  pin.classList.add('holds')
+}
 const showAt = (p) => {
   model.pose(p)
   devices.classList.toggle('is-open', p >= 0.995)
@@ -178,6 +206,7 @@ const showAt = (p) => {
 }
 const placeScreen = () => {
   const box = model.openRect()
+  screenBox = box
   lidBox.style.left = `${box.left}px`
   lidBox.style.top = `${box.top}px`
   lidBox.style.width = `${box.width}px`
@@ -206,8 +235,9 @@ if (stage && lidBox && !reduceMotion && window.matchMedia('(min-width: 900px)').
       devices.classList.replace('model-pending', 'model')
       placeScreen()
       onThemeChange(() => api.setDark(isDark()))
-      if ('ResizeObserver' in window) new ResizeObserver(() => { api.resize(); placeScreen() }).observe(stage)
-      home = devices.getBoundingClientRect().top + window.scrollY
+      if ('ResizeObserver' in window) new ResizeObserver(() => { api.resize(); placeScreen(); measure() }).observe(stage)
+      measure()
+      window.addEventListener('resize', measure)
       // A window tall enough to show it all on arrival: play it through on a timer
       if (home < window.innerHeight * 0.3) {
         latched = true
@@ -235,8 +265,7 @@ const onScroll = () => {
   if (model && !latched) {
     if (devices.querySelector('.demo.live')) { latched = true; showAt(1); return }
     const vh = window.innerHeight
-    const span = Math.max(home - vh * 0.14, vh * 0.5)
-    showAt(clamp01(window.scrollY / span))
+    showAt(clamp01(window.scrollY / openPoint()))
   }
 }
 window.addEventListener('scroll', () => {

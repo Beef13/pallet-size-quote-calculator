@@ -412,6 +412,20 @@ html.accounts-on .sheet [data-accounts="off"] {
   padding: clamp(72px, 9vw, 112px) var(--pad) 0;
 }
 
+/* The pause once the laptop is open: the hero sticks where it is while the page
+   scrolls through the extra space script adds below it */
+.hero-pin.holds > .hero {
+  position: sticky;
+}
+
+/* The room the hero is held within has to be real content, not padding: a sticking
+   element cannot move into its parent's padding */
+.hero-pin.holds::after {
+  content: '';
+  display: block;
+  height: var(--hold, 0px);
+}
+
 /* The blue panel stops short of the bottom, so the demo hangs over its edge */
 .hero::before {
   content: '';
