@@ -1394,11 +1394,16 @@ html.accounts-on .sheet [data-accounts="off"] {
     transition: none;
   }
 
-  .anywhere-panel.scrub .section-title {
-    opacity: var(--title, 1);
-    transform: translateY(calc((1 - var(--title, 1)) * 34px)) scale(calc(0.94 + var(--title, 1) * 0.06));
-    filter: blur(calc((1 - var(--title, 1)) * 6px));
+  .anywhere-panel.scrub .say {
+    display: inline-block;
+    opacity: var(--said, 1);
+    transform: translateY(calc((1 - var(--said, 1)) * 34px)) scale(calc(0.94 + var(--said, 1) * 0.06));
+    filter: blur(calc((1 - var(--said, 1)) * 6px));
   }
+
+  /* The heading arrives in two breaths: "Quote from anywhere," and then "anytime" */
+  .anywhere-panel.scrub .say-1 { --said: var(--title, 1); }
+  .anywhere-panel.scrub .say-2 { --said: var(--title2, 1); }
 
   .anywhere-panel.scrub .section-intro {
     opacity: var(--intro, 1);

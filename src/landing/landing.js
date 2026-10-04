@@ -319,8 +319,10 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
   scrubPhone = () => {
     const y = window.scrollY
     const coming = clamp01((y - (stickAt - approach)) / approach)
-    panel.style.setProperty('--title', soft(part(coming, 0, 0.4)).toFixed(3))
-    panel.style.setProperty('--intro', soft(part(coming, 0.5, 0.9)).toFixed(3))
+    panel.style.setProperty('--title', soft(part(coming, 0, 0.32)).toFixed(3))
+    // "anytime" comes after a beat, like a word said after a pause
+    panel.style.setProperty('--title2', soft(part(coming, 0.46, 0.68)).toFixed(3))
+    panel.style.setProperty('--intro', soft(part(coming, 0.6, 0.92)).toFixed(3))
     if (!phone) return
     phone.pose(part(coming, 0.1, 1))
     const through = clamp01((y - stickAt) / hold)
