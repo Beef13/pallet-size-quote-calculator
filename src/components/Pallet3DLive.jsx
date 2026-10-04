@@ -6,6 +6,10 @@ import { OrbitControls, Text, Line, Billboard, ContactShadows, Edges } from '@re
 import labelFont from '../assets/fonts/outfit-latin-500-normal.woff'
 import '../styles/Pallet3DLive.css'
 
+// The demonstration embedded in the landing page: zoom is off there, so the wheel
+// scrolls the page rather than the model
+const DEMO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo')
+
 // If the labels ever fail to render, hide them instead of breaking the whole app
 class LabelErrorBoundary extends React.Component {
   constructor(props) {
@@ -645,7 +649,7 @@ function Pallet3DLive({ previewData, dark = false, outline = null }) {
         <OrbitControls
           makeDefault
           enablePan={true}
-          enableZoom={true}
+          enableZoom={!DEMO}
           enableRotate={true}
           autoRotate={false}
           minDistance={5}
