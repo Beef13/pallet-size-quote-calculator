@@ -135,8 +135,31 @@ export async function mountPhone({ stage, dark }) {
   resize()
   pose(0)
 
+  // Where the phone is on the page at a given point in its entrance, for the motion
+  // lines: its middle, half its height and width, how far it is tipped over and how
+  // far round it has spun. Worked out from the same sums as the pose itself.
+  const mid = axes.find((a) => a !== thin && a !== long)
+  const slim = size[mid] / size[long]
+  const where = (t) => {
+    const e = t * t * (3 - 2 * t)
+    const h = stage.clientHeight
+    const reach = Math.tan(camera.fov * Math.PI / 360) * camera.position.z
+    const halfHeight = (0.55 + 0.45 * e) / reach * h / 2
+    return {
+      x: stage.clientWidth / 2,
+      y: h / 2 + (1 - e) * 1.5 / reach * h / 2,
+      halfHeight,
+      halfWidth: halfHeight * slim,
+      tip: REST.roll * e,
+      spin: (1 - e) * SPIN,
+      // How fast it is going, 0 at either end and 1 half-way
+      speed: 4 * t * (1 - t)
+    }
+  }
+
   return {
     resize,
+    where,
     // 0 to 1, set from the scroll
     pose: (t) => { if (t !== at) { at = t; pose(t) } },
     setDark: (on) => { screenMat.map = on ? darkTex : lightTex; screenMat.needsUpdate = true; ask() }

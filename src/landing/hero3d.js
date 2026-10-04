@@ -149,8 +149,7 @@ export async function mountLaptop({ stage, dark }) {
   const draw = () => { queued = false; renderer.render(scene, camera) }
   const ask = () => { if (!queued) { queued = true; requestAnimationFrame(draw) } }
 
-  const pose = (p) => {
-    progress = p
+  const place = (p) => {
     const open = smooth(part(p, 0.08, 0.86))
     const round = smooth(part(p, 0.0, 0.9))
     lid.rotation.x = (1 - open) * Math.PI / 2
@@ -181,7 +180,36 @@ export async function mountLaptop({ stage, dark }) {
     // This shadow is for the view from above. Open, the page draws a wider one under
     // the base, which the edge of the drawing cannot cut off.
     shadow.material.opacity = 1 - round
+  }
+  const pose = (p) => {
+    progress = p
+    place(p)
     ask()
+  }
+
+  // The paths a few points beside the lid take across the stage as it opens, for the
+  // motion lines: for each point, where it is on the page at each step from shut to open.
+  // The points sit in a row just outside each of the lid's side edges, near its top.
+  const MARKS = []
+  for (const side of [-1, 1]) {
+    for (const [out, up] of [[0.07, 2.38], [0.16, 2.2], [0.25, 1.98]]) MARKS.push([side * (1.78 + out), up])
+  }
+  const track = (steps = 80) => {
+    const w = stage.clientWidth
+    const h = stage.clientHeight
+    const paths = MARKS.map(() => [])
+    for (let i = 0; i <= steps; i++) {
+      place(i / steps)
+      camera.updateMatrixWorld(true)
+      lid.updateMatrixWorld(true)
+      MARKS.forEach(([x, z], k) => {
+        corner.set(x, 1.28 - HINGE.y, z - HINGE.z)
+        lid.localToWorld(corner).project(camera)
+        paths[k].push([(corner.x + 1) / 2 * w, (1 - corner.y) / 2 * h])
+      })
+    }
+    place(Math.max(progress, 0))
+    return paths
   }
 
   // Where the display sits on the page once open, as a box inside the stage
@@ -234,6 +262,7 @@ export async function mountLaptop({ stage, dark }) {
   return {
     pose,
     resize,
+    track,
     openRect: () => {
       const was = progress
       pose(1)

@@ -1,3 +1,4 @@
+import { mountSketch } from './sketch.js'
 import '@fontsource-variable/outfit'
 import './landing.css'
 import { isDark, onThemeChange } from './theme'
@@ -217,8 +218,60 @@ const measure = () => {
   pin.style.setProperty('--hold', `${Math.round(window.innerHeight * 0.5)}px`)
   pin.classList.add('holds')
 }
+/* Comic-book motion lines for the lid. A few points beside the lid's edges leave a
+   tapering line along the path they have just travelled, and a few short dashes burst
+   from its top corners as it lands open. They show only while it is moving. */
+let lidLines = null
+let lidPaths = null
+let lidAt = 0
+let lidWay = 1
+const along = (path, q) => {
+  const steps = path.length - 1
+  const v = clamp01(q) * steps
+  const i = Math.min(steps - 1, Math.floor(v))
+  const k = v - i
+  return [path[i][0] + (path[i + 1][0] - path[i][0]) * k, path[i][1] + (path[i + 1][1] - path[i][1]) * k]
+}
+const drawLidLines = (p) => {
+  if (!lidLines || !lidPaths) return
+  if (p !== lidAt) lidWay = p > lidAt ? 1 : -1
+  lidAt = p
+  const lines = lidPaths.map((path, k) => {
+    // Each line starts a little behind its point and runs back to where the point was
+    // a moment ago, with a slight bow so it reads as drawn by hand
+    const reach = [0.24, 0.17, 0.11][k % 3]
+    const [hx, hy] = along(path, p - lidWay * 0.02)
+    const [tx, ty] = along(path, p - lidWay * reach)
+    const bow = (k < 3 ? -1 : 1) * Math.hypot(tx - hx, ty - hy) * 0.05
+    const pts = []
+    for (let j = 0; j <= 8; j++) {
+      const u = j / 8
+      const lean = Math.sin(u * Math.PI) * bow
+      pts.push([hx + (tx - hx) * u + lean, hy + (ty - hy) * u])
+    }
+    return { pts, width: [8, 6, 4.5][k % 3] }
+  })
+  // Landing: three dashes fly out from each top corner as the lid stops
+  const landing = clamp01((p - 0.8) / 0.2)
+  const burst = Math.sin(landing * Math.PI)
+  if (lidWay > 0 && burst > 0.05) {
+    for (const [k, side] of [[0, -1], [3, 1]]) {
+      const [x, y] = along(lidPaths[k], p)
+      for (const degrees of [18, 48, 78]) {
+        const angle = degrees * Math.PI / 180
+        const dx = side * Math.cos(angle)
+        const dy = -Math.sin(angle)
+        const from = 10 + landing * 16
+        const length = 8 + burst * 16
+        lines.push({ pts: [[x + dx * from, y + dy * from], [x + dx * (from + length / 2), y + dy * (from + length / 2)], [x + dx * (from + length), y + dy * (from + length)]], width: 4.5 })
+      }
+    }
+  }
+  lidLines.draw(lines, p * 36)
+}
 const showAt = (p) => {
   model.pose(p)
+  drawLidLines(p)
   devices.classList.toggle('is-open', p >= 0.995)
   devices.style.setProperty('--p', p.toFixed(3))
   const t = clamp01((p - 0.86) / 0.14)
@@ -235,6 +288,7 @@ const placeScreen = () => {
   stage.style.setProperty('--ground-y', `${box.ground.y}px`)
   stage.style.setProperty('--base-left', `${box.ground.left}px`)
   stage.style.setProperty('--base-width', `${box.ground.width}px`)
+  lidPaths = model.track()
 }
 const canModel = () => {
   try {
@@ -253,6 +307,7 @@ if (stage && lidBox && !reduceMotion && window.matchMedia('(min-width: 900px)').
       model = api
       devices.classList.add('model-pending')
       devices.classList.replace('model-pending', 'model')
+      lidLines = mountSketch(stage, 'on-hero')
       placeScreen()
       onThemeChange(() => api.setDark(isDark()))
       if ('ResizeObserver' in window) new ResizeObserver(() => { api.resize(); placeScreen(); measure() }).observe(stage)
@@ -325,8 +380,63 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
     panel.style.setProperty('--intro', soft(part(coming, 0.6, 0.92)).toFixed(3))
     if (!phone) return
     phone.pose(part(coming, 0.1, 1))
+    drawPhoneLines(part(coming, 0.1, 1))
     const through = clamp01((y - stickAt) / hold)
     notes.forEach((note, i) => note.classList.toggle('on', through > 0.08 + turn[i] * 0.2))
+  }
+
+  /* Comic-book motion lines for the phone: curved strokes sweeping round it the way
+     it is spinning, and straight ones trailing behind it as it rises. They are
+     strongest half-way, when it is moving fastest, and gone once it has landed. */
+  let phoneLines = null
+  let phoneAt = 0
+  let phoneWay = 1
+  const drawPhoneLines = (t) => {
+    if (!phoneLines) return
+    if (t !== phoneAt) phoneWay = t > phoneAt ? 1 : -1
+    phoneAt = t
+    const w = phone.where(t)
+    if (w.speed < 0.06) { phoneLines.draw([], 0, 0); return }
+    // The phone's own up and right on the page, tipped over with it
+    const up = [-Math.sin(w.tip), -Math.cos(w.tip)]
+    const right = [Math.cos(w.tip), -Math.sin(w.tip)]
+    const lines = []
+    // Round it: four sweeps hugging its sides at different heights, each curving round
+    // the edge the way the phone is turning (the near face travels left to right)
+    const rx = w.halfWidth * 1.75
+    const ry = rx * 0.34
+    const sweeps = [[-0.66, 1], [-0.22, -1], [0.24, 1], [0.64, -1]]
+    sweeps.forEach(([height, side], j) => {
+      const cx = w.x + up[0] * height * w.halfHeight
+      const cy = w.y + up[1] * height * w.halfHeight
+      // The stroke's two ends, as angles round the phone: on the right it runs from the
+      // front round towards the back, on the left from the back round to the front
+      const shift = Math.sin(w.spin * 2 + j * 1.7) * 0.22
+      const reach = (0.5 + 0.9 * w.speed) * (0.8 + (j % 2) * 0.3)
+      const lead = (side > 0 ? -0.55 : Math.PI - 0.85) + shift
+      const from = phoneWay > 0 ? lead : lead + reach
+      const to = phoneWay > 0 ? lead + reach : lead
+      const pts = []
+      for (let i = 0; i <= 10; i++) {
+        const a = from + (to - from) * (i / 10)
+        const across = Math.cos(a) * rx
+        const down = Math.sin(a) * ry
+        pts.push([cx + right[0] * across - up[0] * down, cy + right[1] * across - up[1] * down])
+      }
+      lines.push({ pts, width: [9, 7, 8, 6][j] })
+    })
+    // Behind it: straight lines off the end it is moving away from
+    const end = -phoneWay * (w.halfHeight + 22)
+    const offsets = [-0.8, -0.3, 0.22, 0.74]
+    offsets.forEach((offset, j) => {
+      const x = w.x + up[0] * end + right[0] * offset * w.halfWidth
+      const y = w.y + up[1] * end + right[1] * offset * w.halfWidth
+      const length = w.speed * [100, 160, 124, 84][j]
+      const pts = []
+      for (let i = 0; i <= 5; i++) pts.push([x, y + phoneWay * length * (i / 5)])
+      lines.push({ pts, width: [6, 8, 7, 5][j] })
+    })
+    phoneLines.draw(lines, t * 34, w.speed)
   }
 
   // The plain picture steps aside while the model is on its way
@@ -343,6 +453,7 @@ if (phoneStage && !reduceMotion && 'IntersectionObserver' in window &&
       .then(({ mountPhone }) => mountPhone({ stage: phoneStage, dark: isDark() }))
       .then((api) => {
         phone = api
+        phoneLines = mountSketch(phoneStage, 'on-page')
         scene.classList.add('scrub')
         layout()
         onThemeChange(() => api.setDark(isDark()))
