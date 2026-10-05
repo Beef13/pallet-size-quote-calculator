@@ -2481,7 +2481,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       )}
 
       {/* Right - 3D pallet */}
-      <main className="stage">
+      <main className="stage" inert={isPhone && sheet.open ? '' : undefined}>
         {isPanelCollapsed && (
           <button type="button" className="show-panel-btn" onClick={() => setIsPanelCollapsed(false)}>
             <Icon name="panel" /> Show panel
@@ -2489,11 +2489,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         )}
 
         {isPhone ? header : priceCard}
-
-        {/* Phones, panel open: the strip of 3D view left showing takes you back to the pallet */}
-        {isPhone && sheet.open && (
-          <button type="button" className="sheet-scrim" onClick={() => sheet.setOpen(false)} aria-label="Show the 3D pallet" />
-        )}
 
         <Pallet3DLive previewData={livePreviewData} dark={isDarkMode} outline={outlineSetting} />
 
@@ -2503,7 +2498,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           </div>
         )}
 
-        <div className="stage-controls" inert={isPhone && sheet.open ? '' : undefined}>
+        <div className="stage-controls">
           {selectedTopBoardSize ? (
           <label className="range">
             <span>Top boards <strong>{displayedTopBoards || 0}{maxTopBoardsAllowed > 0 && maxTopBoardsAllowed < 15 ? ` of ${maxTopBoardsAllowed}` : ''}</strong></span>

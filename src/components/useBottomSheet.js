@@ -1,16 +1,14 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 
 // Phone layout: the 3D pallet fills the screen and the panel is a card that slides up from the
-// bottom. Closed, only its grip (handle + price card) shows; open, it covers everything except a
-// strip at the top where the pallet shrinks to a thumbnail.
+// bottom. Closed, only its grip (handle + price card) shows; open, it covers the whole screen and
+// the grip shrinks to a slim bar, so the form gets every pixel.
 //
 // Position is one number, p: 0 closed, 1 open. It is written straight to CSS variables on the
 // workbench while a finger is down, so dragging never re-renders React:
 //   --sheet-p      0..1
 //   --sheet-y      how far the card is pushed down, in px
 //   --peek         height of the part that shows when closed
-//   --mini-scale   size of the pallet thumbnail when open
-//   --mini-shift   how far the 3D view moves up to sit in the top strip
 
 export const PHONE_QUERY = '(max-width: 900px)'
 
@@ -32,7 +30,6 @@ export function usePhoneLayout() {
 
 const DRAG_START = 8      // px a finger must travel before it counts as a drag, not a tap
 const FLICK = 0.45        // px per ms: faster than this and the direction decides, not the position
-const THUMB_FILL = 2.2    // thumbnail height as a multiple of the strip (the pallet sits in the middle of it)
 
 const clamp = (n) => Math.min(1, Math.max(0, n))
 
@@ -66,13 +63,13 @@ export function useBottomSheet(enabled) {
     const sheet = sheetRef.current
     const grip = gripRef.current
     if (!root || !sheet || !grip) return
-    const peek = grip.offsetHeight
-    const strip = root.clientHeight - sheet.offsetHeight
-    const view = Math.max(1, root.clientHeight - peek)
-    travel.current = Math.max(0, sheet.offsetHeight - peek)
-    root.style.setProperty('--peek', `${peek}px`)
-    root.style.setProperty('--mini-scale', String(Math.min(1, (strip * THUMB_FILL) / view)))
-    root.style.setProperty('--mini-shift', `${Math.round(strip / 2 - view / 2)}px`)
+    // The grip is slimmer while the card is open, so only its closed height counts as the peek.
+    // It is measured again as soon as the card closes.
+    if (!root.classList.contains('sheet-open')) {
+      const peek = grip.offsetHeight
+      travel.current = Math.max(0, sheet.offsetHeight - peek)
+      root.style.setProperty('--peek', `${peek}px`)
+    }
     if (!root.classList.contains('sheet-dragging')) apply(openRef.current ? 1 : 0)
   }, [apply])
 
