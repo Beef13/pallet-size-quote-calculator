@@ -1633,6 +1633,15 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     }
   ].filter(Boolean)
 
+  // The gap between boards is shown with the deck it belongs to
+  const gapNote = (deck, gap) => {
+    if (!(gap > 0)) return
+    const item = lineItems.find(i => i.name === `${deck} boards`) || lineItems.find(i => i.name === `${deck} leader boards`)
+    if (item) item.note = `${formatDimension(gap)} gap between boards`
+  }
+  gapNote('Top', liveQuote.topGapSize)
+  gapNote('Bottom', liveQuote.bottomGapSize)
+
   // Quote totals: ex GST, GST and the grand total
   const totals = orderTotals(liveQuote.totalPrice, quantity, liveQuote.gstRate, liveQuote.showGst)
 
@@ -1949,94 +1958,103 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     </p>
                   </div>
 
-                  <div className="field-row customer-row">
-                    <label className="field">
-                      <span className="field-label">Customer</span>
-                      <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Business or person" data-field="customer" />
-                    </label>
-                    <label className="field">
-                      <span className="field-label">Their reference</span>
-                      <input type="text" value={customerRef} onChange={(e) => setCustomerRef(e.target.value)}
-                        placeholder="PO or job number" data-field="customer-ref" />
-                    </label>
-                  </div>
-
-                  <ul className="line-items">
-                    {lineItems.map(item => (
-                      <li key={item.name}>
-                        <div>
-                          <span className="item-name">{item.name}</span>
-                          <span className="item-detail">{item.detail}</span>
-                        </div>
-                        <span className="item-amount">{formatCurrency(item.amount)}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {(liveQuote.topGapSize > 0 || liveQuote.bottomGapSize > 0) && (
-                    <dl className="spec">
-                      {liveQuote.topGapSize > 0 && (<><dt>Gap between top boards</dt><dd>{formatDimension(liveQuote.topGapSize)}</dd></>)}
-                      {liveQuote.bottomGapSize > 0 && (<><dt>Gap between bottom boards</dt><dd>{formatDimension(liveQuote.bottomGapSize)}</dd></>)}
-                    </dl>
-                  )}
-
-                  {(layoutWarnings.length > 0 || liveQuote.palletLength <= 0) && (
-                    <div className="notice" role="alert">
-                      {layoutWarnings.map(w => <p key={w}>{w}</p>)}
-                      {liveQuote.palletLength <= 0 && <p>Enter the pallet length. Timber is priced per metre.</p>}
+                  <section className="q-section">
+                    <h3>Customer</h3>
+                    <div className="field-row customer-row">
+                      <label className="field">
+                        <span className="field-label">Name</span>
+                        <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)}
+                          placeholder="Business or person" data-field="customer" />
+                      </label>
+                      <label className="field">
+                        <span className="field-label">Their reference</span>
+                        <input type="text" value={customerRef} onChange={(e) => setCustomerRef(e.target.value)}
+                          placeholder="PO or job number" data-field="customer-ref" />
+                      </label>
                     </div>
-                  )}
+                  </section>
 
-                  {liveQuote.markupPercent <= 0 && (
-                    <div className="notice">
-                      <p>No markup is set, so the price is your cost. Add labour and markup under Prices.</p>
-                    </div>
-                  )}
+                  {/* What one pallet costs to make, then what it sells for */}
+                  <section className="q-section">
+                    <h3>Cost per pallet</h3>
 
-                  <div className="totals">
-                    <div className="totals-row sub">
-                      <span>Materials</span>
-                      <span>{formatCurrency(liveQuote.materialsTotal)}</span>
-                    </div>
-                    {liveQuote.labourPerPallet > 0 && (
-                      <div className="totals-row sub">
-                        <span>Labour</span>
-                        <span>{formatCurrency(liveQuote.labourPerPallet)}</span>
+                    {(layoutWarnings.length > 0 || liveQuote.palletLength <= 0) && (
+                      <div className="notice" role="alert">
+                        {layoutWarnings.map(w => <p key={w}>{w}</p>)}
+                        {liveQuote.palletLength <= 0 && <p>Enter the pallet length. Timber is priced per metre.</p>}
                       </div>
                     )}
-                    {liveQuote.markupPercent > 0 && (
-                      <div className="totals-row sub">
-                        <span>Markup {r1(liveQuote.markupPercent)}% <em className="muted">({r1(liveQuote.marginPercent)}% margin)</em></span>
-                        <span>{formatCurrency(liveQuote.markupPerPallet)}</span>
+
+                    <ul className="q-items">
+                      {lineItems.map(item => (
+                        <li key={item.name}>
+                          <div>
+                            <span className="q-item-name">{item.name}</span>
+                            <span className="q-item-detail">{item.detail}</span>
+                            {item.note && <span className="q-item-detail">{item.note}</span>}
+                          </div>
+                          <span className="q-amount">{formatCurrency(item.amount)}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="q-sums">
+                      <div className="q-row">
+                        <span>Materials</span>
+                        <span className="q-amount">{formatCurrency(liveQuote.materialsTotal)}</span>
+                      </div>
+                      {liveQuote.labourPerPallet > 0 && (
+                        <div className="q-row">
+                          <span>Labour</span>
+                          <span className="q-amount">{formatCurrency(liveQuote.labourPerPallet)}</span>
+                        </div>
+                      )}
+                      {liveQuote.markupPercent > 0 && (
+                        <div className="q-row">
+                          <span>Markup {r1(liveQuote.markupPercent)}% <em className="muted">({r1(liveQuote.marginPercent)}% margin)</em></span>
+                          <span className="q-amount">{formatCurrency(liveQuote.markupPerPallet)}</span>
+                        </div>
+                      )}
+                      <div className="q-row q-price">
+                        <span>Price per pallet{liveQuote.showGst ? ' ex GST' : ''}</span>
+                        <span className="q-amount">{formatCurrency(liveQuote.totalPrice)}</span>
+                      </div>
+                    </div>
+
+                    {liveQuote.markupPercent <= 0 && (
+                      <div className="notice">
+                        <p>No markup is set, so the price is your cost. Add labour and markup under Prices.</p>
                       </div>
                     )}
-                    <div className="totals-row">
-                      <span>Price per pallet{liveQuote.showGst ? ' ex GST' : ''}</span>
-                      <span>{formatCurrency(liveQuote.totalPrice)}</span>
+                  </section>
+
+                  {/* What the customer pays for the whole order */}
+                  <section className="q-section">
+                    <h3>Order total</h3>
+                    <div className="q-total">
+                      <div className="q-row">
+                        <span id="quote-qty-label">Pallets</span>
+                        <Stepper id="quote-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
+                          onChange={(v) => setPalletQuantity(v)} />
+                      </div>
+                      {liveQuote.showGst && (
+                        <>
+                          <div className="q-row">
+                            <span>Total ex GST</span>
+                            <span className="q-amount">{formatCurrency(totals.exGst)}</span>
+                          </div>
+                          <div className="q-row">
+                            <span>GST {r1(liveQuote.gstRate)}%</span>
+                            <span className="q-amount">{formatCurrency(totals.gst)}</span>
+                          </div>
+                        </>
+                      )}
+                      <div className={`q-row q-grand ${liveQuote.isComplete ? '' : 'partial'}`}>
+                        <span>{liveQuote.isComplete ? (liveQuote.showGst ? 'Total inc GST' : 'Total') : 'Running total'}</span>
+                        <span className="q-amount"><Money value={totals.grand} /></span>
+                      </div>
                     </div>
-                    <div className="totals-row">
-                      <span id="quote-qty-label">Pallets</span>
-                      <Stepper id="quote-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
-                        onChange={(v) => setPalletQuantity(v)} />
-                    </div>
-                    {liveQuote.showGst && (
-                      <>
-                        <div className="totals-row">
-                          <span>Total ex GST</span>
-                          <span>{formatCurrency(totals.exGst)}</span>
-                        </div>
-                        <div className="totals-row">
-                          <span>GST {r1(liveQuote.gstRate)}%</span>
-                          <span>{formatCurrency(totals.gst)}</span>
-                        </div>
-                      </>
-                    )}
-                    <div className={`totals-row grand ${liveQuote.isComplete ? '' : 'partial'}`}>
-                      <span>{liveQuote.isComplete ? (liveQuote.showGst ? 'Total inc GST' : 'Total') : 'Running total'}</span>
-                      <span><Money value={totals.grand} /></span>
-                    </div>
-                  </div>
+                  </section>
                 </div>
               ) : (
                 <div className="empty">
