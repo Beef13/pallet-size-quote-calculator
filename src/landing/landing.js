@@ -234,7 +234,21 @@ const measure = () => {
     const before = stay.classList.contains('holds') ? closer : parseFloat(getComputedStyle(glance).paddingTop)
     stay.classList.add('holds')
     closer = before
-    const saved = Math.max(0, before - parseFloat(getComputedStyle(glance).paddingTop))
+    // The points sit just under the laptop: a little below the front edge of its base,
+    // or below the phone standing in front of it where that hangs lower. Worked out
+    // through the layout, so the entrance and the scroll cannot throw it off.
+    const down = (node) => {
+      let y = 0
+      for (; node && node !== heroEl; node = node.offsetParent) y += node.offsetTop
+      return y
+    }
+    const handset = devices.querySelector('.handset')
+    const base = screenBox ? down(stage) + screenBox.ground.y + 22 : 0
+    const phoneFoot = handset?.offsetParent ? down(handset) + handset.offsetHeight + 12 : 0
+    const pad = parseFloat(getComputedStyle(glance).paddingTop)
+    const lift = Math.min(0, Math.round(Math.max(base, phoneFoot) - heroEl.offsetHeight - pad))
+    glance.style.marginTop = base ? `${lift}px` : ''
+    const saved = Math.max(0, before - pad - (base ? lift : 0))
     stay.style.setProperty('--hold', `${Math.round(whole - first + saved)}px`)
     // Held with the points just clear of the bottom of the window
     stayBody.style.top = `${Math.round(vh - stayBody.offsetHeight - 24)}px`

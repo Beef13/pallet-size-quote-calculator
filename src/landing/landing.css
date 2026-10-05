@@ -440,7 +440,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 }
 
 /* Held, the points sit close under the laptop so the laptop barely has to move up
-   to make room for them */
+   to make room for them. Script draws them up further, to just below its base. */
 .hero-stay.holds .glance {
   padding-top: 4px;
 }
