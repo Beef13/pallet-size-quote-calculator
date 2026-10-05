@@ -2509,6 +2509,12 @@ html.dark-mode .status-tick {
   white-space: nowrap;
 }
 
+/* The Quote tab's heading block shares this class name; its title and note must wrap, not cut off */
+.quote-meta > h2,
+.quote-meta > .hint {
+  white-space: normal;
+}
+
 .quote-tags {
   display: inline-flex;
   align-items: center;
@@ -2962,6 +2968,8 @@ html.dark-mode .status-pill.attention-follow-up {
   .workbench,
   .workbench.panel-collapsed {
     --bar: 84px;
+    /* one margin from the screen edge for everything: header, 3D controls, the card's content */
+    --gutter: 22px;
     --sheet-ease: cubic-bezier(0.22, 0.9, 0.24, 1);
     position: fixed;
     inset: 0;
@@ -2989,7 +2997,7 @@ html.dark-mode .status-pill.attention-follow-up {
 
   .stage .axis-indicator {
     top: calc(var(--bar) - 8px);
-    left: 16px;
+    left: var(--gutter);
   }
 
   .stage .axis-indicator,
@@ -3004,8 +3012,8 @@ html.dark-mode .status-pill.attention-follow-up {
   }
 
   .stage-controls {
-    left: 12px;
-    right: 12px;
+    left: var(--gutter);
+    right: var(--gutter);
     bottom: calc(var(--peek, 150px) + 12px);
   }
 
@@ -3033,7 +3041,7 @@ html.dark-mode .status-pill.attention-follow-up {
     z-index: 7;
     height: var(--bar);
     box-sizing: border-box;
-    padding: 0 14px 0 16px;
+    padding: 0 var(--gutter);
     background: transparent;
     pointer-events: none;
   }
@@ -3082,7 +3090,7 @@ html.dark-mode .status-pill.attention-follow-up {
 
   .sheet-grip {
     flex: none;
-    padding: 0 18px 14px;
+    padding: 0 var(--gutter) 14px;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
@@ -3304,11 +3312,11 @@ html.dark-mode .status-pill.attention-follow-up {
 
   .tabs {
     flex: none;
-    margin: 12px 18px 4px;
+    margin: 12px var(--gutter) 4px;
   }
 
   .panel-body {
-    padding: 4px 18px 28px;
+    padding: 4px var(--gutter) 28px;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
@@ -3316,7 +3324,7 @@ html.dark-mode .status-pill.attention-follow-up {
   /* Three buttons have to fit across a phone without any label being cut off */
   .panel-footer {
     gap: 8px;
-    padding: 12px 14px;
+    padding: 12px var(--gutter);
   }
 
   .panel-footer .btn {
@@ -3325,6 +3333,30 @@ html.dark-mode .status-pill.attention-follow-up {
     padding-left: 14px;
     padding-right: 14px;
     white-space: nowrap;
+  }
+}
+
+/* Small phones: tighter tabs and footer buttons so every label still fits inside the margins */
+@media screen and (max-width: 380px) {
+  .tab {
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 14px;
+  }
+
+  .panel-footer {
+    gap: 6px;
+  }
+
+  .panel-footer .btn {
+    padding-left: 11px;
+    padding-right: 11px;
+    font-size: 14px;
+  }
+
+  .panel-footer .btn-quiet {
+    padding-left: 4px;
+    padding-right: 4px;
   }
 }
 
