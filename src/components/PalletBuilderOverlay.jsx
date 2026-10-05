@@ -1609,38 +1609,29 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const lineItems = [
     liveQuote.topLeaderCount > 0 && {
       name: 'Top leader boards', amount: liveQuote.topLeadersTotal,
-      detail: `${liveQuote.topLeaderCount} × ${liveQuote.topLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+      detail: `${liveQuote.topLeaderCount} × ${liveQuote.topLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)}`
     },
     liveQuote.topBoardSize && liveQuote.topInnerBoards > 0 && {
       name: 'Top boards', amount: liveQuote.topBoardsTotal,
-      detail: `${liveQuote.topInnerBoards} × ${liveQuote.topBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+      detail: `${liveQuote.topInnerBoards} × ${liveQuote.topBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)}`
     },
     liveQuote.bottomLeaderCount > 0 && {
       name: 'Bottom leader boards', amount: liveQuote.bottomLeadersTotal,
-      detail: `${liveQuote.bottomLeaderCount} × ${liveQuote.bottomLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+      detail: `${liveQuote.bottomLeaderCount} × ${liveQuote.bottomLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)}`
     },
     liveQuote.bottomBoardSize && liveQuote.bottomInnerBoards > 0 && {
       name: 'Bottom boards', amount: liveQuote.bottomBoardsTotal,
-      detail: `${liveQuote.bottomInnerBoards} × ${liveQuote.bottomBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+      detail: `${liveQuote.bottomInnerBoards} × ${liveQuote.bottomBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)}`
     },
     liveQuote.bearerSize && liveQuote.numberOfBearers > 0 && {
       name: 'Bearers', amount: liveQuote.bearersTotal,
-      detail: `${liveQuote.numberOfBearers} × ${liveQuote.bearerSize.replace('x', ' × ')}, ${formatDimension(liveQuote.bearerLength)} long`
+      detail: `${liveQuote.numberOfBearers} × ${liveQuote.bearerSize.replace('x', ' × ')}, ${formatDimension(liveQuote.bearerLength)}`
     },
     liveQuote.totalNails > 0 && {
       name: 'Nails', amount: liveQuote.nailsTotal,
       detail: `${liveQuote.totalNails} at ${formatCurrency(liveQuote.pricePerNail)} each`
     }
   ].filter(Boolean)
-
-  // The gap between boards is shown with the deck it belongs to
-  const gapNote = (deck, gap) => {
-    if (!(gap > 0)) return
-    const item = lineItems.find(i => i.name === `${deck} boards`) || lineItems.find(i => i.name === `${deck} leader boards`)
-    if (item) item.note = `${formatDimension(gap)} gap between boards`
-  }
-  gapNote('Top', liveQuote.topGapSize)
-  gapNote('Bottom', liveQuote.bottomGapSize)
 
   // Quote totals: ex GST, GST and the grand total
   const totals = orderTotals(liveQuote.totalPrice, quantity, liveQuote.gstRate, liveQuote.showGst)
@@ -1991,7 +1982,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           <div>
                             <span className="q-item-name">{item.name}</span>
                             <span className="q-item-detail">{item.detail}</span>
-                            {item.note && <span className="q-item-detail">{item.note}</span>}
                           </div>
                           <span className="q-amount">{formatCurrency(item.amount)}</span>
                         </li>
