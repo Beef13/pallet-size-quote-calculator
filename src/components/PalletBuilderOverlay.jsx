@@ -4,6 +4,7 @@ import timberData from '../data/timber-prices.json'
 import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, costStack, orderTotals, formatCurrency, formatDimension } from '../utils/calculations'
 import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
+import { useBottomSheet, usePhoneLayout } from './useBottomSheet'
 import PrintableQuote from './PrintableQuote'
 import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
 import { quoteAttention, sentSummary, groupQuotes, quotesByMonth, quotesTotal } from '../utils/quotes'
@@ -249,6 +250,10 @@ function Fold({ id, title, count, summary, cost, aside, status, ratio, open, onT
 function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Panel collapsed state
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false)
+
+  // Phones: the 3D pallet is the page and the panel is a card that slides up from the bottom
+  const isPhone = usePhoneLayout()
+  const sheet = useBottomSheet(isPhone)
   
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -1642,48 +1647,96 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     { id: 'prices', label: 'Prices' }
   ]
 
+  // The header and the price card are built once and placed by layout: in the panel and on the
+  // 3D view on a computer; on a phone the header floats over the 3D view and the price card is
+  // the part of the bottom card that stays showing.
+  const header = (
+    <header className="panel-header">
+      <div className="brand">
+        <span className="brand-logo" aria-hidden="true">
+          {/* A pallet seen side-on: deck board over three blocks */}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="3" y="7" width="18" height="3.5" rx="1" />
+            <rect x="4" y="12" width="3.5" height="4" rx="0.8" />
+            <rect x="10.25" y="12" width="3.5" height="4" rx="0.8" />
+            <rect x="16.5" y="12" width="3.5" height="4" rx="0.8" />
+            <rect x="3" y="17" width="18" height="2.5" rx="1" />
+          </svg>
+        </span>
+        <span className="brand-mark">Pallet quote</span>
+      </div>
+      <div className="header-total" aria-hidden="true">
+        <span>{totalLabel}</span>
+        <strong><Money value={(liveQuote.totalPrice || 0) * quantity} /></strong>
+      </div>
+      <div className="header-actions">
+        {accountsEnabled && (
+          <button type="button" className={`icon-btn account-btn ${signedIn ? `is-${account.status}` : ''}`} data-account-button
+            onClick={() => { setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
+            title={signedIn ? `Signed in as ${account.email}` : 'Sign in to back up and sync'}
+            aria-label={signedIn ? `Account, signed in as ${account.email}` : 'Sign in to back up and sync'}>
+            <Icon name="user" />
+            {signedIn && <span className="account-dot" aria-hidden="true" />}
+          </button>
+        )}
+        <button type="button" className="icon-btn" onClick={() => setIsDarkMode(!isDarkMode)}
+          title={isDarkMode ? 'Use light theme' : 'Use dark theme'} aria-label={isDarkMode ? 'Use light theme' : 'Use dark theme'}>
+          <Icon name={isDarkMode ? 'sun' : 'moon'} />
+        </button>
+        <button type="button" className="icon-btn hide-panel-btn" onClick={() => setIsPanelCollapsed(true)}
+          title="Hide panel" aria-label="Hide panel">
+          <Icon name="panel" />
+        </button>
+      </div>
+    </header>
+  )
+
+  const priceCard = (
+    <div className={`stamp ${liveQuote.isComplete ? 'complete' : ''} ${liveQuote.hasAnyPrice ? '' : 'empty'}`}>
+      <div className="stamp-top">
+        <span className="stamp-label">{liveQuote.hasAnyPrice ? totalLabel : 'No price yet'}</span>
+        {canShowProfit && (
+          <button type="button" className="stamp-eye" onClick={toggleProfit} aria-pressed={showProfit} data-profit-toggle
+            aria-label={showProfit ? 'Hide gross profit' : 'Show gross profit'} title={showProfit ? 'Hide gross profit' : 'Show gross profit'}>
+            <Icon name={showProfit ? 'eye' : 'eye-off'} size={16} />
+          </button>
+        )}
+      </div>
+      <span className="stamp-value"><Money value={(liveQuote.totalPrice || 0) * quantity} /></span>
+      {canShowProfit && showProfit && (
+        <p className="stamp-profit" data-profit>
+          Gross profit <strong>{formatCurrency(Math.round((liveQuote.markupPerPallet || 0) * quantity * 100) / 100)}</strong>
+          <span> · {r1(liveQuote.marginPercent)}% margin</span>
+        </p>
+      )}
+      {missingText && <p className="stamp-missing" data-missing>Still to choose: {missingText}</p>}
+      <div className="stamp-qty">
+        <span id="stage-qty-label">Pallets</span>
+        <Stepper id="stage-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
+          onChange={(v) => setPalletQuantity(v)} />
+      </div>
+    </div>
+  )
+
   return (
-    <div className={`workbench ${isPanelCollapsed ? 'panel-collapsed' : ''}`}>
-      {/* Left panel */}
-      <aside className="panel" aria-hidden={isPanelCollapsed}>
-        <header className="panel-header">
-          <div className="brand">
-            <span className="brand-logo" aria-hidden="true">
-              {/* A pallet seen side-on: deck board over three blocks */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="3" y="7" width="18" height="3.5" rx="1" />
-                <rect x="4" y="12" width="3.5" height="4" rx="0.8" />
-                <rect x="10.25" y="12" width="3.5" height="4" rx="0.8" />
-                <rect x="16.5" y="12" width="3.5" height="4" rx="0.8" />
-                <rect x="3" y="17" width="18" height="2.5" rx="1" />
-              </svg>
-            </span>
-            <span className="brand-mark">Pallet quote</span>
-          </div>
-          <div className="header-total" aria-hidden="true">
-            <span>{totalLabel}</span>
-            <strong><Money value={(liveQuote.totalPrice || 0) * quantity} /></strong>
-          </div>
-          <div className="header-actions">
-            {accountsEnabled && (
-              <button type="button" className={`icon-btn account-btn ${signedIn ? `is-${account.status}` : ''}`} data-account-button
-                onClick={() => { setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
-                title={signedIn ? `Signed in as ${account.email}` : 'Sign in to back up and sync'}
-                aria-label={signedIn ? `Account, signed in as ${account.email}` : 'Sign in to back up and sync'}>
-                <Icon name="user" />
-                {signedIn && <span className="account-dot" aria-hidden="true" />}
-              </button>
-            )}
-            <button type="button" className="icon-btn" onClick={() => setIsDarkMode(!isDarkMode)}
-              title={isDarkMode ? 'Use light theme' : 'Use dark theme'} aria-label={isDarkMode ? 'Use light theme' : 'Use dark theme'}>
-              <Icon name={isDarkMode ? 'sun' : 'moon'} />
+    <div ref={sheet.rootRef} className={`workbench ${isPanelCollapsed ? 'panel-collapsed' : ''} ${isPhone ? 'phone' : ''} ${isPhone && sheet.open ? 'sheet-open' : ''}`}>
+      {/* Left panel; on phones, the card that slides up from the bottom */}
+      <aside ref={sheet.sheetRef} className="panel" aria-hidden={isPanelCollapsed && !isPhone}>
+        {!isPhone && header}
+
+        {isPhone && (
+          <div className="sheet-grip" ref={sheet.gripRef} {...sheet.gripProps}>
+            <button type="button" className="sheet-handle" onClick={() => sheet.setOpen(!sheet.open)}
+              aria-expanded={sheet.open} aria-controls="sheet-content"
+              aria-label={sheet.open ? 'Show the 3D pallet' : 'Open the builder'}>
+              <span className="sheet-handle-bar" aria-hidden="true"><i /><i /></span>
+              <span className="sheet-handle-text">{sheet.open ? 'Swipe down for the pallet' : 'Swipe up to build and quote'}</span>
             </button>
-            <button type="button" className="icon-btn hide-panel-btn" onClick={() => setIsPanelCollapsed(true)}
-              title="Hide panel" aria-label="Hide panel">
-              <Icon name="panel" />
-            </button>
+            {priceCard}
           </div>
-        </header>
+        )}
+
+        <div className="sheet-content" id="sheet-content" inert={isPhone && !sheet.open ? '' : undefined}>
 
         <nav className="tabs" role="tablist">
           {tabs.map(tab => (
@@ -2347,6 +2400,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             </footer>
           </>
         )}
+        </div>
       </aside>
 
       {accountsEnabled && showAccount && (
@@ -2434,40 +2488,22 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           </button>
         )}
 
-        <div className={`stamp ${liveQuote.isComplete ? 'complete' : ''} ${liveQuote.hasAnyPrice ? '' : 'empty'}`}>
-          <div className="stamp-top">
-            <span className="stamp-label">{liveQuote.hasAnyPrice ? totalLabel : 'No price yet'}</span>
-            {canShowProfit && (
-              <button type="button" className="stamp-eye" onClick={toggleProfit} aria-pressed={showProfit} data-profit-toggle
-                aria-label={showProfit ? 'Hide gross profit' : 'Show gross profit'} title={showProfit ? 'Hide gross profit' : 'Show gross profit'}>
-                <Icon name={showProfit ? 'eye' : 'eye-off'} size={16} />
-              </button>
-            )}
-          </div>
-          <span className="stamp-value"><Money value={(liveQuote.totalPrice || 0) * quantity} /></span>
-          {canShowProfit && showProfit && (
-            <p className="stamp-profit" data-profit>
-              Gross profit <strong>{formatCurrency(Math.round((liveQuote.markupPerPallet || 0) * quantity * 100) / 100)}</strong>
-              <span> · {r1(liveQuote.marginPercent)}% margin</span>
-            </p>
-          )}
-          {missingText && <p className="stamp-missing" data-missing>Still to choose: {missingText}</p>}
-          <div className="stamp-qty">
-            <span id="stage-qty-label">Pallets</span>
-            <Stepper id="stage-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
-              onChange={(v) => setPalletQuantity(v)} />
-          </div>
-        </div>
+        {isPhone ? header : priceCard}
+
+        {/* Phones, panel open: the strip of 3D view left showing takes you back to the pallet */}
+        {isPhone && sheet.open && (
+          <button type="button" className="sheet-scrim" onClick={() => sheet.setOpen(false)} aria-label="Show the 3D pallet" />
+        )}
 
         <Pallet3DLive previewData={livePreviewData} dark={isDarkMode} outline={outlineSetting} />
 
         {!(livePreviewData.palletWidth > 0 && livePreviewData.palletLength > 0) && (
           <div className="stage-empty">
-            <p>Enter a size to see the pallet take shape.</p>
+            <p>{isPhone ? 'Swipe the card up and enter a size to see the pallet take shape.' : 'Enter a size to see the pallet take shape.'}</p>
           </div>
         )}
 
-        <div className="stage-controls">
+        <div className="stage-controls" inert={isPhone && sheet.open ? '' : undefined}>
           {selectedTopBoardSize ? (
           <label className="range">
             <span>Top boards <strong>{displayedTopBoards || 0}{maxTopBoardsAllowed > 0 && maxTopBoardsAllowed < 15 ? ` of ${maxTopBoardsAllowed}` : ''}</strong></span>
