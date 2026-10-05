@@ -426,9 +426,9 @@ html.accounts-on .sheet [data-accounts="off"] {
   height: var(--hold, 0px);
 }
 
-/* The second, longer pause: once the four points under the laptop have come up into
-   view, the laptop and the points stay put together while the page scrolls through
-   the space script adds below them. The two pauses add up to the one there was before. */
+/* The pause once the laptop is open, where there is a row of points under it: the
+   laptop and the points stay put together while the page scrolls through the space
+   script adds below them. */
 .hero-stay.holds > .hero-stay-body {
   position: sticky;
 }
