@@ -271,7 +271,7 @@
         <div class="wrap">
           <div class="pricing-head">
             <h2 id="pricing-title" class="section-title">Simple pricing, all of it on this page</h2>
-            <p>The calculator is free. You pay only if you want your quotes backed up online and on every device. No setup fee, no contract, no card needed to start.</p>
+            <p>The calculator is free. You pay only if you want your quotes backed up online and on every device, or something built for your shop. No setup fee, no contract, no card needed to start.</p>
           </div>
           <div class="tiers">
             <article class="tier" aria-labelledby="tier-free">
@@ -293,9 +293,10 @@
             <article class="tier tier-main" aria-labelledby="tier-pro">
               <h3 id="tier-pro">Pro</h3>
               <p class="tier-for">For quoting from the office, the yard and the truck.</p>
-              <p class="tier-price"><span class="tier-amount">$29</span><span class="tier-per">a month</span></p>
-              <p class="tier-terms">Billed monthly. Cancel any time and you keep it until the month you paid for ends.</p>
-              <a class="btn btn-primary" data-pay href="./app/index.html">Subscribe to Pro</a>
+              <p class="tier-price"><span class="tier-amount">$49</span><span class="tier-per">a month<span data-pay-yearly-text>, or $490 a year</span></span></p>
+              <p class="tier-terms">Cancel any time and you keep it until the month or year you paid for ends. No refunds for part periods.</p>
+              <a class="btn btn-primary" data-pay href="./app/index.html">Subscribe monthly</a>
+              <a class="tier-alt" data-pay-yearly href="./app/index.html">Pay yearly and get two months free</a>
               <ul class="tier-list">
                 <li class="tier-plus">Everything in Free, plus:</li>
                 <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>An account you sign in to with your email</li>
@@ -305,20 +306,21 @@
               </ul>
             </article>
 
-            <article class="tier tier-later" aria-labelledby="tier-team">
-              <h3 id="tier-team">Team <span class="tier-tag">Not available yet</span></h3>
-              <p class="tier-for">For yards where more than one person quotes.</p>
-              <p class="tier-price"><span class="tier-amount tier-amount-quiet">Price to come</span></p>
-              <p class="tier-terms">We haven't built this yet, so we aren't selling it. The price will be published here before it goes on sale.</p>
-              <a class="btn btn-ghost" data-interest href="./app/index.html">Tell us you're interested</a>
+            <article class="tier" aria-labelledby="tier-custom">
+              <h3 id="tier-custom">Custom</h3>
+              <p class="tier-for">For shops that quote their own way.</p>
+              <p class="tier-price"><span class="tier-amount tier-amount-quiet">Priced per job</span></p>
+              <p class="tier-terms">Tell us how you quote. You get a fixed price in writing before any work starts.</p>
+              <a class="btn btn-ghost" data-interest href="./app/index.html">Talk to us</a>
               <ul class="tier-list">
-                <li class="tier-plus">Planned, on top of Pro:</li>
-                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>A sign-in for each person who quotes</li>
-                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>One shared price list and quote history</li>
+                <li class="tier-plus">Built around how your shop quotes:</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Your timber grades, price lists and cost rules</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Quote and drawing layouts to match your paperwork</li>
+                <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Other products you quote, such as crates</li>
               </ul>
             </article>
           </div>
-          <p class="pricing-note">Prices are in Australian dollars. The full amount is shown at the checkout before you pay, and payment is handled by Stripe. Your quotes stay on your device if you cancel. The details are in the <a href="./terms/index.html">terms</a>.</p>
+          <p class="pricing-note">Prices are in Australian dollars. We aren't registered for GST, so no GST is added. The full amount is shown at the checkout before you pay, and payment is handled by Stripe. Your quotes stay on your device if you cancel. The details are in the <a href="./terms/index.html">terms</a>.</p>
         </div>
       </section>
 
@@ -353,7 +355,7 @@
             </details>
             <details data-billing="on">
               <summary>What does it cost?</summary>
-              <p>The calculator is free, with no account and no limit on quotes. Pro is $29 a month in Australian dollars and adds an account, online backup and your data on all your devices. There's no setup fee or contract, and you can cancel any time. <a href="#pricing">See the pricing</a>.</p>
+              <p>The calculator is free, with no account and no limit on quotes. Pro is $49 a month<span data-pay-yearly-text> or $490 a year</span> in Australian dollars and adds an account, online backup and your data on all your devices. There's no setup fee or contract, and you can cancel any time. <a href="#pricing">See the pricing</a>.</p>
             </details>
             <details>
               <summary>Where is my data kept?</summary>
