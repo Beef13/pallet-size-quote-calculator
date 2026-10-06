@@ -600,6 +600,8 @@ function Pallet3DLive({ previewData, dark = false, outline = null }) {
       <AxisIndicator svgRef={axisRef} />
       <Canvas
         camera={{ position: [14, 10, 14], fov: 40 }}
+        // Size from the layout box, so the phone thumbnail (a CSS scale) never lowers the resolution
+        resize={{ offsetSize: true }}
         shadows
         dpr={[1, 2]}
         onCreated={({ camera }) => camera.layers.enable(GHOST_LAYER)}

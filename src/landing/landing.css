@@ -2347,6 +2347,16 @@ html:has(dialog[open]) {
   text-align: center;
 }
 
+/* The quieter second way to pay, under the main button */
+.tier-alt {
+  display: block;
+  margin-top: 10px;
+  text-align: center;
+  color: var(--accent);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+
 .tier-plus {
   margin-top: 24px;
   color: var(--ink-2);

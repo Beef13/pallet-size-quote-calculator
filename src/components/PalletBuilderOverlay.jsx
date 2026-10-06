@@ -4,9 +4,10 @@ import timberData from '../data/timber-prices.json'
 import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, costStack, orderTotals, formatCurrency, formatDimension } from '../utils/calculations'
 import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
+import { useBottomSheet, usePhoneLayout } from './useBottomSheet'
 import PrintableQuote from './PrintableQuote'
 import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
-import { quoteAttention } from '../utils/quotes'
+import { quoteAttention, sentSummary, groupQuotes, quotesByMonth, quotesTotal } from '../utils/quotes'
 import {
   accountsEnabled, googleSignInEnabled, initAccounts, subscribeAccount, getAccountState, setOnApplied,
   noteLocalChange, noteQuoteDeleted, signInWithEmail, signInWithGoogle, signOut, syncNow, deleteOnlineData, dismissNotice
@@ -253,7 +254,7 @@ function StatusMark({ status, ratio = 0 }) {
 }
 
 // A panel section that folds down to its heading and a one-line summary
-function Fold({ id, title, summary, cost, aside, status, ratio, open, onToggle, className = 'form-section', children }) {
+function Fold({ id, title, count, summary, cost, aside, status, ratio, open, onToggle, className = 'form-section', children }) {
   return (
     <section className={`${className} fold ${open ? 'open' : ''}`} aria-label={title} data-fold={id}>
       <div className="section-head fold-head">
@@ -261,6 +262,7 @@ function Fold({ id, title, summary, cost, aside, status, ratio, open, onToggle, 
           <button type="button" className="fold-toggle" aria-expanded={open} aria-controls={`fold-${id}`} onClick={() => onToggle(id)}>
             <span className="chevron" aria-hidden="true" />
             {title}
+            {count != null && <span className="fold-count">{count}</span>}
           </button>
         </h2>
         <div className="fold-aside">
@@ -283,6 +285,10 @@ function Fold({ id, title, summary, cost, aside, status, ratio, open, onToggle, 
 function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Panel collapsed state
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false)
+
+  // Phones: the 3D pallet is the page and the panel is a card that slides up from the bottom
+  const isPhone = usePhoneLayout()
+  const sheet = useBottomSheet(isPhone)
   
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -462,7 +468,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [ratesFromQuote, setRatesFromQuote] = useState(null)
   const [historyNotice, setHistoryNotice] = useState('')
   const [historySearch, setHistorySearch] = useState('')
-  const [historyStatus, setHistoryStatus] = useState('all')
+  const [statusUndo, setStatusUndo] = useState(null) // { before: quote as it was, to: new status } after a one-tap status change
   const [openQuoteId, setOpenQuoteId] = useState(null) // the one History row that is expanded
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
@@ -1167,6 +1173,19 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     }))
   }
 
+  // One-tap Accepted / Lost from a History row. The quote moves to another section,
+  // so the change can be undone from a banner at the top of the list.
+  const quickStatus = (quote, status) => {
+    setStatusUndo({ before: quote, to: status })
+    setQuoteStatus(quote.id, status)
+    setOpenQuoteId(null)
+  }
+  const undoQuickStatus = () => {
+    if (!statusUndo) return
+    persistQuotes(quotes.map(q => (q.id === statusUndo.before.id ? statusUndo.before : q)))
+    setStatusUndo(null)
+  }
+
   const deleteQuote = (id) => {
     noteQuoteDeleted(id)
     persistQuotes(quotes.filter(q => q.id !== id))
@@ -1445,16 +1464,97 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Profit can only be shown once there is a price with a markup on it
   const canShowProfit = liveQuote.hasAnyPrice && (liveQuote.markupPerPallet || 0) > 0
 
-  // History tab: search text and status chip together
-  const attentionFor = (q) => quoteAttention(q, Date.now(), business.validDays)
-  const attentionCount = quotes.filter(q => attentionFor(q)).length
+  // History tab: quotes grouped by what needs doing next, narrowed by the search text
+  const historyNow = Date.now()
+  const attentionFor = (q) => quoteAttention(q, historyNow, business.validDays)
+  const historyTerm = historySearch.trim().toLowerCase()
   const shownQuotes = quotes.filter(q => {
-    if (historyStatus === 'attention') { if (!attentionFor(q)) return false }
-    else if (historyStatus !== 'all' && q.status !== historyStatus) return false
-    const term = historySearch.trim().toLowerCase()
-    if (!term) return true
-    return [q.number, q.customerName, q.customerRef, q.summary?.size].filter(Boolean).join(' ').toLowerCase().includes(term)
+    if (!historyTerm) return true
+    return [q.number, q.customerName, q.customerRef, q.summary?.size].filter(Boolean).join(' ').toLowerCase().includes(historyTerm)
   })
+  const grouped = groupQuotes(shownQuotes, historyNow, business.validDays)
+  const customerSummary = (list) => {
+    const names = [...new Set(list.map(q => q.customerName || 'No customer'))]
+    if (names.length <= 2) return names.join(' and ')
+    return `${names.slice(0, 2).join(', ')} and ${names.length - 2} more`
+  }
+  const acceptedCount = grouped.decided.filter(q => q.status === 'accepted').length
+  const historyGroups = [
+    { id: 'historyChase', key: 'chase', title: 'To chase', quotes: grouped.chase, summary: customerSummary(grouped.chase) },
+    { id: 'historyDrafts', key: 'drafts', title: 'Drafts', quotes: grouped.drafts, summary: customerSummary(grouped.drafts) },
+    { id: 'historyWaiting', key: 'waiting', title: 'Waiting on customer', quotes: grouped.waiting, summary: customerSummary(grouped.waiting) },
+    // The badge on Decided is the value won; adding lost quotes to it would mean nothing
+    { id: 'historyDecided', key: 'decided', title: 'Decided', quotes: grouped.decided, months: quotesByMonth(grouped.decided),
+      total: quotesTotal(grouped.decided.filter(q => q.status === 'accepted')),
+      summary: `${acceptedCount} accepted · ${grouped.decided.length - acceptedCount} lost` }
+  ].filter(g => g.quotes.length > 0)
+
+  // One row in the History tab
+  const quoteRow = (q) => {
+    const expanded = openQuoteId === q.id
+    const attention = attentionFor(q)
+    const date = new Date(q.updatedAt || q.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+    return (
+      <li key={q.id} className={`quote-item ${q.id === currentQuoteId ? 'current' : ''} ${expanded ? 'open' : ''}`} data-quote={q.number}>
+        <button type="button" className="quote-summary" aria-expanded={expanded} aria-controls={`quote-${q.id}`}
+          onClick={() => { setOpenQuoteId(expanded ? null : q.id); setConfirmDeleteId(null) }}>
+          <span className="quote-line">
+            <span className="quote-customer">{q.customerName || 'No customer'}</span>
+            <span className="quote-total">{formatCurrency(q.summary?.totalExGst || 0)}</span>
+          </span>
+          <span className="quote-line quote-line-sub">
+            <span className="quote-meta">
+              {q.number} · {q.summary?.size ? `${q.summary.size} mm` : 'Pallet'} · {q.quantity} pallet{q.quantity === 1 ? '' : 's'}{q.customerRef ? ` · ${q.customerRef}` : ''}
+            </span>
+            <span className="quote-tags">
+              {attention && <span className={`status-pill attention-${attention.kind}`} title={attention.detail}>{attention.label}</span>}
+              {/* The section heading already says draft or sent; only decided quotes need their own tag */}
+              {(q.status === 'accepted' || q.status === 'lost') && <span className={`status-pill status-${q.status}`}>{STATUS_LABELS[q.status]}</span>}
+            </span>
+          </span>
+        </button>
+        {q.status === 'sent' && (
+          <div className="quote-quick">
+            <span className="quote-quick-note">{sentSummary(q, historyNow, business.validDays)}</span>
+            <span className="quote-quick-actions">
+              <button type="button" className="quick-btn" data-quick-status="accepted" aria-label={`Mark ${q.number} accepted`}
+                onClick={() => quickStatus(q, 'accepted')}>Accepted</button>
+              <button type="button" className="quick-btn" data-quick-status="lost" aria-label={`Mark ${q.number} lost`}
+                onClick={() => quickStatus(q, 'lost')}>Lost</button>
+            </span>
+          </div>
+        )}
+        <Reveal open={expanded} id={`quote-${q.id}`}>
+          <div className="quote-detail">
+            <p className="quote-detail-note">
+              {attention ? `${attention.detail}.` : `Last changed ${date}.`}
+            </p>
+            {confirmDeleteId === q.id ? (
+              // The question takes the whole row, so it never has to squeeze in beside the other actions
+              <div className="quote-row-actions">
+                <span className="confirm-question">Delete {q.number}? This can't be undone.</span>
+                <button type="button" className="text-btn danger" onClick={() => deleteQuote(q.id)}>Delete</button>
+                <button type="button" className="text-btn" onClick={() => setConfirmDeleteId(null)}>Keep</button>
+              </div>
+            ) : (
+              <div className="quote-row-actions">
+                <label className="quote-status-field">
+                  <span>Status</span>
+                  <select className={`status-select status-${q.status}`} value={q.status}
+                    onChange={(e) => setQuoteStatus(q.id, e.target.value)} aria-label={`Status of ${q.number}`}>
+                    {Object.entries(STATUS_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+                  </select>
+                </label>
+                <button type="button" className="text-btn" onClick={() => openQuote(q)}>Open</button>
+                <button type="button" className="text-btn" onClick={() => duplicateQuote(q)} title="Start a new quote from this one, priced at today's rates">Duplicate</button>
+                <button type="button" className="text-btn muted-btn" onClick={() => setConfirmDeleteId(q.id)}>Delete</button>
+              </div>
+            )}
+          </div>
+        </Reveal>
+      </li>
+    )
+  }
 
   const timberOptions = timberTypes.map(type => (
     <option key={type.id} value={type.id} title={type.name}>{type.shortName || type.name}</option>
@@ -1466,9 +1566,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   const maxNote = (max) => (max > 0 && max < 15 ? <span className="field-note">up to {max}</span> : null)
 
-  // Sections start open, except: presets when there are none yet, and business details
-  // once they were already filled in when the app opened.
-  const sectionDefaults = { presets: savedPresets.length > 0, business: businessOpenByDefault }
+  // Sections start open, except: presets when there are none yet, business details
+  // once they were already filled in when the app opened, and decided quotes in History.
+  const sectionDefaults = { presets: savedPresets.length > 0, business: businessOpenByDefault, historyDecided: false }
   const isOpen = (id) => openSections[id] ?? sectionDefaults[id] ?? true
   const toggleSection = (id) => {
     const next = { ...openSections, [id]: !isOpen(id) }
@@ -1611,23 +1711,23 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const lineItems = [
     liveQuote.topLeaderCount > 0 && {
       name: 'Top leader boards', amount: liveQuote.topLeadersTotal,
-      detail: `${liveQuote.topLeaderCount} × ${liveQuote.topLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+      detail: `${liveQuote.topLeaderCount} × ${liveQuote.topLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)}`
     },
     liveQuote.topBoardSize && liveQuote.topInnerBoards > 0 && {
       name: 'Top boards', amount: liveQuote.topBoardsTotal,
-      detail: `${liveQuote.topInnerBoards} × ${liveQuote.topBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+      detail: `${liveQuote.topInnerBoards} × ${liveQuote.topBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)}`
     },
     liveQuote.bottomLeaderCount > 0 && {
       name: 'Bottom leader boards', amount: liveQuote.bottomLeadersTotal,
-      detail: `${liveQuote.bottomLeaderCount} × ${liveQuote.bottomLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+      detail: `${liveQuote.bottomLeaderCount} × ${liveQuote.bottomLeaderSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)}`
     },
     liveQuote.bottomBoardSize && liveQuote.bottomInnerBoards > 0 && {
       name: 'Bottom boards', amount: liveQuote.bottomBoardsTotal,
-      detail: `${liveQuote.bottomInnerBoards} × ${liveQuote.bottomBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)} long`
+      detail: `${liveQuote.bottomInnerBoards} × ${liveQuote.bottomBoardSize.replace('x', ' × ')}, ${formatDimension(liveQuote.boardLength)}`
     },
     liveQuote.bearerSize && liveQuote.numberOfBearers > 0 && {
       name: 'Bearers', amount: liveQuote.bearersTotal,
-      detail: `${liveQuote.numberOfBearers} × ${liveQuote.bearerSize.replace('x', ' × ')}, ${formatDimension(liveQuote.bearerLength)} long`
+      detail: `${liveQuote.numberOfBearers} × ${liveQuote.bearerSize.replace('x', ' × ')}, ${formatDimension(liveQuote.bearerLength)}`
     },
     liveQuote.totalNails > 0 && {
       name: 'Nails', amount: liveQuote.nailsTotal,
@@ -1649,53 +1749,101 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     { id: 'prices', label: 'Prices' }
   ]
 
+  // The header and the price card are built once and placed by layout: in the panel and on the
+  // 3D view on a computer; on a phone the header floats over the 3D view and the price card is
+  // the part of the bottom card that stays showing.
+  const header = (
+    <header className="panel-header">
+      <div className="brand">
+        <span className="brand-logo" aria-hidden="true">
+          {/* A pallet seen side-on: deck board over three blocks */}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="3" y="7" width="18" height="3.5" rx="1" />
+            <rect x="4" y="12" width="3.5" height="4" rx="0.8" />
+            <rect x="10.25" y="12" width="3.5" height="4" rx="0.8" />
+            <rect x="16.5" y="12" width="3.5" height="4" rx="0.8" />
+            <rect x="3" y="17" width="18" height="2.5" rx="1" />
+          </svg>
+        </span>
+        <span className="brand-mark">Pallet quote</span>
+      </div>
+      <div className="header-total" aria-hidden="true">
+        <span>{totalLabel}</span>
+        <strong><Money value={(liveQuote.totalPrice || 0) * quantity} /></strong>
+      </div>
+      <div className="header-actions">
+        {accountsLive && (
+          <button type="button" className={`icon-btn account-btn ${signedIn ? `is-${account.status}` : ''}`} data-account-button
+            onClick={() => { setAccountMode('signin'); setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
+            title={signedIn ? `Logged in as ${account.email}` : 'Log in to back up and sync'}
+            aria-label={signedIn ? `Account, logged in as ${account.email}` : 'Log in to back up and sync'}>
+            <Icon name="user" />
+            {signedIn && <span className="account-dot" aria-hidden="true" />}
+          </button>
+        )}
+        <button type="button" className="icon-btn" onClick={() => setIsDarkMode(!isDarkMode)}
+          title={isDarkMode ? 'Use light theme' : 'Use dark theme'} aria-label={isDarkMode ? 'Use light theme' : 'Use dark theme'}>
+          <Icon name={isDarkMode ? 'sun' : 'moon'} />
+        </button>
+        <button type="button" className="icon-btn hide-panel-btn" onClick={() => setIsPanelCollapsed(true)}
+          title="Hide panel" aria-label="Hide panel">
+          <Icon name="panel" />
+        </button>
+      </div>
+    </header>
+  )
+
+  const priceCard = (
+    <div className={`stamp ${liveQuote.isComplete ? 'complete' : ''} ${liveQuote.hasAnyPrice ? '' : 'empty'}`}>
+      <div className="stamp-top">
+        <span className="stamp-label">{liveQuote.hasAnyPrice ? totalLabel : 'No price yet'}</span>
+        {canShowProfit && (
+          <button type="button" className="stamp-eye" onClick={toggleProfit} aria-pressed={showProfit} data-profit-toggle
+            aria-label={showProfit ? 'Hide gross profit' : 'Show gross profit'} title={showProfit ? 'Hide gross profit' : 'Show gross profit'}>
+            <Icon name={showProfit ? 'eye' : 'eye-off'} size={16} />
+          </button>
+        )}
+      </div>
+      <span className="stamp-value"><Money value={(liveQuote.totalPrice || 0) * quantity} /></span>
+      {canShowProfit && showProfit && (
+        <p className="stamp-profit" data-profit>
+          Gross profit <strong>{formatCurrency(Math.round((liveQuote.markupPerPallet || 0) * quantity * 100) / 100)}</strong>
+          <span> · {r1(liveQuote.marginPercent)}% margin</span>
+        </p>
+      )}
+      {missingText && <p className="stamp-missing" data-missing>Still to choose: {missingText}</p>}
+      <div className="stamp-qty">
+        <span id="stage-qty-label">Pallets</span>
+        <Stepper id="stage-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
+          onChange={(v) => setPalletQuantity(v)} />
+      </div>
+    </div>
+  )
+
   return (
-    <div className={`workbench ${isPanelCollapsed ? 'panel-collapsed' : ''}`}>
-      {/* Left panel */}
-      <aside className="panel" aria-hidden={isPanelCollapsed} {...demoGuard}>
+    <div ref={sheet.rootRef} className={`workbench ${isPanelCollapsed ? 'panel-collapsed' : ''} ${isPhone ? 'phone' : ''} ${isPhone && sheet.open ? 'sheet-open' : ''}`}>
+      {/* Left panel; on phones, the card that slides up from the bottom */}
+      <aside ref={sheet.sheetRef} className="panel" aria-hidden={isPanelCollapsed && !isPhone} {...demoGuard}>
         {DEMO && (
           <p className={`demo-hint ${demoHint ? 'shown' : ''}`} role="status" aria-live="polite">
             {demoHint ? 'Fixed in this demonstration. Board counts and the quantity can be changed.' : ''}
           </p>
         )}
-        <header className="panel-header">
-          <div className="brand">
-            <span className="brand-logo" aria-hidden="true">
-              {/* A pallet seen side-on: deck board over three blocks */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="3" y="7" width="18" height="3.5" rx="1" />
-                <rect x="4" y="12" width="3.5" height="4" rx="0.8" />
-                <rect x="10.25" y="12" width="3.5" height="4" rx="0.8" />
-                <rect x="16.5" y="12" width="3.5" height="4" rx="0.8" />
-                <rect x="3" y="17" width="18" height="2.5" rx="1" />
-              </svg>
-            </span>
-            <span className="brand-mark">Pallet quote</span>
-          </div>
-          <div className="header-total" aria-hidden="true">
-            <span>{totalLabel}</span>
-            <strong><Money value={(liveQuote.totalPrice || 0) * quantity} /></strong>
-          </div>
-          <div className="header-actions">
-            {accountsLive && (
-              <button type="button" className={`icon-btn account-btn ${signedIn ? `is-${account.status}` : ''}`} data-account-button
-                onClick={() => { setAccountMode('signin'); setShowAccount(true); setSignInState({ busy: false, sent: false, error: '' }); setConfirmDeleteOnline(false) }}
-                title={signedIn ? `Logged in as ${account.email}` : 'Log in to back up and sync'}
-                aria-label={signedIn ? `Account, logged in as ${account.email}` : 'Log in to back up and sync'}>
-                <Icon name="user" />
-                {signedIn && <span className="account-dot" aria-hidden="true" />}
-              </button>
-            )}
-            <button type="button" className="icon-btn" onClick={() => setIsDarkMode(!isDarkMode)}
-              title={isDarkMode ? 'Use light theme' : 'Use dark theme'} aria-label={isDarkMode ? 'Use light theme' : 'Use dark theme'}>
-              <Icon name={isDarkMode ? 'sun' : 'moon'} />
+        {!isPhone && header}
+
+        {isPhone && (
+          <div className="sheet-grip" ref={sheet.gripRef} {...sheet.gripProps}>
+            <button type="button" className="sheet-handle" onClick={() => sheet.setOpen(!sheet.open)}
+              aria-expanded={sheet.open} aria-controls="sheet-content"
+              aria-label={sheet.open ? 'Show the 3D pallet' : 'Open the builder'}>
+              <span className="sheet-handle-bar" aria-hidden="true"><i /><i /></span>
+              <span className="sheet-handle-text">{sheet.open ? 'Swipe down for the pallet' : 'Swipe up to build and quote'}</span>
             </button>
-            <button type="button" className="icon-btn hide-panel-btn" onClick={() => setIsPanelCollapsed(true)}
-              title="Hide panel" aria-label="Hide panel">
-              <Icon name="panel" />
-            </button>
+            {priceCard}
           </div>
-        </header>
+        )}
+
+        <div className="sheet-content" id="sheet-content" inert={isPhone && !sheet.open ? '' : undefined}>
 
         <nav className="tabs" role="tablist">
           {tabs.map(tab => (
@@ -1911,94 +2059,102 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     </p>
                   </div>
 
-                  <div className="field-row customer-row">
-                    <label className="field">
-                      <span className="field-label">Customer</span>
-                      <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Business or person" data-field="customer" />
-                    </label>
-                    <label className="field">
-                      <span className="field-label">Their reference</span>
-                      <input type="text" value={customerRef} onChange={(e) => setCustomerRef(e.target.value)}
-                        placeholder="PO or job number" data-field="customer-ref" />
-                    </label>
-                  </div>
-
-                  <ul className="line-items">
-                    {lineItems.map(item => (
-                      <li key={item.name}>
-                        <div>
-                          <span className="item-name">{item.name}</span>
-                          <span className="item-detail">{item.detail}</span>
-                        </div>
-                        <span className="item-amount">{formatCurrency(item.amount)}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {(liveQuote.topGapSize > 0 || liveQuote.bottomGapSize > 0) && (
-                    <dl className="spec">
-                      {liveQuote.topGapSize > 0 && (<><dt>Gap between top boards</dt><dd>{formatDimension(liveQuote.topGapSize)}</dd></>)}
-                      {liveQuote.bottomGapSize > 0 && (<><dt>Gap between bottom boards</dt><dd>{formatDimension(liveQuote.bottomGapSize)}</dd></>)}
-                    </dl>
-                  )}
-
-                  {(layoutWarnings.length > 0 || liveQuote.palletLength <= 0) && (
-                    <div className="notice" role="alert">
-                      {layoutWarnings.map(w => <p key={w}>{w}</p>)}
-                      {liveQuote.palletLength <= 0 && <p>Enter the pallet length. Timber is priced per metre.</p>}
+                  <section className="q-section">
+                    <h3>Customer</h3>
+                    <div className="field-row customer-row">
+                      <label className="field">
+                        <span className="field-label">Name</span>
+                        <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)}
+                          placeholder="Business or person" data-field="customer" />
+                      </label>
+                      <label className="field">
+                        <span className="field-label">Their reference</span>
+                        <input type="text" value={customerRef} onChange={(e) => setCustomerRef(e.target.value)}
+                          placeholder="PO or job number" data-field="customer-ref" />
+                      </label>
                     </div>
-                  )}
+                  </section>
 
-                  {liveQuote.markupPercent <= 0 && (
-                    <div className="notice">
-                      <p>No markup is set, so the price is your cost. Add labour and markup under Prices.</p>
-                    </div>
-                  )}
+                  {/* What one pallet costs to make, then what it sells for */}
+                  <section className="q-section">
+                    <h3>Cost per pallet</h3>
 
-                  <div className="totals">
-                    <div className="totals-row sub">
-                      <span>Materials</span>
-                      <span>{formatCurrency(liveQuote.materialsTotal)}</span>
-                    </div>
-                    {liveQuote.labourPerPallet > 0 && (
-                      <div className="totals-row sub">
-                        <span>Labour</span>
-                        <span>{formatCurrency(liveQuote.labourPerPallet)}</span>
+                    {(layoutWarnings.length > 0 || liveQuote.palletLength <= 0) && (
+                      <div className="notice" role="alert">
+                        {layoutWarnings.map(w => <p key={w}>{w}</p>)}
+                        {liveQuote.palletLength <= 0 && <p>Enter the pallet length. Timber is priced per metre.</p>}
                       </div>
                     )}
-                    {liveQuote.markupPercent > 0 && (
-                      <div className="totals-row sub">
-                        <span>Markup {r1(liveQuote.markupPercent)}% <em className="muted">({r1(liveQuote.marginPercent)}% margin)</em></span>
-                        <span>{formatCurrency(liveQuote.markupPerPallet)}</span>
+
+                    <ul className="q-items">
+                      {lineItems.map(item => (
+                        <li key={item.name}>
+                          <div>
+                            <span className="q-item-name">{item.name}</span>
+                            <span className="q-item-detail">{item.detail}</span>
+                          </div>
+                          <span className="q-amount">{formatCurrency(item.amount)}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="q-sums">
+                      <div className="q-row">
+                        <span>Materials</span>
+                        <span className="q-amount">{formatCurrency(liveQuote.materialsTotal)}</span>
+                      </div>
+                      {liveQuote.labourPerPallet > 0 && (
+                        <div className="q-row">
+                          <span>Labour</span>
+                          <span className="q-amount">{formatCurrency(liveQuote.labourPerPallet)}</span>
+                        </div>
+                      )}
+                      {liveQuote.markupPercent > 0 && (
+                        <div className="q-row">
+                          <span>Markup {r1(liveQuote.markupPercent)}% <em className="muted">({r1(liveQuote.marginPercent)}% margin)</em></span>
+                          <span className="q-amount">{formatCurrency(liveQuote.markupPerPallet)}</span>
+                        </div>
+                      )}
+                      <div className="q-row q-price">
+                        <span>Price per pallet{liveQuote.showGst ? ' ex GST' : ''}</span>
+                        <span className="q-amount">{formatCurrency(liveQuote.totalPrice)}</span>
+                      </div>
+                    </div>
+
+                    {liveQuote.markupPercent <= 0 && (
+                      <div className="notice">
+                        <p>No markup is set, so the price is your cost. Add labour and markup under Prices.</p>
                       </div>
                     )}
-                    <div className="totals-row">
-                      <span>Price per pallet{liveQuote.showGst ? ' ex GST' : ''}</span>
-                      <span>{formatCurrency(liveQuote.totalPrice)}</span>
+                  </section>
+
+                  {/* What the customer pays for the whole order */}
+                  <section className="q-section">
+                    <h3>Order total</h3>
+                    <div className="q-total">
+                      <div className="q-row">
+                        <span id="quote-qty-label">Pallets</span>
+                        <Stepper id="quote-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
+                          onChange={(v) => setPalletQuantity(v)} />
+                      </div>
+                      {liveQuote.showGst && (
+                        <>
+                          <div className="q-row">
+                            <span>Total ex GST</span>
+                            <span className="q-amount">{formatCurrency(totals.exGst)}</span>
+                          </div>
+                          <div className="q-row">
+                            <span>GST {r1(liveQuote.gstRate)}%</span>
+                            <span className="q-amount">{formatCurrency(totals.gst)}</span>
+                          </div>
+                        </>
+                      )}
+                      <div className={`q-row q-grand ${liveQuote.isComplete ? '' : 'partial'}`}>
+                        <span>{liveQuote.isComplete ? (liveQuote.showGst ? 'Total inc GST' : 'Total') : 'Running total'}</span>
+                        <span className="q-amount"><Money value={totals.grand} /></span>
+                      </div>
                     </div>
-                    <div className="totals-row">
-                      <span id="quote-qty-label">Pallets</span>
-                      <Stepper id="quote-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
-                        onChange={(v) => setPalletQuantity(v)} />
-                    </div>
-                    {liveQuote.showGst && (
-                      <>
-                        <div className="totals-row">
-                          <span>Total ex GST</span>
-                          <span>{formatCurrency(totals.exGst)}</span>
-                        </div>
-                        <div className="totals-row">
-                          <span>GST {r1(liveQuote.gstRate)}%</span>
-                          <span>{formatCurrency(totals.gst)}</span>
-                        </div>
-                      </>
-                    )}
-                    <div className={`totals-row grand ${liveQuote.isComplete ? '' : 'partial'}`}>
-                      <span>{liveQuote.isComplete ? (liveQuote.showGst ? 'Total inc GST' : 'Total') : 'Running total'}</span>
-                      <span><Money value={totals.grand} /></span>
-                    </div>
-                  </div>
+                  </section>
                 </div>
               ) : (
                 <div className="empty">
@@ -2026,22 +2182,13 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               <div className="history-head">
                 <input type="text" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)}
                   placeholder="Search by customer, number or size" aria-label="Search saved quotes" data-field="history-search" />
-                {quotes.length > 0 && (
-                  <div className="status-filter" role="group" aria-label="Show quotes by status">
-                    {[['all', 'All'], ...(attentionCount > 0 || historyStatus === 'attention' ? [['attention', 'To chase']] : []), ...Object.entries(STATUS_LABELS)].map(([value, label]) => {
-                      const count = value === 'all' ? quotes.length : value === 'attention' ? attentionCount : quotes.filter(q => q.status === value).length
-                      return (
-                        <button key={value} type="button" data-status-filter={value}
-                          className={`chip ${historyStatus === value ? 'active' : ''}`} aria-pressed={historyStatus === value}
-                          disabled={count === 0 && historyStatus !== value}
-                          onClick={() => setHistoryStatus(value)}>
-                          {label}<span className="chip-count">{count}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
               </div>
+              {statusUndo && quotes.some(q => q.id === statusUndo.before.id && q.status === statusUndo.to) && (
+                <div className="banner" role="status" data-status-undo>
+                  <p>{statusUndo.before.number} marked {STATUS_LABELS[statusUndo.to].toLowerCase()}.</p>
+                  <button type="button" className="text-btn" onClick={undoQuickStatus}>Undo</button>
+                </div>
+              )}
               {quotes.length === 0 ? (
                 <div className="empty">
                   <h2>No saved quotes yet</h2>
@@ -2051,65 +2198,25 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               ) : shownQuotes.length === 0 ? (
                 <div className="empty">
                   <h2>No quotes match</h2>
-                  <p>Nothing fits that search or status.</p>
-                  <button type="button" className="btn btn-secondary" onClick={() => { setHistorySearch(''); setHistoryStatus('all') }}>Show all quotes</button>
+                  <p>Nothing fits that search.</p>
+                  <button type="button" className="btn btn-secondary" onClick={() => setHistorySearch('')}>Show all quotes</button>
                 </div>
               ) : (
-                <ul className="quote-list">
-                  {shownQuotes.map(q => {
-                    const isOpen = openQuoteId === q.id
-                    const attention = attentionFor(q)
-                    const date = new Date(q.updatedAt || q.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
-                    return (
-                      <li key={q.id} className={`quote-item ${q.id === currentQuoteId ? 'current' : ''} ${isOpen ? 'open' : ''}`} data-quote={q.number}>
-                        <button type="button" className="quote-summary" aria-expanded={isOpen} aria-controls={`quote-${q.id}`}
-                          onClick={() => { setOpenQuoteId(isOpen ? null : q.id); setConfirmDeleteId(null) }}>
-                          <span className="quote-line">
-                            <span className="quote-customer">{q.customerName || 'No customer'}</span>
-                            <span className="quote-total">{formatCurrency(q.summary?.totalExGst || 0)}</span>
-                          </span>
-                          <span className="quote-line quote-line-sub">
-                            <span className="quote-meta">
-                              {q.number} · {q.summary?.size ? `${q.summary.size} mm` : 'Pallet'} · {q.quantity} pallet{q.quantity === 1 ? '' : 's'}{q.customerRef ? ` · ${q.customerRef}` : ''}
-                            </span>
-                            <span className="quote-tags">
-                              {attention && <span className={`status-pill attention-${attention.kind}`} title={attention.detail}>{attention.label}</span>}
-                              <span className={`status-pill status-${q.status}`}>{STATUS_LABELS[q.status]}</span>
-                            </span>
-                          </span>
-                        </button>
-                        <Reveal open={isOpen} id={`quote-${q.id}`}>
-                          <div className="quote-detail">
-                            <p className="quote-detail-note">
-                              {attention ? `${attention.detail}.` : `Last changed ${date}.`}
-                            </p>
-                            {confirmDeleteId === q.id ? (
-                              // The question takes the whole row, so it never has to squeeze in beside the other actions
-                              <div className="quote-row-actions">
-                                <span className="confirm-question">Delete {q.number}? This can't be undone.</span>
-                                <button type="button" className="text-btn danger" onClick={() => deleteQuote(q.id)}>Delete</button>
-                                <button type="button" className="text-btn" onClick={() => setConfirmDeleteId(null)}>Keep</button>
-                              </div>
-                            ) : (
-                              <div className="quote-row-actions">
-                                <label className="quote-status-field">
-                                  <span>Status</span>
-                                  <select className={`status-select status-${q.status}`} value={q.status}
-                                    onChange={(e) => setQuoteStatus(q.id, e.target.value)} aria-label={`Status of ${q.number}`}>
-                                    {Object.entries(STATUS_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
-                                  </select>
-                                </label>
-                                <button type="button" className="text-btn" onClick={() => openQuote(q)}>Open</button>
-                                <button type="button" className="text-btn" onClick={() => duplicateQuote(q)} title="Start a new quote from this one, priced at today's rates">Duplicate</button>
-                                <button type="button" className="text-btn muted-btn" onClick={() => setConfirmDeleteId(q.id)}>Delete</button>
-                              </div>
-                            )}
-                          </div>
-                        </Reveal>
-                      </li>
-                    )
-                  })}
-                </ul>
+                <div className="history-groups">
+                  {historyGroups.map(g => (
+                    <Fold key={g.id} {...fold(g.id)} open={!!historyTerm || isOpen(g.id)} className="form-section history-group"
+                      title={g.title} count={g.quotes.length} cost={g.total ?? quotesTotal(g.quotes)} summary={g.summary}>
+                      {g.months ? g.months.map(m => (
+                        <div key={m.key} className="history-month">
+                          <h3>{m.label}<span className="history-month-count">{m.quotes.length}</span></h3>
+                          <ul className="quote-list">{m.quotes.map(quoteRow)}</ul>
+                        </div>
+                      )) : (
+                        <ul className="quote-list">{g.quotes.map(quoteRow)}</ul>
+                      )}
+                    </Fold>
+                  ))}
+                </div>
               )}
             </div>
             <footer className="panel-footer">
@@ -2411,6 +2518,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             </footer>
           </>
         )}
+        </div>
       </aside>
 
       {DEMO && demoNotice && (
@@ -2507,44 +2615,21 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       )}
 
       {/* Right - 3D pallet */}
-      <main className="stage">
+      <main className="stage" inert={isPhone && sheet.open ? '' : undefined}>
         {isPanelCollapsed && (
           <button type="button" className="show-panel-btn" onClick={() => setIsPanelCollapsed(false)}>
             <Icon name="panel" /> Show panel
           </button>
         )}
 
-        <div className={`stamp ${liveQuote.isComplete ? 'complete' : ''} ${liveQuote.hasAnyPrice ? '' : 'empty'}`}>
-          <div className="stamp-top">
-            <span className="stamp-label">{liveQuote.hasAnyPrice ? totalLabel : 'No price yet'}</span>
-            {canShowProfit && (
-              <button type="button" className="stamp-eye" onClick={toggleProfit} aria-pressed={showProfit} data-profit-toggle
-                aria-label={showProfit ? 'Hide gross profit' : 'Show gross profit'} title={showProfit ? 'Hide gross profit' : 'Show gross profit'}>
-                <Icon name={showProfit ? 'eye' : 'eye-off'} size={16} />
-              </button>
-            )}
-          </div>
-          <span className="stamp-value"><Money value={(liveQuote.totalPrice || 0) * quantity} /></span>
-          {canShowProfit && showProfit && (
-            <p className="stamp-profit" data-profit>
-              Gross profit <strong>{formatCurrency(Math.round((liveQuote.markupPerPallet || 0) * quantity * 100) / 100)}</strong>
-              <span> · {r1(liveQuote.marginPercent)}% margin</span>
-            </p>
-          )}
-          {missingText && <p className="stamp-missing" data-missing>Still to choose: {missingText}</p>}
-          <div className="stamp-qty">
-            <span id="stage-qty-label">Pallets</span>
-            <Stepper id="stage-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
-              onChange={(v) => setPalletQuantity(v)} />
-          </div>
-        </div>
+        {isPhone ? header : priceCard}
 
         <Pallet3DLive previewData={livePreviewData} dark={isDarkMode} outline={outlineSetting} />
 
         {!(livePreviewData.palletWidth > 0 && livePreviewData.palletLength > 0) && (
           <div className="stage-empty">
             <div className="stage-empty-card">
-              <p>Enter a size to see the pallet take shape.</p>
+              <p>{isPhone ? 'Swipe the card up and enter a size to see the pallet take shape.' : 'Enter a size to see the pallet take shape.'}</p>
               <button type="button" className="btn btn-secondary" data-field="example" onClick={loadExample}>Load an example pallet</button>
             </div>
           </div>

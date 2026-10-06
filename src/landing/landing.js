@@ -31,8 +31,15 @@ for (const node of document.querySelectorAll('[data-billing]')) {
   if ((node.dataset.billing === 'on') !== Boolean(payLink)) node.remove()
 }
 for (const node of document.querySelectorAll('[data-pay]')) node.href = payLink
+// The yearly price is optional: with no yearly link, the page only mentions the monthly price
+const payLinkYearly = import.meta.env.VITE_STRIPE_PAYMENT_LINK_YEARLY || ''
+for (const node of document.querySelectorAll('[data-pay-yearly]')) {
+  if (payLinkYearly) node.href = payLinkYearly
+  else node.remove()
+}
+if (!payLinkYearly) for (const node of document.querySelectorAll('[data-pay-yearly-text]')) node.remove()
 for (const node of document.querySelectorAll('[data-interest]')) {
-  node.href = `mailto:${operator.email}?subject=${encodeURIComponent('Pallet Quote for a team')}`
+  node.href = `mailto:${operator.email}?subject=${encodeURIComponent('Custom Pallet Quote for our business')}`
 }
 
 /* The hero picture.

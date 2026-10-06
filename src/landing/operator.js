@@ -24,4 +24,4 @@ export const billing = {
 }
 
 // Shown at the top of both pages. Change it whenever the wording changes.
-export const lastUpdated = '3 October 2026'
+export const lastUpdated = '5 October 2026'

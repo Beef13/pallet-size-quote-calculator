@@ -734,93 +734,6 @@ html.dark-mode .workbench select {
   margin-bottom: 4px;
 }
 
-.line-items {
-  list-style: none;
-  margin: 20px 0 0;
-  padding: 0;
-  border-top: 1px solid var(--rule-strong);
-}
-
-.line-items li {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--rule);
-}
-
-.item-name {
-  display: block;
-  font-size: 15px;
-  font-weight: 550;
-}
-
-.item-detail {
-  display: block;
-  margin-top: 2px;
-  font-size: 13px;
-  color: var(--ink-2);
-}
-
-.item-amount {
-  flex: none;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.spec {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 6px 16px;
-  margin: 16px 0 0;
-  font-size: 13.5px;
-  color: var(--ink-2);
-}
-
-.spec dd {
-  margin: 0;
-  color: var(--ink);
-  text-align: right;
-}
-
-.totals {
-  margin-top: 22px;
-  border-top: 1px solid var(--rule-strong);
-}
-
-.totals-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 48px;
-  font-size: 15px;
-  color: var(--ink-2);
-  border-bottom: 1px solid var(--rule);
-}
-
-.totals-row > span:last-child {
-  color: var(--ink);
-}
-
-.totals-row.grand {
-  min-height: 60px;
-  border-bottom: 0;
-  color: var(--ink);
-  font-weight: 650;
-}
-
-.totals-row.grand > span:last-child {
-  font-size: 22px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-.totals-row.grand.partial > span:last-child {
-  color: var(--ink-2);
-}
-
 .empty {
   display: flex;
   flex-direction: column;
@@ -1492,53 +1405,6 @@ html.dark-mode .stepper-btn {
   letter-spacing: -0.01em;
 }
 
-.line-items {
-  border-top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.line-items li {
-  padding: 12px 14px;
-  margin: 0 -14px;
-  border-bottom: 0;
-  border-radius: 14px;
-}
-
-.line-items li:nth-child(even) {
-  background: var(--field);
-}
-
-.item-name {
-  font-weight: 500;
-}
-
-.totals {
-  padding: 4px 18px;
-  border-top: 0;
-  border-radius: 20px;
-  background: var(--field);
-}
-
-.totals-row:last-child {
-  border-bottom: 0;
-}
-
-.totals .stepper {
-  background: var(--paper);
-}
-
-html.dark-mode .totals .stepper {
-  background: var(--rule);
-}
-
-.totals-row.grand > span:last-child {
-  font-size: 30px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
 /* Prices */
 .price-group {
   margin-bottom: 8px;
@@ -1695,113 +1561,7 @@ html.dark-mode .totals .stepper {
 
 /* ---------- Small screens ---------- */
 
-@media (max-width: 900px) {
-  .workbench,
-  .workbench.panel-collapsed {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    min-height: 100vh;
-    overflow: visible;
-  }
-
-  .panel {
-    height: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--rule-strong);
-    overflow: visible;
-  }
-
-  .panel-collapsed .panel {
-    visibility: visible;
-  }
-
-  .hide-panel-btn,
-  .show-panel-btn {
-    display: none;
-  }
-
-  /* Keep the price in view while filling in the form */
-  .panel-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--paper);
-    padding: 12px 16px 10px 18px;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .header-total {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-left: auto;
-    line-height: 1.1;
-  }
-
-  .header-total span {
-    font-size: 11.5px;
-    color: var(--ink-2);
-  }
-
-  .header-total strong {
-    font-weight: 400;
-    font-size: 22px;
-    letter-spacing: -0.02em;
-  }
-
-  .brand-mark {
-    font-size: 16px;
-  }
-
-  .tabs {
-    padding: 0 18px;
-  }
-
-  .panel-body {
-    overflow: visible;
-    padding: 4px 18px 24px;
-  }
-
-  .panel-footer {
-    padding: 12px 18px;
-  }
-
-  .stage {
-    flex: none;
-    height: 72vh;
-    min-height: 420px;
-  }
-
-  .stamp {
-    top: 14px;
-    right: 14px;
-    min-width: 0;
-    padding: 10px 12px;
-  }
-
-  .stamp-value {
-    font-size: 34px;
-    margin-bottom: 0;
-  }
-
-  /* The sticky header already shows the total; keep the stamp compact */
-  .stamp .stamp-qty {
-    display: none;
-  }
-
-  .stage-controls {
-    left: 18px;
-    right: 18px;
-    bottom: 16px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .range {
-    width: 100%;
-  }
-}
+/* Phone layout lives at the end of this file ("Phones: the pallet is the page"). */
 
 @media (max-width: 420px) {
   .field-row {
@@ -1822,53 +1582,6 @@ html.dark-mode .totals .stepper {
   }
 }
 
-/* Small screens: cards stack edge to edge */
-@media (max-width: 900px) {
-  .workbench,
-  .workbench.panel-collapsed {
-    padding: 10px;
-    gap: 10px;
-  }
-
-  .panel {
-    border-bottom: 0;
-  }
-
-  .panel-header {
-    border-radius: var(--card-radius) var(--card-radius) 0 0;
-    padding: 14px 14px 12px 18px;
-  }
-
-  .tabs {
-    margin: 10px 18px 4px;
-  }
-
-  .stage {
-    border-radius: var(--card-radius);
-  }
-
-  .header-total strong {
-    font-weight: 500;
-  }
-
-  .stamp {
-    top: 12px;
-    right: 12px;
-    min-width: 0;
-    padding: 12px 16px;
-    border-radius: 18px;
-  }
-
-  .stamp-value {
-    font-size: 30px;
-    margin: 2px 0 0;
-  }
-
-  .range {
-    width: 100%;
-    box-sizing: border-box;
-  }
-}
 
 /* Phones: one field per row so dropdown text is never cut off */
 @media (max-width: 520px) {
@@ -1943,18 +1656,150 @@ html.dark-mode .totals .stepper {
 
 html.dark-mode .status-sent { background: #1d2a40; color: #9dbcf0; }
 
-.customer-row {
-  margin-top: 18px;
-}
-
 .muted {
   font-style: normal;
   color: var(--ink-3);
 }
 
-.totals-row.sub {
-  min-height: 38px;
+/* ---------- Quote tab: three labelled sections, read top to bottom ----------
+   Customer, then what one pallet costs (materials, labour, markup, price), then the order total.
+   One column of labels on the left and one right-aligned column of money on the right. */
+.q-section {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--rule);
+}
+
+.q-section > h3 {
+  margin-bottom: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* One field per line, so a long business name is never cut short */
+.q-section .customer-row {
+  grid-template-columns: 1fr;
+}
+
+.q-section > .notice {
+  margin: 0 0 14px;
+}
+
+.q-sums + .notice {
+  margin: 14px 0 0;
+}
+
+.q-amount {
+  flex: none;
+  color: var(--ink);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.q-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.q-items li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.q-items li:first-child {
+  padding-top: 0;
+}
+
+.q-item-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.q-item-detail {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.q-items .q-amount {
+  font-size: 15px;
+}
+
+.q-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Materials, labour and markup: quiet lines adding up to the price */
+.q-sums {
+  padding-top: 8px;
+}
+
+.q-sums .q-row {
+  min-height: 32px;
   font-size: 14px;
+  color: var(--ink-2);
+}
+
+.q-sums .q-row.q-price {
+  min-height: 0;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule-strong);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* The order: the one block on a tinted card, ending in the figure the customer pays */
+.q-total {
+  padding: 4px 18px;
+  border-radius: 20px;
+  background: var(--field);
+}
+
+.q-total .q-row {
+  min-height: 50px;
+  font-size: 15px;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.q-total .q-row.q-grand {
+  min-height: 68px;
+  border-bottom: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.q-grand .q-amount {
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.q-grand.partial .q-amount {
+  color: var(--ink-2);
+}
+
+.q-total .stepper {
+  background: var(--paper);
+}
+
+html.dark-mode .q-total .stepper {
+  background: var(--rule);
 }
 
 /* History */
@@ -2455,52 +2300,6 @@ html.dark-mode .status-tick {
   color: var(--accent-hover);
 }
 
-/* Quotes tab: filter by status */
-.status-filter {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 12px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 11px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--field);
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.chip:hover:not(:disabled) {
-  color: var(--ink);
-}
-
-.chip.active,
-.chip.active:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.chip:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.chip-count {
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  opacity: 0.7;
-}
-
 /* ---------- Gross profit on the price card (off unless switched on) ---------- */
 
 .stamp-top {
@@ -2714,6 +2513,12 @@ html.dark-mode .status-tick {
   white-space: nowrap;
 }
 
+/* The Quote tab's heading block shares this class name; its title and note must wrap, not cut off */
+.quote-meta > h2,
+.quote-meta > .hint {
+  white-space: normal;
+}
+
 .quote-tags {
   display: inline-flex;
   align-items: center;
@@ -2786,22 +2591,110 @@ html.dark-mode .status-pill.attention-follow-up {
   white-space: nowrap;
 }
 
-/* Keep the status chips on one line; they scroll sideways if there are too many to fit */
-.status-filter {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
-  margin-right: -24px;
-  padding-right: 24px;
+/* ---------- History: sections by what needs doing next ---------- */
+
+.history-groups {
+  display: flex;
+  flex-direction: column;
 }
 
-.status-filter::-webkit-scrollbar {
-  display: none;
+.form-section.history-group {
+  padding-top: 18px;
 }
 
-.status-filter .chip {
-  flex: none;
-  padding: 0 10px;
+.history-group .quote-list {
+  margin-top: 0;
+}
+
+/* Nothing is cut off: a long line wraps under the customer name instead */
+.history-group .quote-meta {
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.history-group .quote-line-sub {
+  align-items: flex-start;
+}
+
+/* How many quotes are in a section, beside its heading */
+.fold-count {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--field);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-month {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-month h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.history-month-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+
+/* Sent quotes: how long ago, and the two likely answers, without opening the row */
+.quote-quick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  padding: 0 14px 11px;
+}
+
+.quote-quick-note {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.quote-quick-actions {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.quick-btn {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.quick-btn:hover {
+  border-color: var(--ink-3);
+}
+
+/* Fingers need a bigger target than a mouse pointer */
+@media (pointer: coarse) {
+  .quick-btn {
+    height: 44px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
 }
 
 .confirm-question {
@@ -3103,4 +2996,435 @@ a.btn {
 /* Paragraphs in the panel set their own colour, so say it again with more weight */
 aside.panel p.demo-hint {
   color: #fff;
+}
+
+/* ---------- Phones: the pallet is the page, the panel is a card that slides up ----------
+   The 3D view fills the screen. The panel is fixed to the bottom; closed, only its grip shows
+   (a handle and the price card). Dragging it up covers the whole screen, pallet included, and
+   the grip shrinks to a slim bar (down arrow, "Swipe down for the pallet", a smaller price) so
+   the form has as much room as possible.
+   useBottomSheet.js writes --sheet-p (0 closed, 1 open), --sheet-y and --peek on .workbench.
+   Screen only, so printing is laid out exactly as on a computer. */
+@media screen and (max-width: 900px) {
+  .workbench,
+  .workbench.panel-collapsed {
+    --bar: 84px;
+    /* one margin from the screen edge for everything: header, 3D controls, the card's content */
+    --gutter: 22px;
+    --sheet-ease: cubic-bezier(0.22, 0.9, 0.24, 1);
+    position: fixed;
+    inset: 0;
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0;
+    overflow: hidden;
+    background: var(--yard);
+  }
+
+  /* ----- The 3D view ----- */
+  .stage {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    border-radius: 0;
+  }
+
+  .stage .pallet-3d-live {
+    inset: 0 0 var(--peek, 150px) 0;
+    height: auto;
+    transition: none;
+  }
+
+  .stage .axis-indicator {
+    top: calc(var(--bar) - 8px);
+    left: var(--gutter);
+  }
+
+  .stage .axis-indicator,
+  .stage-controls,
+  .stage-empty {
+    opacity: calc(1 - var(--sheet-p, 0) * 3);
+    transition: opacity 0.3s ease;
+  }
+
+  .stage-empty {
+    bottom: var(--peek, 150px);
+  }
+
+  .stage-controls {
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: calc(var(--peek, 150px) + 12px);
+  }
+
+  .sheet-open .stage-controls {
+    visibility: hidden;
+  }
+
+  .range {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .hide-panel-btn,
+  .show-panel-btn,
+  .header-total {
+    display: none;
+  }
+
+  /* Brand and buttons float over the top of the 3D view */
+  .stage .panel-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 7;
+    height: var(--bar);
+    box-sizing: border-box;
+    padding: 0 var(--gutter);
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .stage .panel-header .brand,
+  .stage .panel-header .header-actions {
+    pointer-events: auto;
+  }
+
+  .stage .panel-header .icon-btn {
+    box-shadow: 0 1px 2px rgba(17, 19, 22, 0.05);
+  }
+
+  .brand-mark {
+    font-size: 17px;
+  }
+
+  /* ----- The card ----- */
+  .panel,
+  .panel-collapsed .panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    height: 100%;
+    visibility: visible;
+    overflow: hidden;
+    border: 0;
+    /* square corners once it fills the screen */
+    border-radius: calc(var(--card-radius) * (1 - var(--sheet-p, 0))) calc(var(--card-radius) * (1 - var(--sheet-p, 0))) 0 0;
+    box-shadow: 0 -1px 2px rgba(17, 19, 22, 0.05), 0 -14px 34px -18px rgba(17, 19, 22, 0.32);
+    transform: translateY(var(--sheet-y, calc(100% - 150px)));
+    transition: transform 0.42s var(--sheet-ease);
+    will-change: transform;
+  }
+
+  .sheet-dragging .panel,
+  .sheet-dragging .stage .axis-indicator,
+  .sheet-dragging .stage-controls,
+  .sheet-dragging .stage-empty,
+  .sheet-dragging .sheet-content,
+  .sheet-dragging .sheet-handle-bar i {
+    transition: none;
+  }
+
+  .sheet-grip {
+    flex: none;
+    padding: 0 var(--gutter) 14px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+  }
+
+  /* The handle: a bar when closed, bending into a down arrow as the card opens */
+  .sheet-handle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    padding: 10px 0 8px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    cursor: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .sheet-handle-bar {
+    display: flex;
+    height: 5px;
+  }
+
+  .sheet-handle-bar i {
+    width: 20px;
+    height: 5px;
+    background: var(--rule-strong);
+    transition: transform 0.42s var(--sheet-ease), background-color 0.3s ease;
+  }
+
+  .sheet-handle-bar i:first-child {
+    border-radius: 3px 0 0 3px;
+    transform-origin: 100% 50%;
+    transform: translateX(1px) rotate(calc(var(--sheet-p, 0) * 18deg));
+  }
+
+  .sheet-handle-bar i:last-child {
+    border-radius: 0 3px 3px 0;
+    transform-origin: 0 50%;
+    transform: translateX(-1px) rotate(calc(var(--sheet-p, 0) * -18deg));
+  }
+
+  .sheet-open .sheet-handle-bar i {
+    background: var(--ink-3);
+  }
+
+  /* The price card, flattened into the grip: total on the left, pallets on the right */
+  .sheet-grip .stamp {
+    position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 14px;
+    align-items: center;
+    min-width: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .sheet-grip .stamp-top {
+    grid-column: 1;
+    grid-row: 1;
+    justify-content: flex-start;
+    gap: 6px;
+    min-height: 20px;
+  }
+
+  .sheet-grip .stamp-label {
+    font-size: 13px;
+  }
+
+  .sheet-grip .stamp-eye {
+    width: 32px;
+    height: 32px;
+    margin: -6px 0;
+  }
+
+  .sheet-grip .stamp-value {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 0;
+    font-size: 32px;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .sheet-grip .stamp-qty {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    font-size: 11.5px;
+  }
+
+  .sheet-grip .stamp-qty .stepper {
+    --control-h: 40px;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--field);
+  }
+
+  .sheet-grip .stamp-qty .stepper-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sheet-grip .stamp .stamp-profit,
+  .sheet-grip .stamp .stamp-missing,
+  .sheet-grip .stamp .stamp-profit + .stamp-missing {
+    grid-column: 1 / -1;
+    max-width: none;
+    margin: 6px 0 0;
+    white-space: normal;
+  }
+
+  /* Open: the grip becomes a slim bar. One row for the price and the pallets count, in smaller
+     type, and no "still to choose" line (the ticks on each section say the same thing). */
+  .sheet-open .sheet-grip {
+    padding-bottom: 8px;
+  }
+
+  .sheet-open .sheet-handle {
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 0 4px;
+  }
+
+  .sheet-open .sheet-handle-bar i {
+    width: 12px;
+    height: 4px;
+  }
+
+  .sheet-open .sheet-grip .stamp {
+    /* the label gives way (and wraps) first, so the price and the stepper never collide */
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    column-gap: 10px;
+  }
+
+  .sheet-open .sheet-grip .stamp-top {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 0;
+  }
+
+  .sheet-open .sheet-grip .stamp-label {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .sheet-open .sheet-grip .stamp-value {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 21px;
+  }
+
+  .sheet-open .sheet-grip .stamp-qty {
+    grid-column: 3;
+    grid-row: 1;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  /* "Pallets" is already in the label beside the price; keep it for screen readers only */
+  .sheet-open .sheet-grip .stamp-qty > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .sheet-open .sheet-grip .stamp-qty .stepper {
+    --control-h: 34px;
+    padding: 3px;
+  }
+
+  .sheet-open .sheet-grip .stamp-qty .stepper-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sheet-open .sheet-grip .stamp .stamp-missing {
+    display: none;
+  }
+
+  .sheet-open .sheet-grip .stamp .stamp-profit {
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  .sheet-open .tabs {
+    margin-top: 8px;
+  }
+
+  /* Everything below the grip: tabs, the form (scrolls inside the card) and the footer */
+  .sheet-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    border-top: 1px solid var(--rule);
+    opacity: calc(var(--sheet-p, 0) * 4);
+    transition: opacity 0.3s ease;
+  }
+
+  .tabs {
+    flex: none;
+    margin: 12px var(--gutter) 4px;
+  }
+
+  .panel-body {
+    padding: 4px var(--gutter) 28px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Three buttons have to fit across a phone without any label being cut off */
+  .panel-footer {
+    gap: 8px;
+    padding: 12px var(--gutter);
+  }
+
+  .panel-footer .btn {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding-left: 14px;
+    padding-right: 14px;
+    white-space: nowrap;
+  }
+}
+
+/* Small phones: tighter tabs and footer buttons so every label still fits inside the margins */
+@media screen and (max-width: 380px) {
+  .tab {
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 14px;
+  }
+
+  .panel-footer {
+    gap: 6px;
+  }
+
+  .panel-footer .btn {
+    padding-left: 11px;
+    padding-right: 11px;
+    font-size: 14px;
+  }
+
+  .panel-footer .btn-quiet {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}
+
+/* Phones on their side: less height to spare, so a slimmer header and no hint */
+@media screen and (max-width: 900px) and (max-height: 520px) {
+  .workbench,
+  .workbench.panel-collapsed {
+    --bar: 60px;
+  }
+
+  .stage-controls .stage-hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .stage .pallet-3d-live,
+  .sheet-handle-bar i,
+  .sheet-content {
+    transition: none !important;
+  }
+}
+
+/* Computers: the wrapper around the tabs and their content takes no part in the layout */
+@media not screen, (min-width: 901px) {
+  .sheet-content {
+    display: contents;
+  }
 }
