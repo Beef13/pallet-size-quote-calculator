@@ -155,21 +155,34 @@ const round2 = (v) => Math.round(v * 100) / 100
 /**
  * Build the price of one pallet from its material cost.
  *   cost  = materials + labour
- *   sell  = cost + cost x markup%
+ *   sell  = cost + markup
  *   margin% = markup / sell
+ * Markup is either a percentage of cost (markupType 'percent', the default) or a set dollar
+ * amount per pallet (markupType 'amount'). Either way `markupPercent` comes back as the markup
+ * as a percentage of cost, so the two can be compared.
  * Each step is rounded to cents, so the figures shown always add up.
  * @param {number} materialsTotal - timber and nails for one pallet
- * @param {{labourPerPallet?: number, markupPercent?: number}} pricing
- * @param {boolean} hasMaterials - labour is only charged once there is something to build
+ * @param {{labourPerPallet?: number, markupPercent?: number, markupType?: string, markupAmount?: number}} pricing
+ * @param {boolean} hasMaterials - labour and a dollar markup are only charged once there is something to build
  */
 export function costStack(materialsTotal, pricing = {}, hasMaterials = materialsTotal > 0) {
   const labourPerPallet = hasMaterials ? round2(Number(pricing.labourPerPallet) || 0) : 0
   const costPerPallet = round2((Number(materialsTotal) || 0) + labourPerPallet)
-  const markupPercent = Number(pricing.markupPercent) || 0
-  const markupPerPallet = round2(costPerPallet * markupPercent / 100)
+  const markupType = pricing.markupType === 'amount' ? 'amount' : 'percent'
+  let markupPercent, markupPerPallet, markupSet
+  if (markupType === 'amount') {
+    const amount = Math.max(0, round2(Number(pricing.markupAmount) || 0))
+    markupSet = amount > 0
+    markupPerPallet = hasMaterials && costPerPallet > 0 ? amount : 0
+    markupPercent = costPerPallet > 0 ? (markupPerPallet / costPerPallet) * 100 : 0
+  } else {
+    markupPercent = Math.max(0, Number(pricing.markupPercent) || 0)
+    markupSet = markupPercent > 0
+    markupPerPallet = round2(costPerPallet * markupPercent / 100)
+  }
   const sellPerPallet = round2(costPerPallet + markupPerPallet)
   const marginPercent = sellPerPallet > 0 ? (markupPerPallet / sellPerPallet) * 100 : 0
-  return { labourPerPallet, costPerPallet, markupPercent, markupPerPallet, sellPerPallet, marginPercent }
+  return { labourPerPallet, costPerPallet, markupType, markupSet, markupPercent, markupPerPallet, sellPerPallet, marginPercent }
 }
 
 /**

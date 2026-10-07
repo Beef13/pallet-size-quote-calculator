@@ -9,7 +9,7 @@ describe('mergePrices with the standard list', () => {
     const p = mergePrices(defaults, null)
     expect(p.timberTypes.map(t => t.id)).toEqual(defaults.timberTypes.map(t => t.id))
     expect(p.listEdited).toBe(false)
-    expect(p.pricing).toEqual({ labourPerPallet: 0, markupPercent: 0, gstRate: 10, showGst: true })
+    expect(p.pricing).toEqual({ labourPerPallet: 0, markupPercent: 0, markupType: 'percent', markupAmount: 0, gstRate: 10, showGst: true })
   })
   it('lays saved prices over the standard list', () => {
     const saved = { timberTypes: [{ id: 'pine-green-case', boardSizes: [{ id: '100x17', pricePerBoard: 0.8 }] }], nailPricePerNail: 0.02 }

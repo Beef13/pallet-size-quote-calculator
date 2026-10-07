@@ -248,7 +248,7 @@ function PrintableQuote({ quoteData, quantity = 1, variant = 'breakdown', quoteR
               <span className="total-value">{money(quoteData.costPerPallet)}</span>
             </div>
             <div className="total-line">
-              <span className="total-label">Markup {Math.round(quoteData.markupPercent * 10) / 10}% ({Math.round(quoteData.marginPercent * 10) / 10}% margin)</span>
+              <span className="total-label">Markup{quoteData.markupType === 'amount' ? ' per pallet' : ` ${Math.round(quoteData.markupPercent * 10) / 10}%`} ({Math.round(quoteData.marginPercent * 10) / 10}% margin)</span>
               <span className="total-value">{money(quoteData.markupPerPallet)}</span>
             </div>
             <div className="total-line">

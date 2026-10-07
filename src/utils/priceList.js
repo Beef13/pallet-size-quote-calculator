@@ -5,11 +5,15 @@
 // (so improvements to it reach them). Once they add, rename or remove anything, the list is
 // theirs (`listEdited: true`) and is kept exactly as they left it.
 
-// Labour is per pallet, markup is a percentage added to cost
-// (sell = cost x (1 + markup%)), GST is added to the quoted total.
+// Labour is per pallet. Markup is either a percentage added to cost (markupType 'percent':
+// sell = cost x (1 + markup%)) or a dollar amount per pallet (markupType 'amount':
+// sell = cost + markupAmount). Both figures are kept, so switching between them loses nothing.
+// GST is added to the quoted total.
 export const DEFAULT_PRICING = {
   labourPerPallet: 0,
   markupPercent: 0,
+  markupType: 'percent',
+  markupAmount: 0,
   gstRate: 10,
   showGst: true
 }
@@ -17,9 +21,10 @@ export const DEFAULT_PRICING = {
 export function mergePricing(saved) {
   const p = { ...DEFAULT_PRICING }
   if (saved && typeof saved === 'object') {
-    for (const key of ['labourPerPallet', 'markupPercent', 'gstRate']) {
+    for (const key of ['labourPerPallet', 'markupPercent', 'markupAmount', 'gstRate']) {
       if (saved[key] !== undefined && saved[key] !== '') p[key] = Math.max(0, Number(saved[key]) || 0)
     }
+    if (saved.markupType === 'amount' || saved.markupType === 'percent') p.markupType = saved.markupType
     if (typeof saved.showGst === 'boolean') p.showGst = saved.showGst
   }
   return p

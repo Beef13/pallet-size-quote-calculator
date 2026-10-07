@@ -85,6 +85,42 @@ describe('costStack: materials -> labour -> markup', () => {
   })
 })
 
+describe('costStack: markup as a dollar amount per pallet', () => {
+  it('adds the set amount to cost', () => {
+    const s = costStack(12.92, { labourPerPallet: 3, markupType: 'amount', markupAmount: 5 })
+    expect(s.costPerPallet).toBe(15.92)
+    expect(s.markupPerPallet).toBe(5)
+    expect(s.sellPerPallet).toBe(20.92)
+    expect(s.markupType).toBe('amount')
+    expect(s.markupSet).toBe(true)
+  })
+  it('reports the amount as a percentage of cost and as a margin', () => {
+    const s = costStack(20, { markupType: 'amount', markupAmount: 5 })
+    expect(s.markupPercent).toBeCloseTo(25, 5)
+    expect(s.marginPercent).toBeCloseTo(20, 5)
+  })
+  it('ignores the percentage while the amount is in use, and the amount while the percentage is', () => {
+    expect(costStack(100, { markupType: 'amount', markupAmount: 7, markupPercent: 50 }).sellPerPallet).toBe(107)
+    expect(costStack(100, { markupType: 'percent', markupAmount: 7, markupPercent: 50 }).sellPerPallet).toBe(150)
+    expect(costStack(100, { markupAmount: 7, markupPercent: 50 }).sellPerPallet).toBe(150)
+  })
+  it('charges nothing until there is a pallet to build', () => {
+    const s = costStack(0, { labourPerPallet: 3, markupType: 'amount', markupAmount: 5 })
+    expect(s.sellPerPallet).toBe(0)
+    expect(s.markupSet).toBe(true)
+  })
+  it('treats a blank or negative amount as no markup', () => {
+    expect(costStack(50, { markupType: 'amount', markupAmount: '' }).sellPerPallet).toBe(50)
+    expect(costStack(50, { markupType: 'amount', markupAmount: -4 }).sellPerPallet).toBe(50)
+    expect(costStack(50, { markupType: 'amount', markupAmount: 0 }).markupSet).toBe(false)
+  })
+  it('rounds to cents so cost plus markup is the price', () => {
+    const s = costStack(13.337, { labourPerPallet: 2.35, markupType: 'amount', markupAmount: 4.999 })
+    expect(s.markupPerPallet).toBe(5)
+    expect(s.costPerPallet + s.markupPerPallet).toBeCloseTo(s.sellPerPallet, 10)
+  })
+})
+
 describe('orderTotals: quantity and GST', () => {
   it('multiplies by quantity and adds 10% GST', () => {
     expect(orderTotals(19.9, 250, 10, true)).toEqual({ exGst: 4975, gst: 497.5, grand: 5472.5 })

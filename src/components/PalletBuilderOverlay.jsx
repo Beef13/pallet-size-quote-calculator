@@ -948,7 +948,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     // Cost stack: materials + labour = cost; cost + markup = sell price (per pallet)
     const pricing = prices.pricing || DEFAULT_PRICING
     const hasMaterials = materialsTotal > 0 || totalNails > 0
-    const { labourPerPallet, costPerPallet, markupPercent, markupPerPallet, sellPerPallet: runningTotal, marginPercent } =
+    const { labourPerPallet, costPerPallet, markupType, markupSet, markupPercent, markupPerPallet, sellPerPallet: runningTotal, marginPercent } =
       costStack(materialsTotal, pricing, hasMaterials)
 
     // When using custom leaders, also need leader type/size selected
@@ -1012,6 +1012,8 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       materialsTotal,
       labourPerPallet,
       costPerPallet,
+      markupType,
+      markupSet,
       markupPercent,
       markupPerPallet,
       marginPercent,
@@ -1355,7 +1357,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
   // Labour, markup and GST settings (saved with the prices)
   const handlePricingChange = (key, value) => {
-    const v = key === 'showGst' ? !!value : parsePriceInput(value)
+    const v = key === 'showGst' ? !!value : key === 'markupType' ? (value === 'amount' ? 'amount' : 'percent') : parsePriceInput(value)
     setPrices(prev => ({ ...prev, pricing: { ...(prev.pricing || DEFAULT_PRICING), [key]: v } }))
     setPricesSaved(false)
   }
@@ -1718,6 +1720,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       detail: `${liveQuote.totalNails} at ${formatCurrency(liveQuote.pricePerNail)} each`
     }
   ].filter(Boolean)
+
+  // Markup is a percentage of cost or a dollar amount per pallet
+  const markupIsAmount = prices.pricing?.markupType === 'amount'
 
   // Quote totals: ex GST, GST and the grand total
   const totals = orderTotals(liveQuote.totalPrice, quantity, liveQuote.gstRate, liveQuote.showGst)
@@ -2093,9 +2098,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                           <span className="q-amount">{formatCurrency(liveQuote.labourPerPallet)}</span>
                         </div>
                       )}
-                      {liveQuote.markupPercent > 0 && (
+                      {liveQuote.markupPerPallet > 0 && (
                         <div className="q-row">
-                          <span>Markup {r1(liveQuote.markupPercent)}% <em className="muted">({r1(liveQuote.marginPercent)}% margin)</em></span>
+                          <span>Markup{liveQuote.markupType === 'amount' ? '' : ` ${r1(liveQuote.markupPercent)}%`} <em className="muted">({r1(liveQuote.marginPercent)}% margin)</em></span>
                           <span className="q-amount">{formatCurrency(liveQuote.markupPerPallet)}</span>
                         </div>
                       )}
@@ -2105,7 +2110,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       </div>
                     </div>
 
-                    {liveQuote.markupPercent <= 0 && (
+                    {!liveQuote.markupSet && (
                       <div className="notice">
                         <p>No markup is set, so the price is your cost. Add labour and markup under Prices.</p>
                       </div>
@@ -2236,18 +2241,43 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                         onChange={(e) => handlePricingChange('labourPerPallet', e.target.value)} />
                     </span>
                   </label>
-                  <label className="field">
-                    <span className="field-label">Markup on cost</span>
-                    <span className="input-unit">
-                      <input type="number" min="0" step="0.5" inputMode="decimal" data-field="markup"
-                        value={prices.pricing?.markupPercent ?? 0} disabled={pricingLocked}
-                        onChange={(e) => handlePricingChange('markupPercent', e.target.value)} />
-                      <span className="unit">%</span>
+                  <div className="field">
+                    <span className="field-label field-label-row">
+                      <label htmlFor="markup-input">Markup on cost</label>
+                      <span className="unit-toggle" role="group" aria-label="Markup as a percentage or a dollar amount per pallet">
+                        <button type="button" data-field="markup-type-percent" aria-pressed={!markupIsAmount} disabled={pricingLocked}
+                          onClick={() => handlePricingChange('markupType', 'percent')} title="Percentage of cost">%</button>
+                        <button type="button" data-field="markup-type-amount" aria-pressed={markupIsAmount} disabled={pricingLocked}
+                          onClick={() => handlePricingChange('markupType', 'amount')} title="Dollar amount per pallet">$</button>
+                      </span>
                     </span>
-                  </label>
+                    {markupIsAmount ? (
+                      <span className="input-unit pre">
+                        <span className="unit-pre">$</span>
+                        <input id="markup-input" type="number" min="0" step="0.01" inputMode="decimal" data-field="markup-amount"
+                          aria-label="Markup per pallet in dollars"
+                          value={prices.pricing?.markupAmount ?? 0} disabled={pricingLocked}
+                          onChange={(e) => handlePricingChange('markupAmount', e.target.value)} />
+                      </span>
+                    ) : (
+                      <span className="input-unit">
+                        <input id="markup-input" type="number" min="0" step="0.5" inputMode="decimal" data-field="markup"
+                          aria-label="Markup as a percentage of cost"
+                          value={prices.pricing?.markupPercent ?? 0} disabled={pricingLocked}
+                          onChange={(e) => handlePricingChange('markupPercent', e.target.value)} />
+                        <span className="unit">%</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <p className="hint formula">
                   {(() => {
+                    if (markupIsAmount) {
+                      const amount = Number(prices.pricing?.markupAmount) || 0
+                      if (!(amount > 0)) return 'Price = materials + labour. Add a markup to include your profit.'
+                      const onThis = liveQuote.markupPerPallet > 0 ? ` On this pallet that is a ${r1(liveQuote.markupPercent)}% markup and a ${r1(liveQuote.marginPercent)}% gross margin.` : ''
+                      return `Price = cost + ${formatCurrency(amount)} per pallet.${onThis}`
+                    }
                     const m = Number(prices.pricing?.markupPercent) || 0
                     const margin = m > 0 ? (m / (100 + m)) * 100 : 0
                     return m > 0

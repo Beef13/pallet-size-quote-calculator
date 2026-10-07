@@ -77,10 +77,11 @@ The old Markdown guides in the root (`PROJECT_SUMMARY.md`, `IMPLEMENTATION_GUIDE
 ```
 materials   = Σ timberCost(price per metre, length, count) + nails × price per nail
 cost        = materials + labour per pallet
-markup      = cost × markup%                  (margin% is also shown: markup / sell)
+markup      = cost × markup%   or a set $ per pallet   (margin% is also shown: markup / sell)
 sell price  = cost + markup                   (per pallet, ex GST)
 total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + GST
 ```
+- Markup is either a percentage of cost or a dollar amount per pallet, chosen with the small % / $ switch beside "Markup on cost" on the Prices tab (added 7 Oct 2026 at the owner's request). `pricing.markupType` is `'percent'` (default) or `'amount'`; `markupPercent` and `markupAmount` are both kept, so switching back restores the other figure. `costStack()` returns `markupType`, `markupSet` and the markup as a percentage of cost either way. A dollar markup shows as "Markup" on the Quote tab and "Markup per pallet" on the breakdown PDF, each with the margin it gives. Quotes saved before this have no `markupType` and are read as percent.
 - Leader boards are optional, wider boards on the outside edges of the top or bottom deck. The gap maths for them is shared between the 3D view and the quote (`deckGapSize`, `maxDeckBoards`).
 - Board counts are limited to what physically fits.
 
@@ -88,7 +89,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 
 | Key | Holds |
 |---|---|
-| `timberPrices` | Saved timber prices and, once edited, the business's own timber list (`listEdited`), plus `pricing: { labourPerPallet, markupPercent, gstRate, showGst }` |
+| `timberPrices` | Saved timber prices and, once edited, the business's own timber list (`listEdited`), plus `pricing: { labourPerPallet, markupPercent, markupType, markupAmount, gstRate, showGst }` |
 | `palletPresets` | Saved pallet designs |
 | `palletBusiness` | Business details: name, ABN, phone, email, address, `validDays` |
 | `palletQuotes` | Quote history (see below) |
