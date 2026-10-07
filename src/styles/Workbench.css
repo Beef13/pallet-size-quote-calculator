@@ -810,69 +810,160 @@ html.dark-mode .workbench select {
 
 .country-modal p {
   max-width: 30ch;
-  margin: 8px auto 24px;
+  margin: 8px auto 22px;
   font-size: 14px;
   line-height: 1.45;
 }
 
-.country-choices {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.country-choice {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 10px 16px;
-  border: 1.5px solid var(--rule-strong);
-  border-radius: 20px;
-  background: var(--paper);
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
-  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s var(--ease), box-shadow 0.18s ease;
-}
-
-.country-choice:hover,
-.country-choice.is-suggested {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.country-choice:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(37, 99, 217, 0.16);
-}
-
-.country-choice:active {
-  transform: translateY(0) scale(0.98);
-}
-
-.country-choice:focus-visible {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
-}
-
-.country-choice .flag {
-  width: 76px;
-  height: 38px;
-  border-radius: 7px;
-  box-shadow: 0 0 0 1px rgba(15, 22, 30, 0.1), 0 6px 14px rgba(15, 22, 30, 0.18);
-}
-
-.country-name {
+.country-continue {
+  width: 100%;
   margin-top: 14px;
+  height: 48px;
   font-size: 15px;
   font-weight: 600;
 }
 
-.country-rate {
-  margin-top: 2px;
-  font-size: 12.5px;
+/* Country dropdown with flags (the first-visit dialog and the Prices tab) */
+.country-select {
+  position: relative;
+  text-align: left;
+}
+
+.country-select-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: var(--control-h);
+  padding: 0 15px 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.country-select-trigger:hover:not(:disabled) {
+  border-color: var(--rule-strong);
+}
+
+.country-select-trigger:focus-visible,
+.country-select.is-open .country-select-trigger {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.country-select-trigger:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.country-select .flag {
+  flex: none;
+  width: 26px;
+  height: 13px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(15, 22, 30, 0.12);
+}
+
+.country-select-name {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.settings-group .country-select-trigger {
+  background: var(--paper);
+}
+
+.modal.country-modal:focus {
+  outline: none;
+}
+
+.country-select-rate {
+  font-size: 13px;
   color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.country-select-chevron {
+  flex: none;
+  color: var(--ink-2);
+  transition: transform 0.2s var(--ease);
+}
+
+.country-select.is-open .country-select-chevron {
+  transform: rotate(180deg);
+}
+
+.country-select-list {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--rule-strong);
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: 0 18px 40px rgba(15, 22, 30, 0.18), 0 2px 6px rgba(15, 22, 30, 0.06);
+  animation: country-drop 0.16s var(--ease) both;
+}
+
+.country-select-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.country-select-list li.is-active {
+  background: var(--field);
+}
+
+.country-select-list li[aria-selected="true"] .country-select-name {
+  font-weight: 600;
+}
+
+.country-select-tick {
+  flex: none;
+  color: var(--accent);
+}
+
+/* Larger, for the first-visit dialog */
+.country-select.is-large .country-select-trigger {
+  height: 56px;
+  padding: 0 18px 0 16px;
+  gap: 14px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.country-select.is-large .flag {
+  width: 36px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.country-select.is-large .country-select-list li {
+  min-height: 52px;
+  gap: 14px;
+  font-size: 16px;
+}
+
+@keyframes country-drop {
+  from { opacity: 0; transform: translateY(-4px); }
 }
 
 @keyframes country-fade {
@@ -885,9 +976,8 @@ html.dark-mode .workbench select {
 
 @media (prefers-reduced-motion: reduce) {
   .country-overlay,
-  .modal.country-modal { animation: none; }
-  .country-choice { transition: none; }
-  .country-choice:hover { transform: none; }
+  .modal.country-modal,
+  .country-select-list { animation: none; }
 }
 
 /* ---------- Quote tab ---------- */

@@ -4,7 +4,7 @@ import timberData from '../data/timber-prices.json'
 import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, costStack, orderTotals, formatCurrency, formatDimension } from '../utils/calculations'
 import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
-import Flag from './Flag'
+import CountrySelect from './CountrySelect'
 import { useBottomSheet, usePhoneLayout } from './useBottomSheet'
 import PrintableQuote from './PrintableQuote'
 import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
@@ -467,6 +467,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // The first thing a new device is asked: the country decides the GST on every figure, so it
   // can't wait for someone to open the business details. Asked once; the answer is saved.
   const [askCountry, setAskCountry] = useState(() => !DEMO && !countryIsSaved())
+  const [pendingCountry, setPendingCountry] = useState(business.country) // shown in the dialog until Continue
   const answerCountry = (code) => {
     if (code === business.country) updateBusiness('country', code)
     else changeCountry(code)
@@ -2347,12 +2348,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       : 'Price = materials + labour. Add a markup to include your profit.'
                   })()}
                 </p>
-                <label className="field">
-                  <span className="field-label">Country</span>
-                  <select value={region.code} onChange={(e) => changeCountry(e.target.value)} disabled={!!ratesFromQuote} data-field="biz-country">
-                    {Object.values(REGIONS).map(r => <option key={r.code} value={r.code}>{r.name}</option>)}
-                  </select>
-                </label>
+                <div className="field">
+                  <span className="field-label" id="country-label">Country</span>
+                  <CountrySelect value={region.code} onChange={changeCountry} disabled={!!ratesFromQuote} labelledBy="country-label" />
+                </div>
                 <p className="hint" role="status">
                   {countryNote || `Sets the standard GST rate (${region.gstRate}%) and what your tax number is called on quotes.`}
                 </p>
@@ -2740,19 +2739,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
 
       {askCountry && (
         <div className="modal-overlay country-overlay">
-          <div className="modal country-modal" role="dialog" aria-modal="true" aria-labelledby="country-title">
+          <div className="modal country-modal" role="dialog" aria-modal="true" aria-labelledby="country-title" tabIndex={-1} ref={(el) => { if (el && !el.contains(document.activeElement)) el.focus() }}>
             <h3 id="country-title">Where do you quote?</h3>
             <p>We'll set your GST to match. You can change it any time on the Prices tab.</p>
-            <div className="country-choices">
-              {Object.values(REGIONS).map(r => (
-                <button key={r.code} type="button" className={`country-choice${r.code === region.code ? ' is-suggested' : ''}`}
-                  autoFocus={r.code === region.code} onClick={() => answerCountry(r.code)} data-field={`country-${r.code}`}>
-                  <Flag country={r.code} />
-                  <span className="country-name">{r.name}</span>
-                  <span className="country-rate">GST {r.gstRate}%</span>
-                </button>
-              ))}
-            </div>
+            <CountrySelect value={pendingCountry} onChange={setPendingCountry} large showRate labelledBy="country-title" dataField="ask-country" />
+            <button type="button" className="btn btn-primary country-continue" onClick={() => answerCountry(pendingCountry)} data-field="country-continue">Continue</button>
           </div>
         </div>
       )}
