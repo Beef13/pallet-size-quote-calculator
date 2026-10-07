@@ -20,6 +20,7 @@ The app is local-first: there's no backend and no accounts. All data is stored i
 | Branch | State |
 |---|---|
 | `main` | **Live.** Pushing to `main` runs the price tests, builds and deploys GitHub Pages (`.github/workflows/deploy.yml`) at https://beef13.github.io/pallet-size-quote-calculator/ (landing page) and `/app/` (calculator). **Don't push or merge to `main` without the owner's explicit OK each time.** |
+| `main` (7 Oct 2026) | The owner asked for the current **app** to go live without the new landing page. `main` now has the app, styles, sync and utils from `landing-live-demo`, with the older landing, terms and privacy pages left as they were. The animated landing page and the pricing section are still only on `landing-live-demo`. |
 | `landing-live-demo` | **Working branch from 6 Oct 2026.** Has everything: the animated landing page (3D laptop, phone section, live demo), the app changes from `fix/quote-calculator-bugs` (phone layout, grouped History, Quote tab) and the $49 / $490 / Custom pricing. Do new work here, then ask the owner before merging to `main`. |
 | `fix/quote-calculator-bugs` | **Superseded.** Merged into `landing-live-demo` on 6 Oct 2026. It has the older landing page; don't add to it. |
 | `landing-copy`, `landing-redesign`, `landing-video-hero`, `landing-live-main`, `pricing-on-landing-copy` | Earlier landing page attempts, kept for history. Check `git ls-remote --heads origin` before assuming which branch is current. |
