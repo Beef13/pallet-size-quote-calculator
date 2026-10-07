@@ -19,18 +19,19 @@ const SCALES = [5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200]
 
 // Line weights (sheet units; 1 unit = 0.16 mm when printed)
 const LW = {
-  border: 2.2,      // sheet border
-  primary: 1.6,     // nearest visible edges / profile
-  visible: 0.9,     // other visible edges
-  secondary: 0.55,  // visible but further back (seen through gaps)
-  hidden: 0.55,     // hidden edges, dashed
-  thin: 0.35        // dimensions, extension and leader lines
+  primary: 1.15,    // nearest visible edges / profile
+  visible: 0.7,     // other visible edges
+  secondary: 0.45,  // visible but further back (seen through gaps)
+  hidden: 0.45,     // hidden edges, dashed
+  thin: 0.3         // dimensions, extension and leader lines
 }
 
 const HIDDEN_DASH = '5 3'
 const INK = '#000'
 // Colour of detail callouts (the box on the elevation and its matching marker)
-const CALLOUT = '#d0312d'
+const CALLOUT = '#c0392b'
+// Secondary lettering: scales, labels, notes
+const SOFT = '#555'
 const TONE = { top: '#ffffff', left: '#eeeeee', right: '#d9d9d9', end: '#e6e6e6', back: '#f4f4f4' }
 const FONT = "'Outfit Variable', Arial, Helvetica, sans-serif"
 
@@ -69,7 +70,7 @@ function bearerLayout(count, thickness, length) {
 // Linear dimension with oblique tick terminators.
 // a, b: points on the object; off: offset of the dimension line (signed,
 // perpendicular to a->b). label defaults to the measured length in mm.
-function Dim({ a, b, off, mm, label, s, size = 11, textSide = 1 }) {
+function Dim({ a, b, off, mm, label, s, size = 9.5, textSide = 1 }) {
   const dx = b[0] - a[0], dy = b[1] - a[1]
   const len = Math.hypot(dx, dy) || 1
   const ux = dx / len, uy = dy / len
@@ -83,10 +84,10 @@ function Dim({ a, b, off, mm, label, s, size = 11, textSide = 1 }) {
   ]
   const e1 = ext(a, p1), e2 = ext(b, p2)
   const tick = (p) => {
-    const t = 3.2
+    const t = 2.8
     // 45 degree tick relative to the dimension line
     const tx = (ux + nx) * t * 0.7071, ty = (uy + ny) * t * 0.7071
-    return <line x1={p[0] - tx} y1={p[1] - ty} x2={p[0] + tx} y2={p[1] + ty} stroke={INK} strokeWidth={LW.visible} />
+    return <line x1={p[0] - tx} y1={p[1] - ty} x2={p[0] + tx} y2={p[1] + ty} stroke={INK} strokeWidth={LW.secondary} />
   }
   const mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
   const angle = Math.atan2(dy, dx) * 180 / Math.PI
@@ -106,34 +107,36 @@ function Dim({ a, b, off, mm, label, s, size = 11, textSide = 1 }) {
       <line x1={e2[0]} y1={e2[1]} x2={e2[2]} y2={e2[3]} stroke={INK} strokeWidth={LW.thin} />
       <line x1={p1[0] - ux * 4} y1={p1[1] - uy * 4} x2={p2[0] + ux * 4} y2={p2[1] + uy * 4} stroke={INK} strokeWidth={LW.thin} />
       {tick(p1)}{tick(p2)}
-      <text x={tPos[0]} y={tPos[1]} fontSize={size} fontFamily={FONT} textAnchor="middle" dominantBaseline="central"
+      <text x={tPos[0]} y={tPos[1]} fontSize={size} fontWeight="400" letterSpacing="0.2" fontFamily={FONT} textAnchor="middle" dominantBaseline="central"
         transform={`rotate(${upright} ${tPos[0]} ${tPos[1]})`} fill={INK}>{text}</text>
     </g>
   )
 }
 
 // Part tag: letter in a circle with a leader line to the part
-function Tag({ letter, at, to, r = 8 }) {
+function Tag({ letter, at, to, r = 7.5 }) {
   const dx = to[0] - at[0], dy = to[1] - at[1]
   const d = Math.hypot(dx, dy) || 1
   const sx = at[0] + dx / d * r, sy = at[1] + dy / d * r
   return (
     <g>
       <line x1={sx} y1={sy} x2={to[0]} y2={to[1]} stroke={INK} strokeWidth={LW.thin} />
-      <circle cx={to[0]} cy={to[1]} r={1.6} fill={INK} />
-      <circle cx={at[0]} cy={at[1]} r={r} fill="#fff" stroke={INK} strokeWidth={LW.visible} />
-      <text x={at[0]} y={at[1] + 0.5} fontSize={10} fontWeight="600" fontFamily={FONT} textAnchor="middle" dominantBaseline="central">{letter}</text>
+      <circle cx={to[0]} cy={to[1]} r={1.2} fill={INK} />
+      <circle cx={at[0]} cy={at[1]} r={r} fill="#fff" stroke={INK} strokeWidth={LW.secondary} />
+      <text x={at[0]} y={at[1] + 0.5} fontSize={8.5} fontWeight="500" fontFamily={FONT} textAnchor="middle" dominantBaseline="central">{letter}</text>
     </g>
   )
 }
 
+// View title in the manner of an architectural sheet: spaced capitals over a
+// single hairline of fixed length, with the scale beneath in small grey capitals.
+const TITLE_RULE = 150
 function ViewTitle({ x, y, title, sub }) {
   return (
-    <g>
-      <text x={x} y={y} fontSize={13} fontWeight="700" fontFamily={FONT} letterSpacing="0.5">{title}</text>
-      <line x1={x} y1={y + 4} x2={x + title.length * 8.2} y2={y + 4} stroke={INK} strokeWidth={LW.primary} />
-      <line x1={x} y1={y + 7} x2={x + title.length * 8.2} y2={y + 7} stroke={INK} strokeWidth={LW.thin} />
-      {sub && <text x={x} y={y + 20} fontSize={10} fontFamily={FONT} fill="#333">{sub}</text>}
+    <g fontFamily={FONT}>
+      <text x={x} y={y} fontSize={10} fontWeight="500" letterSpacing="1.6">{title}</text>
+      <line x1={x} y1={y + 6} x2={x + TITLE_RULE} y2={y + 6} stroke={INK} strokeWidth={LW.secondary} />
+      {sub && <text x={x} y={y + 18} fontSize={7.5} letterSpacing="1.1" fill={SOFT}>{sub.toUpperCase()}</text>}
     </g>
   )
 }
@@ -142,7 +145,7 @@ function ViewTitle({ x, y, title, sub }) {
 function ThirdAngleSymbol({ x, y, w = 34 }) {
   const h = w * 0.42
   return (
-    <g stroke={INK} fill="none" strokeWidth={LW.visible}>
+    <g stroke={INK} fill="none" strokeWidth={LW.secondary}>
       <path d={`M${x} ${y + h * 0.25} L${x + w * 0.45} ${y} L${x + w * 0.45} ${y + h} L${x} ${y + h * 0.75} Z`} />
       <circle cx={x + w * 0.8} cy={y + h / 2} r={h / 2} />
       <circle cx={x + w * 0.8} cy={y + h / 2} r={h / 4.5} />
@@ -206,6 +209,8 @@ function ShopDrawing({ q, quantity, today, parts }) {
   const Wp = W * s, Lp = L * s, Hp = H * s
 
   // ----- Layout: third-angle projection + detail + title block -----
+  // Two columns. Everything in the left column starts on the pallet's left edge (planX);
+  // everything in the right column starts on the side elevation's left edge (sideX).
   //  [ PLAN           ] [ ISOMETRIC      ]
   //  [ FRONT ELEVATION] [ SIDE ELEVATION ]
   //  [ DETAIL 1       ] [ NOTES / TITLE  ]
@@ -213,14 +218,16 @@ function ShopDrawing({ q, quantity, today, parts }) {
   const rowB = planY + Lp + 126
   const frontX = planX, frontY = rowB
   const sideX = planX + Wp + colGap, sideY = rowB
-  const rightColX = Math.max(sideX - 20, planX + Wp + 70)
-  const axoX0 = rightColX, axoX1 = SHEET_W - 20
+  const rightColX = sideX
+  // Right edge of the right column: the end of the side elevation, or wide enough for the title block
+  const rightColX1 = Math.min(SHEET_W - 20, Math.max(sideX + Lp, sideX + 320))
+  const axoX0 = rightColX, axoX1 = rightColX1
   const axoY0 = 26, axoY1 = planY + Lp + 40
   const rowC = rowB + Hp + 112
 
   // Detail: end profile at a larger scale, cut off with a break line
   // Show the first top board, the gap and part of the next board
-  const detX = leftM - 14, detY = rowC + 26
+  const detX = planX, detY = rowC + 26
   const detAvailW = rightColX - detX - 180   // leave room for the leader notes
   const cutTarget = Math.min(W, Math.max(
     top.length >= 2 ? top[1].x + Math.min(top[1].w, 40) : (top[0]?.w || 100) + 40,
@@ -286,9 +293,9 @@ function ShopDrawing({ q, quantity, today, parts }) {
 
       {/* Overall width, then board / gap chain */}
       <Dim a={[px(0), pz(0)]} b={[px(W), pz(0)]} off={-36} mm={W} s={s} />
-      {top.length >= 1 && <Dim a={[px(top[0].x), pz(0)]} b={[px(top[0].x + top[0].w), pz(0)]} off={-14} mm={top[0].w} s={s} size={10.5} />}
+      {top.length >= 1 && <Dim a={[px(top[0].x), pz(0)]} b={[px(top[0].x + top[0].w), pz(0)]} off={-14} mm={top[0].w} s={s} size={9} />}
       {top.length >= 2 && topGap > 0 && (
-        <Dim a={[px(top[0].x + top[0].w), pz(0)]} b={[px(top[1].x), pz(0)]} off={-14} label={`${dimText(topGap)} GAP`} s={s} size={10.5} />
+        <Dim a={[px(top[0].x + top[0].w), pz(0)]} b={[px(top[1].x), pz(0)]} off={-14} label={`${dimText(topGap)} GAP`} s={s} size={9} />
       )}
       {/* Overall length */}
       <Dim a={[px(W), pz(0)]} b={[px(W), pz(L)]} off={-24} mm={L} s={s} />
@@ -301,7 +308,7 @@ function ShopDrawing({ q, quantity, today, parts }) {
         const segs = []
         for (let i = 0; i < uniq.length - 1; i++) if (uniq[i + 1] - uniq[i] > 0.5) segs.push([uniq[i], uniq[i + 1]])
         return segs.map(([a, b], i) => (
-          <Dim key={`bd${i}`} a={[px(0), pz(a)]} b={[px(0), pz(b)]} off={20} mm={b - a} s={s} size={10.5} />
+          <Dim key={`bd${i}`} a={[px(0), pz(a)]} b={[px(0), pz(b)]} off={20} mm={b - a} s={s} size={9} />
         ))
       })()}
 
@@ -317,7 +324,7 @@ function ShopDrawing({ q, quantity, today, parts }) {
         })
       })()}
 
-      <ViewTitle x={planX} y={pz(L) + 78} title="PLAN" sub={`Scale 1:${denom}`} />
+      <ViewTitle x={planX} y={pz(L) + 78} title="TOP" sub={`Scale 1:${denom}`} />
     </g>
   )
 
@@ -353,15 +360,15 @@ function ShopDrawing({ q, quantity, today, parts }) {
         const bx = x0 + w + 16, by = y0 - 12
         return (
           <g stroke={CALLOUT}>
-            <rect x={x0} y={y0} width={w} height={h} rx={6} ry={6} fill="none" strokeWidth={LW.visible} strokeDasharray="6 3" />
+            <rect x={x0} y={y0} width={w} height={h} rx={4} ry={4} fill="none" strokeWidth={LW.secondary} strokeDasharray="5 3" />
             <line x1={x0 + w} y1={y0 + 4} x2={bx - 6} y2={by + 5} strokeWidth={LW.thin} />
-            <circle cx={bx} cy={by} r={8} fill="#fff" strokeWidth={LW.visible} />
-            <text x={bx} y={by + 0.5} fontSize={10} fontWeight="600" fontFamily={FONT} textAnchor="middle"
+            <circle cx={bx} cy={by} r={7.5} fill="#fff" strokeWidth={LW.secondary} />
+            <text x={bx} y={by + 0.5} fontSize={8.5} fontWeight="500" fontFamily={FONT} textAnchor="middle"
               dominantBaseline="central" fill={CALLOUT} stroke="none">1</text>
           </g>
         )
       })()}
-      <ViewTitle x={frontX} y={fy(0) + 80} title="FRONT ELEVATION" sub={`Scale 1:${denom}`} />
+      <ViewTitle x={frontX} y={fy(0) + 80} title="SIDE" sub={`Scale 1:${denom}`} />
     </g>
   )
 
@@ -383,9 +390,9 @@ function ShopDrawing({ q, quantity, today, parts }) {
       <Dim a={[sx(0), sy(0)]} b={[sx(L), sy(0)]} off={22} mm={L} s={s} />
       {bearers.length > 1 && (
         <Dim a={[sx(bearers[0] + bearerT / 2), sy(H)]} b={[sx(bearers[1] + bearerT / 2), sy(H)]} off={-16}
-          label={`${dimText(bearers[1] - bearers[0])} CRS`} s={s} size={10.5} />
+          label={`${dimText(bearers[1] - bearers[0])} CRS`} s={s} size={9} />
       )}
-      <ViewTitle x={sideX} y={sy(0) + 80} title="SIDE ELEVATION" sub={`Scale 1:${denom}`} />
+      <ViewTitle x={sideX} y={sy(0) + 80} title="FRONT" sub={`Scale 1:${denom}`} />
     </g>
   )
 
@@ -400,7 +407,7 @@ function ShopDrawing({ q, quantity, today, parts }) {
       <defs>
         <clipPath id="clip-detail"><rect x={detX - 2} y={detY - 4} width={clipW + 2} height={detH + 8} /></clipPath>
         <pattern id="end-grain" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="5" stroke={INK} strokeWidth="0.3" />
+          <line x1="0" y1="0" x2="0" y2="5" stroke={INK} strokeWidth="0.2" />
         </pattern>
       </defs>
       <g clipPath="url(#clip-detail)">
@@ -425,14 +432,14 @@ function ShopDrawing({ q, quantity, today, parts }) {
       <line x1={dx(0) - 10} y1={dy(0)} x2={dx(xCut) + 10} y2={dy(0)} stroke={INK} strokeWidth={LW.thin} />
 
       {/* Thickness chain (left) and overall height */}
-      {botT > 0 && <Dim a={[dx(0), dy(0)]} b={[dx(0), dy(botT)]} off={-18} mm={botT} s={ds} size={10.5} />}
-      {hasBearers && <Dim a={[dx(0), dy(yBearer0)]} b={[dx(0), dy(yBearer1)]} off={-18} mm={bearerH} s={ds} size={10.5} />}
-      {topT > 0 && <Dim a={[dx(0), dy(yBearer1)]} b={[dx(0), dy(H)]} off={-18} mm={topT} s={ds} size={10.5} />}
+      {botT > 0 && <Dim a={[dx(0), dy(0)]} b={[dx(0), dy(botT)]} off={-18} mm={botT} s={ds} size={9} />}
+      {hasBearers && <Dim a={[dx(0), dy(yBearer0)]} b={[dx(0), dy(yBearer1)]} off={-18} mm={bearerH} s={ds} size={9} />}
+      {topT > 0 && <Dim a={[dx(0), dy(yBearer1)]} b={[dx(0), dy(H)]} off={-18} mm={topT} s={ds} size={9} />}
       <Dim a={[dx(0), dy(0)]} b={[dx(0), dy(H)]} off={-48} mm={H} s={ds} />
       {/* Widths along the top: board, gap, board */}
-      {tb0 && <Dim a={[dx(tb0.x), dy(H)]} b={[dx(tb0.x + tb0.w), dy(H)]} off={-14} mm={tb0.w} s={ds} size={10.5} />}
-      {tb1 && tb1.x < xCut && topGap > 0 && <Dim a={[dx(tb0.x + tb0.w), dy(H)]} b={[dx(tb1.x), dy(H)]} off={-14} mm={topGap} s={ds} size={10.5} />}
-      {bb0 && <Dim a={[dx(bb0.x), dy(0)]} b={[dx(bb0.x + bb0.w), dy(0)]} off={16} mm={bb0.w} s={ds} size={10.5} />}
+      {tb0 && <Dim a={[dx(tb0.x), dy(H)]} b={[dx(tb0.x + tb0.w), dy(H)]} off={-14} mm={tb0.w} s={ds} size={9} />}
+      {tb1 && tb1.x < xCut && topGap > 0 && <Dim a={[dx(tb0.x + tb0.w), dy(H)]} b={[dx(tb1.x), dy(H)]} off={-14} mm={topGap} s={ds} size={9} />}
+      {bb0 && <Dim a={[dx(bb0.x), dy(0)]} b={[dx(bb0.x + bb0.w), dy(0)]} off={16} mm={bb0.w} s={ds} size={9} />}
 
       {/* Leader notes on the right */}
       {(() => {
@@ -448,16 +455,16 @@ function ShopDrawing({ q, quantity, today, parts }) {
         return notes.map((n, i) => (
           <g key={i}>
             <polyline points={`${n.to[0]},${n.to[1]} ${nx - 8},${n.y} ${nx - 2},${n.y}`} fill="none" stroke={INK} strokeWidth={LW.thin} />
-            <circle cx={n.to[0]} cy={n.to[1]} r={1.5} fill={INK} />
-            <text x={nx} y={n.y} fontSize={10} fontFamily={FONT} dominantBaseline="central">{n.text}</text>
+            <circle cx={n.to[0]} cy={n.to[1]} r={1.2} fill={INK} />
+            <text x={nx} y={n.y} fontSize={8} letterSpacing="0.6" fontFamily={FONT} dominantBaseline="central">{n.text}</text>
           </g>
         ))
       })()}
 
       {/* Matching marker so the detail is easy to find from the elevation */}
-      <circle cx={detX + 8} cy={dy(0) + 45} r={8} fill="#fff" stroke={CALLOUT} strokeWidth={LW.visible} />
-      <text x={detX + 8} y={dy(0) + 45.5} fontSize={10} fontWeight="600" fontFamily={FONT} textAnchor="middle" dominantBaseline="central" fill={CALLOUT}>1</text>
-      <ViewTitle x={detX + 22} y={dy(0) + 50} title="DETAIL 1  END PROFILE" sub={`Scale 1:${detailDenom}`} />
+      <ViewTitle x={detX} y={dy(0) + 50} title="END PROFILE" sub={`Detail 1  ·  Scale 1:${detailDenom}`} />
+      <circle cx={detX + TITLE_RULE + 14} cy={dy(0) + 50} r={7.5} fill="#fff" stroke={CALLOUT} strokeWidth={LW.secondary} />
+      <text x={detX + TITLE_RULE + 14} y={dy(0) + 50.5} fontSize={8.5} fontWeight="500" fontFamily={FONT} textAnchor="middle" dominantBaseline="central" fill={CALLOUT}>1</text>
     </g>
   )
 
@@ -473,8 +480,8 @@ function ShopDrawing({ q, quantity, today, parts }) {
   const C = Math.cos(Math.PI / 6), S = 0.5
   const isoRaw = (x, y, z) => [(x - z) * C, (x + z) * S - y]
   const isoW = (W + L) * C, isoH = (W + L) * S + H
-  const k = Math.min((axoX1 - axoX0 - 20) / isoW, (axoY1 - axoY0 - 50) / isoH)
-  const ox = axoX0 + 10 + (axoX1 - axoX0 - 20 - isoW * k) / 2 + L * C * k
+  const k = Math.min((axoX1 - axoX0) / isoW, (axoY1 - axoY0 - 50) / isoH)
+  const ox = axoX0 + L * C * k
   const oy = axoY0 + 10 + H * k
   const iso = (x, y, z) => { const [u, v] = isoRaw(x, y, z); return `${ox + u * k},${oy + v * k}` }
   const axo = (
@@ -490,7 +497,8 @@ function ShopDrawing({ q, quantity, today, parts }) {
         const [u, v] = isoRaw(b.x + b.w * f, yBearer1 + b.t, z + bearerT / 2)
         return <ellipse key={`n${i}-${j}-${n}`} cx={ox + u * k} cy={oy + v * k} rx={1.3} ry={0.75} fill={INK} />
       })))}
-      <ViewTitle x={axoX0 + 10} y={axoY1 + 12} title="ISOMETRIC" sub="Not to scale" />
+      {/* Title sits just under the lowest corner of the view, as close as the other titles are to theirs */}
+      <ViewTitle x={axoX0} y={oy + (W + L) * S * k + 34} title="ISOMETRIC" sub="Not to scale" />
     </g>
   )
 
@@ -503,13 +511,17 @@ function ShopDrawing({ q, quantity, today, parts }) {
     timber ? `Timber: ${timber}.` : null
   ].filter(Boolean)
 
-  const tbX = rightColX, tbX1 = SHEET_W - 20
+  const tbX = rightColX, tbX1 = rightColX1
   const tbY = rowC + 8
   const notesBlock = (
     <g fontFamily={FONT}>
-      <text x={tbX} y={tbY + 10} fontSize={11} fontWeight="700" letterSpacing="0.5">NOTES</text>
+      <text x={tbX} y={tbY + 10} fontSize={10} fontWeight="500" letterSpacing="1.6">NOTES</text>
+      <line x1={tbX} y1={tbY + 16} x2={tbX + TITLE_RULE} y2={tbY + 16} stroke={INK} strokeWidth={LW.secondary} />
       {notes.map((n, i) => (
-        <text key={i} x={tbX} y={tbY + 28 + i * 15} fontSize={10.5}>{`${i + 1}.  ${n}`}</text>
+        <g key={i}>
+          <text x={tbX} y={tbY + 33 + i * 14} fontSize={8.5} fill={SOFT}>{i + 1}</text>
+          <text x={tbX + 14} y={tbY + 33 + i * 14} fontSize={8.5}>{n}</text>
+        </g>
       ))}
     </g>
   )
@@ -517,22 +529,22 @@ function ShopDrawing({ q, quantity, today, parts }) {
   const tbTop = sheetH - 92
   const cell = (x, y, w, label, value, big) => (
     <g>
-      <rect x={x} y={y} width={w} height={big ? 38 : 30} fill="none" stroke={INK} strokeWidth={LW.visible} />
-      <text x={x + 6} y={y + 11} fontSize={7.5} fill="#444">{label}</text>
-      <text x={x + 6} y={y + (big ? 28 : 23)} fontSize={big ? 13 : 10.5} fontWeight={big ? 700 : 500}>{value}</text>
+      <rect x={x} y={y} width={w} height={big ? 38 : 30} fill="none" stroke={INK} strokeWidth={LW.thin} />
+      <text x={x + 7} y={y + 11} fontSize={6} letterSpacing="1.1" fill={SOFT}>{label}</text>
+      <text x={x + 7} y={y + (big ? 28 : 23)} fontSize={big ? 11.5 : 9.5} fontWeight={big ? 500 : 400} letterSpacing="0.2">{value}</text>
     </g>
   )
   const tbw = tbX1 - tbX
   const titleBlock = (
     <g fontFamily={FONT}>
-      <rect x={tbX} y={tbTop} width={tbw} height={68} fill="none" stroke={INK} strokeWidth={LW.primary} />
+      <rect x={tbX} y={tbTop} width={tbw} height={68} fill="none" stroke={INK} strokeWidth={LW.visible} />
       {cell(tbX, tbTop, tbw * 0.72, 'DRAWING', `PALLET ${W} × ${L} × ${r1(H)}`, true)}
       {cell(tbX + tbw * 0.72, tbTop, tbw * 0.28, 'QTY', `${quantity}`, true)}
       {cell(tbX, tbTop + 38, tbw * 0.3, 'DATE', today)}
       {cell(tbX + tbw * 0.3, tbTop + 38, tbw * 0.3, 'SCALE @ A4', `1:${denom}`)}
       {cell(tbX + tbw * 0.6, tbTop + 38, tbw * 0.18, 'UNITS', 'mm')}
       <g>
-        <rect x={tbX + tbw * 0.78} y={tbTop + 38} width={tbw * 0.22} height={30} fill="none" stroke={INK} strokeWidth={LW.visible} />
+        <rect x={tbX + tbw * 0.78} y={tbTop + 38} width={tbw * 0.22} height={30} fill="none" stroke={INK} strokeWidth={LW.thin} />
         <ThirdAngleSymbol x={tbX + tbw * 0.78 + (tbw * 0.22 - 34) / 2} y={tbTop + 46} />
       </g>
     </g>
@@ -541,7 +553,6 @@ function ShopDrawing({ q, quantity, today, parts }) {
   return (
     <svg className="shop-drawing" viewBox={`0 0 ${SHEET_W} ${sheetH}`} xmlns="http://www.w3.org/2000/svg"
       style={{ fontFamily: FONT }} shapeRendering="geometricPrecision">
-      <rect x={2} y={2} width={SHEET_W - 4} height={sheetH - 4} fill="none" stroke={INK} strokeWidth={LW.border} />
       {plan}
       {axo}
       {front}

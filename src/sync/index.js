@@ -95,7 +95,7 @@ function ensureEngine() {
   if (!engine) engine = createSyncEngine({ storage: browserStorage, remote: offlineRemote })
   return engine
 }
-const refuse = async () => { throw new Error('Not signed in.') }
+const refuse = async () => { throw new Error('Not logged in.') }
 const offlineRemote = { ensureBusiness: refuse, fetchDocuments: refuse, fetchQuotes: refuse, upsertDocuments: refuse, upsertQuotes: refuse }
 
 function applySession(next) {
@@ -163,7 +163,7 @@ export async function signOut() {
 
 /** Remove everything this account has stored online, then sign out. The device keeps its copy. */
 export async function deleteOnlineData() {
-  if (!supabase || !session) throw new Error('Sign in first.')
+  if (!supabase || !session) throw new Error('Log in first.')
   const businessId = engine.readMeta().businessId || (await supabase.rpc('ensure_business')).data
   const { error } = await supabase.from('businesses').delete().eq('id', businessId)
   if (error) throw new Error(error.message)

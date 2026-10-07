@@ -23,18 +23,10 @@ html, body {
   position: relative;
 }
 
-/* Small screens: the layout stacks, so the page itself needs to scroll */
-@media (max-width: 900px) {
+/* Phones: the app is one fixed screen (3D view with a card that slides over it), so the
+   page itself never scrolls or bounces while the card is being dragged */
+@media screen and (max-width: 900px) {
   html, body {
-    height: auto;
-    min-height: 100%;
-    overflow: visible;
-    overflow-x: clip;
-  }
-
-  #root,
-  .app {
-    height: auto;
-    min-height: 100%;
+    overscroll-behavior: none;
   }
 }

@@ -1,10 +1,16 @@
-import React, { useRef, useMemo, useEffect, Suspense } from 'react'
+import React, { useRef, useMemo, useEffect, useContext, createContext, Suspense } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
 import { Vector3, Quaternion } from 'three'
 import { OrbitControls, Text, Line, Billboard, ContactShadows, Edges } from '@react-three/drei'
 // Bundled locally so labels work offline (drei's default font is fetched from Google)
 import labelFont from '../assets/fonts/outfit-latin-500-normal.woff'
 import '../styles/Pallet3DLive.css'
+
+// The demonstration embedded in the landing page: zoom is off there, so the wheel
+// scrolls the page rather than the model
+const DEMO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo')
+// ...except in the expanded view (?zoom), which has the window to itself
+const LOCK_ZOOM = DEMO && !new URLSearchParams(window.location.search).has('zoom')
 
 // If the labels ever fail to render, hide them instead of breaking the whole app
 class LabelErrorBoundary extends React.Component {
@@ -136,7 +142,8 @@ function CameraFit({ width, length, height }) {
   const aspect = viewport.width / Math.max(1, viewport.height)
   const narrowFactor = aspect < 1.2 ? 1.2 / aspect : 1
   useEffect(() => {
-    const distance = size * 2.8 * narrowFactor
+    // The landing page's demonstration sits a little closer, as its zoom is locked
+    const distance = size * (DEMO ? 2.35 : 2.8) * narrowFactor
     const dir = camera.position.clone()
     if (dir.lengthSq() < 1e-6) dir.set(14, 10, 14)
     dir.normalize().multiplyScalar(distance)
@@ -272,17 +279,44 @@ function GhostBoard({ position, size, dark }) {
   )
 }
 
+// Optional drawn outlines on every part: { weight } in screen pixels, or null when switched off
+const OutlineContext = createContext(null)
+
+// The 12 edges of a box centred on the origin, as pairs of points
+function boxEdges([w, h, d]) {
+  const x = w / 2, y = h / 2, z = d / 2
+  const c = [[-x, -y, -z], [x, -y, -z], [x, y, -z], [-x, y, -z], [-x, -y, z], [x, -y, z], [x, y, z], [-x, y, z]]
+  const pairs = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]]
+  return pairs.flatMap(([a, b]) => [c[a], c[b]])
+}
+
+// Outline of one part. Drawn as wide lines so the weight can be set in pixels and stays the
+// same at any zoom; edges hidden behind timber stay hidden.
+function BoardOutline({ size, dark }) {
+  const outline = useContext(OutlineContext)
+  const [w, h, d] = size
+  const points = useMemo(() => boxEdges([w, h, d]), [w, h, d])
+  if (!outline) return null
+  return <Line points={points} segments color={dark ? '#0c0d0e' : '#2a2118'} lineWidth={outline.weight} />
+}
+
 // Single board component with wood-like appearance
 function Board({ position, size, color = '#d4a574', ghost = false, dark = false }) {
+  const outlined = Boolean(useContext(OutlineContext))
   if (ghost) return <GhostBoard position={position} size={size} dark={dark} />
   return (
     <mesh position={position} castShadow receiveShadow>
       <boxGeometry args={size} />
-      <meshStandardMaterial 
-        color={color} 
-        roughness={0.7} 
+      {/* With outlines on, the faces sit a hair back so the lines along their edges stay crisp */}
+      <meshStandardMaterial
+        color={color}
+        roughness={0.7}
         metalness={0.05}
+        polygonOffset={outlined}
+        polygonOffsetFactor={1}
+        polygonOffsetUnits={1}
       />
+      <BoardOutline size={size} dark={dark} />
     </mesh>
   )
 }
@@ -559,13 +593,15 @@ function PalletStructure({ previewData, dark = false }) {
 }
 
 // Main Live 3D Component
-function Pallet3DLive({ previewData, dark = false }) {
+function Pallet3DLive({ previewData, dark = false, outline = null }) {
   const axisRef = useRef(null)
   return (
     <div className="pallet-3d-live">
       <AxisIndicator svgRef={axisRef} />
       <Canvas
         camera={{ position: [14, 10, 14], fov: 40 }}
+        // Size from the layout box, so the phone thumbnail (a CSS scale) never lowers the resolution
+        resize={{ offsetSize: true }}
         shadows
         dpr={[1, 2]}
         onCreated={({ camera }) => camera.layers.enable(GHOST_LAYER)}
@@ -591,7 +627,9 @@ function Pallet3DLive({ previewData, dark = false }) {
         <pointLight position={[0, 10, -15]} intensity={0.4} />
         
         {/* Pallet */}
-        <PalletStructure previewData={previewData} dark={dark} />
+        <OutlineContext.Provider value={outline}>
+          <PalletStructure previewData={previewData} dark={dark} />
+        </OutlineContext.Provider>
 
         {/* Soft shadow on the ground under the pallet */}
         <ContactShadows
@@ -616,7 +654,7 @@ function Pallet3DLive({ previewData, dark = false }) {
         <OrbitControls
           makeDefault
           enablePan={true}
-          enableZoom={true}
+          enableZoom={!LOCK_ZOOM}
           enableRotate={true}
           autoRotate={false}
           minDistance={5}
