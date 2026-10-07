@@ -65,9 +65,9 @@ export default function CountrySelect({ value, onChange, disabled = false, showR
               <Flag country={o.code} />
               <span className="country-select-name">{o.name}</span>
               <span className="country-select-rate">GST {o.gstRate}%</span>
-              {o.code === current.code && (
-                <svg className="country-select-tick" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M1.5 5.5l3.5 3.5 7.5-7.5" /></svg>
-              )}
+              {/* The tick's space is always kept, so the GST rates line up whichever row is ticked */}
+              <svg className="country-select-tick" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                style={o.code === current.code ? undefined : { visibility: 'hidden' }}><path d="M1.5 5.5l3.5 3.5 7.5-7.5" /></svg>
             </li>
           ))}
         </ul>
