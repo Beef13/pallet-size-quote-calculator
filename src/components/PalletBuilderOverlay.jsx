@@ -4,6 +4,7 @@ import timberData from '../data/timber-prices.json'
 import { calculateTotalPrice, deckGapSize, maxDeckBoards, timberCost, costStack, orderTotals, formatCurrency, formatDimension } from '../utils/calculations'
 import Pallet3DLive from './Pallet3DLive'
 import LockIcon from './LockIcon'
+import Flag from './Flag'
 import { useBottomSheet, usePhoneLayout } from './useBottomSheet'
 import PrintableQuote from './PrintableQuote'
 import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
@@ -2738,16 +2739,17 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       </main>
 
       {askCountry && (
-        <div className="modal-overlay">
+        <div className="modal-overlay country-overlay">
           <div className="modal country-modal" role="dialog" aria-modal="true" aria-labelledby="country-title">
             <h3 id="country-title">Where do you quote?</h3>
-            <p>This sets the GST added to your prices. You can change it later on the Prices tab.</p>
+            <p>We'll set your GST to match. You can change it any time on the Prices tab.</p>
             <div className="country-choices">
               {Object.values(REGIONS).map(r => (
-                <button key={r.code} type="button" className={`btn ${r.code === region.code ? 'btn-primary' : 'btn-quiet'}`}
+                <button key={r.code} type="button" className={`country-choice${r.code === region.code ? ' is-suggested' : ''}`}
                   autoFocus={r.code === region.code} onClick={() => answerCountry(r.code)} data-field={`country-${r.code}`}>
-                  <span>{r.name}</span>
-                  <small>GST {r.gstRate}%</small>
+                  <Flag country={r.code} />
+                  <span className="country-name">{r.name}</span>
+                  <span className="country-rate">GST {r.gstRate}%</span>
                 </button>
               ))}
             </div>
