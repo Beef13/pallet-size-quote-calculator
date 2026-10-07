@@ -71,7 +71,7 @@ const DEMO = typeof window !== 'undefined' && new URLSearchParams(window.locatio
 // It starts with the same labour, markup and placeholder business as the sample quote on the landing page
 const demoStore = new Map(DEMO ? [
   ['timberPrices', JSON.stringify({ pricing: { labourPerPallet: 3, markupPercent: 25 } })],
-  ['palletBusiness', JSON.stringify({ name: 'Example Pallets Pty Ltd', abn: '00 000 000 000', phone: '(03) 0000 0000', email: 'quotes@example.com' })]
+  ['palletBusiness', JSON.stringify({ country: 'AU', name: 'Example Pallets Pty Ltd', abn: '00 000 000 000', phone: '(03) 0000 0000', email: 'quotes@example.com' })]
 ] : [])
 /* The demonstration is for looking round, not for working out a real quote, so the inputs that
    define a job are fixed: the size, the timber and sizes, the prices, labour and markup, the
@@ -94,6 +94,15 @@ function startingCountry() {
     saved = JSON.parse(readStorage('palletBusiness') || 'null')
   } catch (e) { /* unreadable details count as none */ }
   return initialCountry(saved, deviceTimeZone())
+}
+
+// Whether this device has been told which country it quotes in. Until it has, the app asks.
+function countryIsSaved() {
+  try {
+    return !!REGIONS[JSON.parse(readStorage('palletBusiness') || 'null')?.country]
+  } catch (e) {
+    return false
+  }
 }
 
 function readStorage(key) {
@@ -452,6 +461,16 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     // A saved quote being viewed keeps the rates it was issued at
     if (!ratesFromQuote) setPrices(prev => ({ ...prev, pricing: { ...(prev.pricing || DEFAULT_PRICING), gstRate: nextRate } }))
     setCountryNote(`GST rate changed to ${nextRate}%.`)
+  }
+
+  // The first thing a new device is asked: the country decides the GST on every figure, so it
+  // can't wait for someone to open the business details. Asked once; the answer is saved.
+  const [askCountry, setAskCountry] = useState(() => !DEMO && !countryIsSaved())
+  const answerCountry = (code) => {
+    if (code === business.country) updateBusiness('country', code)
+    else changeCountry(code)
+    setCountryNote('')
+    setAskCountry(false)
   }
 
   // Who the current quote is for
@@ -1416,7 +1435,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         const presets = parseStored('palletPresets', [])
         setSavedPresets(Array.isArray(presets) ? presets : [])
       }
-      if (kinds.includes('business')) setBusiness({ ...DEFAULT_BUSINESS, ...(parseStored('palletBusiness', {}) || {}) })
+      if (kinds.includes('business')) {
+        setBusiness({ ...DEFAULT_BUSINESS, ...(parseStored('palletBusiness', {}) || {}) })
+        if (countryIsSaved()) setAskCountry(false) // already answered on another device
+      }
       if (kinds.includes('quotes')) {
         const list = parseStored('palletQuotes', [])
         const next = Array.isArray(list) ? list : []
@@ -2324,6 +2346,15 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                       : 'Price = materials + labour. Add a markup to include your profit.'
                   })()}
                 </p>
+                <label className="field">
+                  <span className="field-label">Country</span>
+                  <select value={region.code} onChange={(e) => changeCountry(e.target.value)} disabled={!!ratesFromQuote} data-field="biz-country">
+                    {Object.values(REGIONS).map(r => <option key={r.code} value={r.code}>{r.name}</option>)}
+                  </select>
+                </label>
+                <p className="hint" role="status">
+                  {countryNote || `Sets the standard GST rate (${region.gstRate}%) and what your tax number is called on quotes.`}
+                </p>
                 <div className="field-row">
                   <label className="field">
                     <span className="field-label">GST rate</span>
@@ -2350,15 +2381,6 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <span className="field-label">Business name</span>
                   <input type="text" value={business.name} onChange={(e) => updateBusiness('name', e.target.value)} placeholder="Shown at the top of customer quotes" data-field="biz-name" />
                 </label>
-                <label className="field">
-                  <span className="field-label">Country</span>
-                  <select value={region.code} onChange={(e) => changeCountry(e.target.value)} data-field="biz-country">
-                    {Object.values(REGIONS).map(r => <option key={r.code} value={r.code}>{r.name}</option>)}
-                  </select>
-                </label>
-                <p className="hint" role="status">
-                  {countryNote || `Sets the standard GST rate (${region.gstRate}%) and what your tax number is called on quotes.`}
-                </p>
                 <div className="field-row">
                   <label className="field">
                     <span className="field-label">{region.idLabel}</span>
@@ -2714,6 +2736,24 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
           <span className="stage-hint">{DEMO && !new URLSearchParams(window.location.search).has('zoom') ? 'Drag to turn' : 'Drag to turn, scroll or pinch to zoom'}</span>
         </div>
       </main>
+
+      {askCountry && (
+        <div className="modal-overlay">
+          <div className="modal country-modal" role="dialog" aria-modal="true" aria-labelledby="country-title">
+            <h3 id="country-title">Where do you quote?</h3>
+            <p>This sets the GST added to your prices. You can change it later on the Prices tab.</p>
+            <div className="country-choices">
+              {Object.values(REGIONS).map(r => (
+                <button key={r.code} type="button" className={`btn ${r.code === region.code ? 'btn-primary' : 'btn-quiet'}`}
+                  autoFocus={r.code === region.code} onClick={() => answerCountry(r.code)} data-field={`country-${r.code}`}>
+                  <span>{r.name}</span>
+                  <small>GST {r.gstRate}%</small>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Printable Quote - only visible when printing */}
       <PrintableQuote quoteData={liveQuote} quantity={quantity} variant={printVariant} quoteRef={quoteRef}
