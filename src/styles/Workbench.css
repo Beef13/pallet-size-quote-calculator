@@ -2876,11 +2876,9 @@ html.dark-mode .status-pill.attention-follow-up {
   height: 8px;
 }
 
-/* ---------- Outlines on the 3D model: a switch, and a line-weight slider while it's on ---------- */
+/* ---------- Controls along the bottom of the 3D view ---------- */
 
-/* Three fixed places along the bottom of the view: top-boards slider on the left, the hint in
-   the middle, outlines on the right. Everything is anchored to the bottom edge and the outlines
-   card has a fixed width, so opening it only grows it upwards and nothing else moves. */
+/* Top-boards slider on the left and the hint in the middle, anchored to the bottom edge. */
 .stage-controls {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -2903,34 +2901,7 @@ html.dark-mode .status-pill.attention-follow-up {
   margin-bottom: 19px;
 }
 
-.range.outline-control {
-  grid-column: 3;
-  justify-self: end;
-  width: 190px;
-  box-sizing: border-box;
-  gap: 0;
-}
-
-.outline-control .switch {
-  font-size: 13px;
-  color: var(--ink);
-}
-
-.outline-weight {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 10px;
-}
-
-/* Too narrow for all three side by side: the hint gives way */
-@media (min-width: 901px) and (max-width: 1280px) {
-  .stage-controls .stage-hint {
-    display: none;
-  }
-}
-
-/* Phones: the two controls share a row so they cover less of the model, hint underneath */
+/* Phones: the slider sits above the hint */
 @media (max-width: 900px) {
   .stage-controls {
     display: flex;
@@ -2945,11 +2916,6 @@ html.dark-mode .status-pill.attention-follow-up {
     width: auto;
     flex: 1 1 0;
     min-width: 0;
-  }
-
-  .stage-controls > .range.outline-control {
-    flex: 0 0 138px;
-    width: 138px;
   }
 
   .stage-controls .stage-hint {

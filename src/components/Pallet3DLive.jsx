@@ -279,7 +279,9 @@ function GhostBoard({ position, size, dark }) {
   )
 }
 
-// Optional drawn outlines on every part: { weight } in screen pixels, or null when switched off
+// Drawn outlines on every part: { weight } in screen pixels. Always on at one fixed weight;
+// pass outline={null} to draw the model without them.
+const DEFAULT_OUTLINE = { weight: 0.6 }
 const OutlineContext = createContext(null)
 
 // The 12 edges of a box centred on the origin, as pairs of points
@@ -307,7 +309,7 @@ function Board({ position, size, color = '#d4a574', ghost = false, dark = false 
   return (
     <mesh position={position} castShadow receiveShadow>
       <boxGeometry args={size} />
-      {/* With outlines on, the faces sit a hair back so the lines along their edges stay crisp */}
+      {/* The faces sit a hair back so the outlines along their edges stay crisp */}
       <meshStandardMaterial
         color={color}
         roughness={0.7}
@@ -593,7 +595,7 @@ function PalletStructure({ previewData, dark = false }) {
 }
 
 // Main Live 3D Component
-function Pallet3DLive({ previewData, dark = false, outline = null }) {
+function Pallet3DLive({ previewData, dark = false, outline = DEFAULT_OUTLINE }) {
   const axisRef = useRef(null)
   return (
     <div className="pallet-3d-live">
