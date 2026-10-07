@@ -1,4 +1,5 @@
 import React from 'react'
+import { regionFor } from '../utils/region'
 import '../styles/PrintableQuote.css'
 import { formatCurrency } from '../utils/calculations'
 import ShopDrawing from './ShopDrawing'
@@ -94,7 +95,7 @@ function PrintableQuote({ quoteData, quantity = 1, variant = 'breakdown', quoteR
           </div>
           <div className="print-business-right">
             {contact.map(c => <span key={c}>{c}</span>)}
-            {business.abn && <span>ABN {business.abn}</span>}
+            {business.abn && <span>{regionFor(business.country).idPrint} {business.abn}</span>}
           </div>
         </div>
       )}

@@ -7,6 +7,7 @@ import LockIcon from './LockIcon'
 import { useBottomSheet, usePhoneLayout } from './useBottomSheet'
 import PrintableQuote from './PrintableQuote'
 import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
+import { REGIONS, regionFor, initialCountry, deviceTimeZone, gstRateForCountryChange } from '../utils/region'
 import { quoteAttention, sentSummary, groupQuotes, quotesByMonth, quotesTotal } from '../utils/quotes'
 import {
   accountsEnabled, googleSignInEnabled, initAccounts, subscribeAccount, getAccountState, setOnApplied,
@@ -19,7 +20,8 @@ const mergeSaved = (saved) => mergePrices(timberData, saved)
 
 const DEFAULT_BUSINESS = {
   name: '',
-  abn: '',
+  abn: '', // the business's tax number: an ABN in Australia, a GST number in New Zealand
+  country: 'AU',
   phone: '',
   email: '',
   address: '',
@@ -83,6 +85,16 @@ const demoLocked = (target) => {
   return el.matches('.lock-button') || /^(Clear|Save as preset|New quote|Unlock all|Lock all|Edit list|Export|Import|Reset|Use )/.test(el.textContent.trim())
 }
 const accountsLive = accountsEnabled && !DEMO
+
+// The country to open with: the saved one, or a guess from the time zone on a device with no
+// business details yet (see initialCountry).
+function startingCountry() {
+  let saved = null
+  try {
+    saved = JSON.parse(readStorage('palletBusiness') || 'null')
+  } catch (e) { /* unreadable details count as none */ }
+  return initialCountry(saved, deviceTimeZone())
+}
 
 function readStorage(key) {
   if (DEMO) {
@@ -332,7 +344,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Price editor state
   const [prices, setPrices] = useState(() => {
     try {
-      return mergeSaved(JSON.parse(readStorage('timberPrices') || 'null'))
+      const saved = JSON.parse(readStorage('timberPrices') || 'null')
+      // Nothing saved yet: start with the GST rate of the country this device looks to be in
+      return mergeSaved(saved || { pricing: { gstRate: regionFor(startingCountry()).gstRate } })
     } catch (e) {
       return mergeSaved(null)
     }
@@ -384,11 +398,12 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // Business details shown on the customer PDF (saved on this device)
   const [business, setBusiness] = useState(() => {
     try {
-      return { ...DEFAULT_BUSINESS, ...(JSON.parse(readStorage('palletBusiness') || 'null') || {}) }
+      return { ...DEFAULT_BUSINESS, ...(JSON.parse(readStorage('palletBusiness') || 'null') || {}), country: startingCountry() }
     } catch (e) {
       return { ...DEFAULT_BUSINESS }
     }
   })
+  const region = regionFor(business.country)
   // Fold the business section away if the details were already filled in when the app opened
   // (decided once, so it doesn't snap shut while the name is being typed)
   const [businessOpenByDefault] = useState(() => !String(business.name || '').trim())
@@ -413,6 +428,30 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       writeStorage('palletBusiness', JSON.stringify(next))
       return next
     })
+  }
+
+  // Changing country also moves the GST rate to that country's standard rate, unless the business
+  // has set a rate of its own. The new rate is saved straight away, apart from any other unsaved
+  // price edits, so quotes can't go out at the old country's rate.
+  const [countryNote, setCountryNote] = useState('')
+  const changeCountry = (code) => {
+    const from = business.country
+    if (code === from || !REGIONS[code]) return
+    updateBusiness('country', code)
+    let saved = null
+    try {
+      saved = JSON.parse(readStorage('timberPrices') || 'null')
+    } catch (e) { /* treated as nothing saved */ }
+    const savedRate = saved?.pricing?.gstRate ?? regionFor(from).gstRate
+    const nextRate = gstRateForCountryChange(savedRate, from, code)
+    if (nextRate === Number(savedRate)) {
+      setCountryNote(`GST rate left at ${nextRate}%, the rate you set.`)
+      return
+    }
+    writeStorage('timberPrices', JSON.stringify({ ...(saved || {}), pricing: { ...(saved?.pricing || {}), gstRate: nextRate } }))
+    // A saved quote being viewed keeps the rates it was issued at
+    if (!ratesFromQuote) setPrices(prev => ({ ...prev, pricing: { ...(prev.pricing || DEFAULT_PRICING), gstRate: nextRate } }))
+    setCountryNote(`GST rate changed to ${nextRate}%.`)
   }
 
   // Who the current quote is for
@@ -2290,7 +2329,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                     <span className="field-label">GST rate</span>
                     <span className="input-unit">
                       <input type="number" min="0" step="0.5" inputMode="decimal" data-field="gst"
-                        value={prices.pricing?.gstRate ?? 10} disabled={pricingLocked}
+                        value={prices.pricing?.gstRate ?? region.gstRate} disabled={pricingLocked}
                         onChange={(e) => handlePricingChange('gstRate', e.target.value)} />
                       <span className="unit">%</span>
                     </span>
@@ -2311,10 +2350,19 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                   <span className="field-label">Business name</span>
                   <input type="text" value={business.name} onChange={(e) => updateBusiness('name', e.target.value)} placeholder="Shown at the top of customer quotes" data-field="biz-name" />
                 </label>
+                <label className="field">
+                  <span className="field-label">Country</span>
+                  <select value={region.code} onChange={(e) => changeCountry(e.target.value)} data-field="biz-country">
+                    {Object.values(REGIONS).map(r => <option key={r.code} value={r.code}>{r.name}</option>)}
+                  </select>
+                </label>
+                <p className="hint" role="status">
+                  {countryNote || `Sets the standard GST rate (${region.gstRate}%) and what your tax number is called on quotes.`}
+                </p>
                 <div className="field-row">
                   <label className="field">
-                    <span className="field-label">ABN</span>
-                    <input type="text" value={business.abn} onChange={(e) => updateBusiness('abn', e.target.value)} placeholder="12 345 678 901" data-field="biz-abn" />
+                    <span className="field-label">{region.idLabel}</span>
+                    <input type="text" value={business.abn} onChange={(e) => updateBusiness('abn', e.target.value)} placeholder={region.idPlaceholder} data-field="biz-abn" />
                   </label>
                   <label className="field">
                     <span className="field-label">Phone</span>

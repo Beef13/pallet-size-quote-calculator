@@ -91,7 +91,7 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 |---|---|
 | `timberPrices` | Saved timber prices and, once edited, the business's own timber list (`listEdited`), plus `pricing: { labourPerPallet, markupPercent, markupType, markupAmount, gstRate, showGst }` |
 | `palletPresets` | Saved pallet designs |
-| `palletBusiness` | Business details: name, ABN, phone, email, address, `validDays` |
+| `palletBusiness` | Business details: name, `country` (`AU` or `NZ`), tax number (stored as `abn` for both countries), phone, email, address, `validDays` |
 | `palletQuotes` | Quote history (see below) |
 | `palletQuoteSeq-{year}` | Highest quote number used each year, so numbers aren't reused after a delete |
 | `palletDarkMode` | Theme |
@@ -135,6 +135,8 @@ total ex    = sell × quantity;  GST = ex × gstRate (if showGst);  inc = ex + G
 **Logo:** `business.logo` is a data URL (shrunk on upload by `readLogo`, under about 350 KB) stored in `palletBusiness` and shown beside the business name on the customer PDF, capped at 10 mm tall so the quote still fits one page.
 
 **Terms and privacy pages:** `terms/index.html` and `privacy/index.html` are extra Vite pages that share the landing styles (`src/landing/legal.js`, `legal.css`). They're linked from the landing footer and from the foot of the Prices tab. The operator's legal name, ABN, contact email and governing state live in `src/landing/operator.js`; anything blank shows on the page as a highlighted "[to be confirmed]". While any are blank, both pages also show a "Draft" banner at the top. The owner has chosen to leave them as placeholders for now. **Don't put these pages live until those are filled in and the owner has had the wording reviewed.** The wording was drafted by an AI, not a lawyer. The privacy page's claims (no accounts, no cookies, no analytics, no outside requests, data only in the browser) were checked against the app; update the page before adding anything that changes them, such as accounts or analytics.
+
+**Country (added 7 Oct 2026, so the app can be used in New Zealand):** "Your business" on the Prices tab has a Country choice, Australia or New Zealand (`src/utils/region.js`, tested in `region.test.js`). It decides two things: the standard GST rate (10% or 15%) and what the tax number is called ("ABN", or "GST number" on screen and "GST No." on the customer PDF). Changing country moves the GST rate to the new country's standard rate and saves it straight away, unless the business had set its own rate, which is left alone. A device with nothing saved yet starts as New Zealand if its time zone is `Pacific/Auckland` or `Pacific/Chatham`; business details saved before this existed are treated as Australian. The number is still stored as `business.abn`. Currency and dates are unchanged (`en-AU` formatting is the same in NZ). To add a country, add an entry to `REGIONS`. Not done: the legal pages still cite Australian law only, and the subscription is priced in AUD only.
 
 **Price lock:** timber and nail prices are locked against accidental edits, each with its own padlock. Labour, markup and GST share one padlock in their section head (lock id `pricing`). Everything starts locked on each visit.
 
