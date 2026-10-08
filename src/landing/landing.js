@@ -388,23 +388,6 @@ window.addEventListener('scroll', () => {
 window.addEventListener('resize', onScroll)
 onScroll()
 
-/* How it works: on wide screens one screen stays in view while the steps scroll
-   past it, changing to match the step nearest the middle of the window. */
-const steps = [...document.querySelectorAll('.flow-step')]
-const shots = [...document.querySelectorAll('.flow-shot')]
-if (steps.length && 'IntersectionObserver' in window) {
-  const show = (index) => {
-    steps.forEach((step, i) => step.classList.toggle('on', i === index))
-    shots.forEach((shot, i) => shot.classList.toggle('on', i === index))
-  }
-  const watcher = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (entry.isIntersecting) show(Number(entry.target.dataset.step))
-    }
-  }, { rootMargin: '-45% 0px -45% 0px' })
-  steps.forEach(step => watcher.observe(step))
-}
-
 /* The demonstration at full size. A pill by each screen opens it; the screen grows
    from where it sits on the page into a window of its own (the laptop's into one nearly
    the size of the display, the phone's into a phone at real size) while the page dims

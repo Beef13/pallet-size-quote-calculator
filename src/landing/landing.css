@@ -6,8 +6,7 @@
    drawn in white like a blueprint.
    The calculator is shown through screenshots taken from it, in light
    and dark. Motion is transform and opacity only: sections rise in as
-   they are reached, the hero screenshot settles as it scrolls up, and
-   the workflow keeps one screen in view while its steps scroll past.
+   they are reached, and the hero screenshot settles as it scrolls up.
    ------------------------------------------------------------------ */
 
 :root {
@@ -1521,231 +1520,49 @@ html.accounts-on .sheet [data-accounts="off"] {
   line-height: 1.35;
 }
 
-/* ---------- How it works ---------- */
-
-.flow {
-  padding: clamp(64px, 9vw, 120px) var(--pad) 0;
-}
-
-.flow-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
-  gap: clamp(28px, 5vw, 72px);
-  align-items: start;
-}
-
-.flow-steps {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* Each step is tall enough that its screen has time on stage as the page scrolls */
-.flow-step {
-  position: relative;
-  display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
-  gap: 18px;
-  align-content: center;
-  min-height: min(58vh, 520px);
-  opacity: 0.38;
-  transition: opacity 0.5s var(--ease);
-}
-
-.flow-step:first-child {
-  align-content: start;
-  min-height: min(44vh, 400px);
-  padding-top: 40px;
-}
-
-.flow-step:last-child {
-  align-content: end;
-  min-height: min(44vh, 400px);
-  padding-bottom: 40px;
-}
-
-.flow-step.on {
-  opacity: 1;
-}
-
-/* A line joins the step numbers */
-.flow-step::before {
-  content: '';
-  position: absolute;
-  left: 22px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--rule);
-}
-
-.flow-step:first-child::before { top: 60px; }
-.flow-step:last-child::before { bottom: 60px; }
-
-.flow-num {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: var(--paper);
-  box-shadow: inset 0 0 0 2px var(--rule);
-  color: var(--ink-2);
-  font-weight: 600;
-  transition: background 0.45s var(--ease), color 0.45s var(--ease), box-shadow 0.45s var(--ease), transform 0.6s var(--ease);
-}
-
-.flow-step.on .flow-num {
-  background: linear-gradient(180deg, var(--blue-mid), var(--blue-top));
-  box-shadow: 0 0 0 6px var(--accent-soft);
-  color: #fff;
-  transform: scale(1.06);
-}
-
-.flow-text {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 8px;
-}
-
-.flow-text h3 {
-  font-size: var(--step-2);
-  font-weight: 500;
-}
-
-.flow-text p {
-  color: var(--ink-2);
-}
-
-/* Only phones show a picture inside each step; wide screens use the stage */
-.flow-inline {
-  display: none;
-}
-
-.flow-stage {
-  position: sticky;
-  top: max(96px, calc(50vh - 240px));
-}
-
-.flow-screen {
-  position: relative;
-  aspect-ratio: 1600 / 1000;
-  box-shadow: 0 0 0 6px var(--ring), 0 40px 80px -44px rgba(27, 87, 220, 0.55);
-}
-
-.flow-shot {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transform: scale(1.025);
-  transition: opacity 0.6s var(--ease), transform 0.9s var(--ease);
-}
-
-.flow-shot.on {
-  opacity: 1;
-  transform: none;
-}
-
-.flow-shot img {
-  height: 100%;
-  object-fit: cover;
-  object-position: top left;
-}
-
-/* The last step shows the two PDFs, fanned like sheets on a desk */
-.flow-papers {
-  background: linear-gradient(160deg, var(--blue-top), var(--blue-mid) 55%, var(--blue-low));
-}
-
-.flow-papers img {
-  position: absolute;
-  top: 9%;
-  width: 37%;
-  height: auto;
-  border-radius: 5px;
-  background: #fff;
-  box-shadow: 0 24px 50px -22px rgba(6, 20, 70, 0.7);
-  transition: transform 0.9s var(--ease) 0.1s;
-}
-
-.flow-papers img:first-child {
-  left: 13%;
-  transform: rotate(-9deg) translateX(20px);
-}
-
-.flow-papers img:last-child {
-  left: 48%;
-  transform: rotate(8deg) translateX(-20px);
-}
-
-.flow-papers.on img:first-child { transform: rotate(-5deg); }
-.flow-papers.on img:last-child { transform: rotate(4deg); }
-
 /* ---------- Features ---------- */
 
 .features {
   padding: clamp(64px, 9vw, 120px) var(--pad) 0;
 }
 
-.feat-grid {
+/* A plain two-column list: a tick, the feature and one line about it */
+.feat-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(16px, 2.4vw, 28px);
-  margin: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px clamp(28px, 5vw, 64px);
+  max-width: 900px;
+  margin: 0 auto;
   padding: 0;
   list-style: none;
 }
 
-.feat {
+.feat-list li {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: clamp(12px, 1.4vw, 16px) clamp(12px, 1.4vw, 16px) clamp(18px, 2vw, 24px);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  background: var(--paper);
-  box-shadow: 0 0 0 5px var(--ring), var(--shadow);
+  gap: 2px;
+  padding-left: 34px;
 }
 
-.feat:hover {
-  box-shadow: 0 0 0 5px var(--ring), 0 30px 54px -28px rgba(27, 87, 220, 0.55);
+.feat-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.12em;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5l2.3 2.3L9.5 3.8'/%3E%3C/svg%3E") center no-repeat,
+    linear-gradient(180deg, var(--blue-mid), var(--blue-top));
 }
 
-.feat-shot {
-  aspect-ratio: 880 / 600;
-  margin-bottom: 10px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: var(--field);
-  box-shadow: inset 0 0 0 1px var(--rule);
-}
-
-.feat-shot img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top left;
-  transition: transform 1.2s var(--ease);
-}
-
-.feat:hover .feat-shot img {
-  transform: scale(1.045);
-}
-
-.feat h3,
-.feat p {
-  padding-inline: 6px;
-}
-
-.feat h3 {
-  font-size: var(--step-1);
+.feat-list strong {
   font-weight: 500;
 }
 
-.feat p {
+.feat-list span {
   color: var(--ink-2);
   font-size: 0.98rem;
 }
@@ -2799,57 +2616,6 @@ html:has(dialog[open]) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .feat-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  /* No stage on narrow screens: each step carries its own picture */
-  .flow-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .flow-stage {
-    display: none;
-  }
-
-  .flow-step,
-  .flow-step:first-child,
-  .flow-step:last-child {
-    min-height: 0;
-    padding-block: 0 44px;
-    opacity: 1;
-    align-content: start;
-  }
-
-  .flow-step:last-child {
-    padding-bottom: 0;
-  }
-
-  .flow-step::before,
-  .flow-step:first-child::before {
-    top: 46px;
-  }
-
-  .flow-step:last-child::before {
-    display: none;
-  }
-
-  .flow-inline {
-    display: block;
-    grid-column: 2;
-    max-width: 420px;
-    margin: 6px 0 0;
-  }
-
-  .flow-inline.flow-papers {
-    position: relative;
-    aspect-ratio: 1.25;
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-
-  .flow-inline.flow-papers img:first-child { transform: rotate(-5deg); }
-  .flow-inline.flow-papers img:last-child { transform: rotate(4deg); }
 }
 
 @media (max-width: 980px) {
@@ -2875,6 +2641,10 @@ html:has(dialog[open]) {
 }
 
 @media (max-width: 640px) {
+  .feat-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   /* The two sample pages show their top half; the full page opens in the viewer */
   .doc-sheet {
     max-height: 300px;
@@ -2896,9 +2666,6 @@ html:has(dialog[open]) {
 }
 
 @media (max-width: 560px) {
-  .feat-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
   /* Phones get the recording made at phone size, shown as a handset */
   .hero-shot .demo {
@@ -2908,25 +2675,6 @@ html:has(dialog[open]) {
     border-radius: 30px;
   }
 
-  .flow-inline:not(.flow-papers) {
-    max-height: 420px;
-  }
-
-  .flow-step {
-    grid-template-columns: 40px minmax(0, 1fr);
-    gap: 14px;
-  }
-
-  .flow-num {
-    width: 40px;
-    height: 40px;
-  }
-
-  .flow-step::before,
-  .flow-step:first-child::before {
-    left: 19px;
-    top: 40px;
-  }
   .measured {
     font-size: clamp(1.9rem, 8.6vw, 3rem);
   }
