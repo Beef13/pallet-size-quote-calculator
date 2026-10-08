@@ -42,19 +42,11 @@
       </header>
 
       <main id="main">
-        <!-- 1. One line, one button, and the calculator in use -->
-        <section class="v2-hero">
-          <p class="eyebrow eyebrow-light">Pallet Quoter</p>
-          <h1>Quote it in minutes. <span>Get on with your day.</span></h1>
-          <p class="v2-lede">Enter the pallet size and pick your timber. The costing, the drawing and the PDF are done for you.</p>
-          <div class="v2-actions">
-            <a class="btn btn-white btn-large" href="../app/index.html">Create a quote</a>
-            <a class="v2-sample" href="../sample-quote.pdf" data-doc="customer">View a sample quote</a>
-          </div>
-          <p class="v2-note"><span data-billing="off">Free to use at present.</span><span data-billing="on">The calculator is free.</span> Nothing to install.</p>
-
-          <div class="v2-shot">
-            <div class="frame demo">
+        <!-- 1. On arrival: the name, one line, and the calculator in use filling the screen.
+             Scrolling shrinks the recording into a window with the words beside it. -->
+        <section class="v2-hero" id="v2-hero">
+          <div class="v2-stage">
+            <div class="v2-video">
               <video id="hero-video" muted loop playsinline preload="none" width="1600" height="1000"
                 poster="/src/landing/img/app-demo-poster-light.webp"
                 aria-label="Screen recording of a 1165 by 1165 pallet being built and priced in Pallet Quoter, ending on the quote for 250 pallets"></video>
@@ -62,6 +54,23 @@
                 <svg class="pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
                 <svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>
               </button>
+            </div>
+
+            <div class="v2-intro">
+              <h1>Pallet Quoter</h1>
+              <p class="v2-tagline">Quote it in minutes. Get on with your day.</p>
+            </div>
+            <span class="v2-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+
+            <div class="v2-side">
+              <p class="eyebrow eyebrow-light">Pallet Quoter</p>
+              <h2>Enter the size. Pick your timber. The rest is done for you.</h2>
+              <p class="v2-lede">The costing, the shop drawing and the PDF, worked out at your own rates while you watch.</p>
+              <div class="v2-actions">
+                <a class="btn btn-white btn-large" href="../app/index.html">Create a quote</a>
+                <a class="v2-sample" href="../sample-quote.pdf" data-doc="customer">View a sample quote</a>
+              </div>
+              <p class="v2-note"><span data-billing="off">Free to use at present.</span><span data-billing="on">The calculator is free.</span> Nothing to install.</p>
             </div>
           </div>
         </section>

@@ -6,6 +6,26 @@ import './v2.css'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+/* The hero: the recording fills the screen on arrival and shrinks into a window as the
+   page is scrolled. One number, --p, goes from 0 to 1 over most of the first screen of
+   scrolling (the rest is a short hold), and the styles work everything out from it. */
+const hero = document.getElementById('v2-hero')
+if (hero) {
+  let queued = false
+  const place = () => {
+    queued = false
+    const room = hero.offsetHeight - window.innerHeight
+    const t = Math.max(0, Math.min(1, window.scrollY / (room * 0.82)))
+    const p = t * t * (3 - 2 * t)
+    hero.style.setProperty('--p', p.toFixed(4))
+    hero.classList.toggle('windowed', p > 0.7)
+  }
+  const ask = () => { if (!queued) { queued = true; requestAnimationFrame(place) } }
+  window.addEventListener('scroll', ask, { passive: true })
+  window.addEventListener('resize', ask)
+  place()
+}
+
 /* "Pallet Quoter ... while you ...": the middle line of each card steps through the
    jobs it does. The cards change one after another, not together, and only while
    they are on screen. With reduced motion the first line simply stays. */

@@ -16,48 +16,175 @@
   color: rgba(255, 255, 255, 0.82);
 }
 
-/* ---------- Hero: a line, a button, the calculator in use ---------- */
+/* ---------- Hero: the recording fills the screen, then becomes a window ----------
+   The section is two screens tall and its stage sticks for the first of them. The
+   script writes --p (0 on arrival, 1 once scrolled) and everything below is worked
+   out from it: the recording shrinks from the whole screen to a window at one side,
+   the name and tagline lift away, and the words and buttons come in beside it.
+   --ew / --eh are the window's final size, --er / --ey its final right and top. */
 
-.v2-hero {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(14px, 1.8vw, 22px);
-  padding: clamp(44px, 7vw, 96px) var(--pad) 0;
-  color: #fff;
-  text-align: center;
+.v2 .sheet .nav {
+  position: fixed;
+  inset: 0 0 auto;
 }
 
-/* The blue panel stops short of the bottom, so the recording hangs over its edge */
-.v2-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 clamp(60px, 14vw, 200px);
-  z-index: -1;
-  border-radius: var(--radius-lg);
+/* Over the recording, before any scrolling, the top bar is drawn in white */
+.v2 .nav:not(.scrolled) .brand,
+.v2 .nav:not(.scrolled) .nav-link,
+.v2 .nav:not(.scrolled) .nav-links a {
+  color: #fff;
+}
+
+.v2 .nav:not(.scrolled) .theme-toggle {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.v2-hero {
+  --p: 0;
+  width: 100vw;
+  height: 200vh;
+  height: 200svh;
+  margin-left: calc(50% - 50vw);
+}
+
+.v2-stage {
+  --ew: min(52vw, (100svh - 170px) * 1.6);
+  --eh: calc(var(--ew) * 0.625);
+  --er: 4vw;
+  --ey: calc(50svh - var(--eh) / 2 + 24px);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  color: #fff;
   background:
     linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 100% 64px,
     linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px) 50% 0 / 64px 100%,
     linear-gradient(180deg, var(--panel-top) 0%, var(--panel-mid) 60%, var(--panel-low) 100%);
 }
 
-.v2-hero h1 {
-  max-width: 14em;
-  font-size: clamp(2.5rem, 1rem + 6vw, 5.5rem);
-  font-weight: 500;
-  letter-spacing: -0.045em;
-  line-height: 0.98;
+.v2-video {
+  position: absolute;
+  top: calc(var(--p) * var(--ey));
+  right: calc(var(--p) * var(--er));
+  width: calc((1 - var(--p)) * 100% + var(--p) * var(--ew));
+  height: calc((1 - var(--p)) * 100% + var(--p) * var(--eh));
+  overflow: hidden;
+  border-radius: calc(var(--p) * 20px);
+  background: #0b1020;
+  box-shadow:
+    0 0 0 calc(var(--p) * 6px) rgba(255, 255, 255, 0.35),
+    0 40px 80px -40px rgba(8, 20, 60, 0.7);
 }
 
-.v2-hero h1 span {
-  display: block;
-  color: rgba(255, 255, 255, 0.72);
+.v2-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+}
+
+/* A dark wash so the name reads over the recording; it clears as the window forms */
+.v2-video::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(8, 16, 44, 0.74), rgba(8, 16, 44, 0.6));
+  opacity: calc(1 - var(--p) * 1.6);
+  pointer-events: none;
+}
+
+.v2-video .demo-toggle {
+  z-index: 1;
+}
+
+.v2-intro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 20px);
+  padding: 0 var(--gutter);
+  text-align: center;
+  opacity: calc(1 - var(--p) * 2.6);
+  transform: translateY(calc(var(--p) * -70px));
+  pointer-events: none;
+}
+
+.v2-intro h1 {
+  font-size: clamp(3rem, 1rem + 9vw, 8rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  text-shadow: 0 2px 40px rgba(4, 10, 30, 0.5);
+}
+
+.v2-tagline {
+  font-size: clamp(1.2rem, 0.9rem + 1.5vw, 2rem);
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 24px rgba(4, 10, 30, 0.6);
+}
+
+/* A small arrow at the foot: there is more below */
+.v2-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 78px;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  opacity: calc(0.85 - var(--p) * 6);
+  animation: cue 1.8s ease-in-out infinite;
+}
+
+.v2-cue svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes cue {
+  50% { transform: translateY(7px); }
+}
+
+/* The words beside the window */
+.v2-side {
+  position: absolute;
+  top: 50%;
+  left: max(4vw, 50vw - 660px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(12px, 1.5vw, 20px);
+  width: calc(100% - var(--ew) - var(--er) - max(4vw, 50vw - 660px) - 4vw);
+  max-width: 30em;
+  opacity: calc((var(--p) - 0.5) * 2.4);
+  transform: translateY(calc(-50% + 24px + (1 - var(--p)) * 40px));
+  pointer-events: none;
+}
+
+.v2-hero.windowed .v2-side {
+  pointer-events: auto;
+}
+
+.v2-side h2 {
+  font-size: clamp(1.8rem, 1rem + 2vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
 }
 
 .v2-lede {
-  max-width: 30em;
   font-size: var(--step-1);
   color: rgba(255, 255, 255, 0.9);
 }
@@ -66,9 +193,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
   gap: 12px 24px;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .v2-sample {
@@ -80,17 +206,6 @@
 .v2-note {
   font-size: var(--step--1);
   color: rgba(255, 255, 255, 0.78);
-}
-
-.v2-shot {
-  width: 100%;
-  max-width: 1040px;
-  margin-top: clamp(20px, 3.4vw, 44px);
-}
-
-.v2-shot .frame {
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.35), 0 40px 80px -40px rgba(16, 40, 110, 0.6);
-  animation: arrive 1s var(--ease) 0.3s backwards;
 }
 
 /* ---------- While you get on with the job ---------- */
@@ -381,21 +496,52 @@
   }
 }
 
-@media (max-width: 560px) {
-  /* Phones get the recording made at phone size, shown as a handset */
-  .v2-shot .demo {
-    width: min(300px, 82%);
-    margin-inline: auto;
-    aspect-ratio: 720 / 1292;
-    border-radius: 30px;
+/* Narrow screens: the words sit above, the window below them */
+@media (max-width: 900px) {
+  .v2-stage {
+    --ew: calc(100% - 32px);
+    --eh: calc((100vw - 32px) * 0.625);
+    --er: 16px;
+    --ey: calc(100svh - var(--eh) - 28px);
   }
 
-  .v2-hero::before {
-    inset-block-end: 220px;
+  .v2-side {
+    top: 84px;
+    left: 20px;
+    width: calc(100% - 40px);
+    max-width: 34em;
+    transform: translateY(calc((1 - var(--p)) * 30px));
+  }
+}
+
+@media (max-width: 560px) {
+  /* Phones get the recording made at phone size; its window is a handset */
+  .v2-stage {
+    --eh: 50svh;
+    --ew: calc(50svh * 720 / 1292);
+    --er: calc(50% - var(--ew) / 2);
+    --ey: calc(100svh - var(--eh) - 22px);
+  }
+
+  .v2-video {
+    border-radius: calc(var(--p) * 30px);
+  }
+
+  .v2-side {
+    gap: 10px;
+  }
+
+  .v2-lede,
+  .v2-side .eyebrow {
+    display: none;
+  }
+
+  .v2-side h2 {
+    font-size: 1.7rem;
   }
 
   .v2-actions .btn {
-    width: 100%;
+    height: 48px;
   }
 
   .tab strong {

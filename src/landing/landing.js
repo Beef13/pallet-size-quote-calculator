@@ -82,7 +82,7 @@ if (video) {
     toggle.setAttribute('aria-label', label)
     toggle.title = held ? 'Play' : 'Pause'
   }
-  const play = () => { if (!held && onScreen && !live.matches) video.play().catch(() => {}) }
+  const play = () => { if (!held && onScreen && !(live.matches && frame)) video.play().catch(() => {}) }
 
   // The calculator: fetched once, when the page has finished loading and is idle
   let asked = false
