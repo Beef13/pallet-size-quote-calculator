@@ -25,6 +25,9 @@
   --blue-top: #1b57dc;
   --blue-mid: #3b82ee;
   --blue-low: #86b8f8;
+  --panel-top: #184bc9;
+  --panel-mid: #2260d8;
+  --panel-low: #3373e4;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 22px 44px -26px rgba(27, 87, 220, 0.4);
 
   --font: 'Outfit Variable', 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -39,6 +42,7 @@
   --wrap: 1180px;
   --gutter: clamp(16px, 4vw, 40px);
   --pad: clamp(18px, 4.2vw, 56px);
+  --section: clamp(60px, 8.5vw, 112px);
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -59,6 +63,9 @@
     --blue-top: #1746b8;
     --blue-mid: #2563d9;
     --blue-low: #3f7fe6;
+    --panel-top: #1746b8;
+    --panel-mid: #2563d9;
+    --panel-low: #3f7fe6;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 22px 44px -24px rgba(0, 0, 0, 0.8);
     color-scheme: dark;
   }
@@ -80,6 +87,9 @@
   --blue-top: #1746b8;
   --blue-mid: #2563d9;
   --blue-low: #3f7fe6;
+  --panel-top: #1746b8;
+  --panel-mid: #2563d9;
+  --panel-low: #3f7fe6;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 22px 44px -24px rgba(0, 0, 0, 0.8);
   color-scheme: dark;
 }
@@ -435,7 +445,7 @@ html.accounts-on .sheet [data-accounts="off"] {
   background:
     linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 100% 64px,
     linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px) 50% 0 / 64px 100%,
-    linear-gradient(180deg, var(--blue-top) 0%, var(--blue-mid) 52%, var(--blue-low) 100%);
+    linear-gradient(180deg, var(--panel-top) 0%, var(--panel-mid) 52%, var(--panel-low) 100%);
 }
 
 /* Glass blocks stepping up from the lower corners of the panel */
@@ -697,7 +707,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 }
 
 .hero-note {
-  max-width: 30em;
+  max-width: 35em;
   font-size: var(--step--1);
   color: rgba(255, 255, 255, 0.85);
 }
@@ -1238,6 +1248,8 @@ html.accounts-on .sheet [data-accounts="off"] {
 .section-title {
   font-size: var(--step-3);
   font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
 }
 
 .section-title em {
@@ -1254,7 +1266,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 
 /* The panel spans the same width as the hero's */
 .anywhere {
-  padding: clamp(64px, 9vw, 120px) var(--pad) 0;
+  padding: var(--section) var(--pad) 0;
 }
 
 /* The same blue panel as the hero: ruled grid, top-to-bottom gradient and the glass
@@ -1270,7 +1282,7 @@ html.accounts-on .sheet [data-accounts="off"] {
   background:
     linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 100% 64px,
     linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px) 50% 0 / 64px 100%,
-    linear-gradient(180deg, var(--blue-top) 0%, var(--blue-mid) 52%, var(--blue-low) 100%);
+    linear-gradient(180deg, var(--panel-top) 0%, var(--panel-mid) 52%, var(--panel-low) 100%);
   color: #fff;
 }
 
@@ -1523,7 +1535,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 /* ---------- Features ---------- */
 
 .features {
-  padding: clamp(64px, 9vw, 120px) var(--pad) 0;
+  padding: var(--section) var(--pad) 0;
 }
 
 /* A plain two-column list: a tick, the feature and one line about it */
@@ -1570,7 +1582,7 @@ html.accounts-on .sheet [data-accounts="off"] {
 /* ---------- The two documents ---------- */
 
 .docs {
-  padding: clamp(64px, 9vw, 120px) var(--pad) 0;
+  padding: var(--section) var(--pad) 0;
 }
 
 .docs-grid {
@@ -2041,7 +2053,7 @@ html:has(dialog[open]) {
 /* ---------- What the price includes ---------- */
 
 .covers {
-  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
+  padding: var(--section) var(--pad) 0;
 }
 
 .covers-grid {
@@ -2072,7 +2084,7 @@ html:has(dialog[open]) {
 /* ---------- Coming next: crates ---------- */
 
 .soon {
-  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
+  padding: var(--section) var(--pad) 0;
 }
 
 .soon-card {
@@ -2185,7 +2197,7 @@ html:has(dialog[open]) {
 /* ---------- Founding offer ---------- */
 
 .founding {
-  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
+  padding: var(--section) var(--pad) 0;
 }
 
 .founding-card {
@@ -2193,7 +2205,7 @@ html:has(dialog[open]) {
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   align-items: center;
   gap: clamp(24px, 4vw, 56px);
-  max-width: 960px;
+  max-width: 900px;
   margin-inline: auto;
   padding: clamp(24px, 4vw, 48px);
   border: 1px solid var(--accent);
@@ -2282,8 +2294,19 @@ html:has(dialog[open]) {
   font-size: var(--step--1);
 }
 
+/* The founding offer under the Pro button: a soft pill, not a third underlined link */
 .tier-founding {
-  margin-top: 6px;
+  align-self: center;
+  margin-top: 14px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.tier-founding:hover {
+  background: var(--rule);
 }
 
 @media (max-width: 760px) {
@@ -2304,7 +2327,7 @@ html:has(dialog[open]) {
 /* ---------- Plans and pricing ---------- */
 
 .pricing {
-  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
+  padding: var(--section) var(--pad) 0;
 }
 
 .tiers {
@@ -2361,9 +2384,9 @@ html:has(dialog[open]) {
 .tier-price {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px;
-  min-height: 3.6rem;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 5.25rem;
   margin-top: 14px;
 }
 
@@ -2385,7 +2408,7 @@ html:has(dialog[open]) {
 
 .tier-terms {
   min-height: 4.8em;
-  margin-top: 6px;
+  margin-top: 8px;
   color: var(--ink-2);
   font-size: var(--step--1);
 }
@@ -2444,7 +2467,7 @@ html:has(dialog[open]) {
 .faq {
   max-width: 900px;
   margin-inline: auto;
-  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
+  padding: var(--section) var(--pad) 0;
 }
 
 .faq-list {
@@ -2506,13 +2529,13 @@ html:has(dialog[open]) {
   flex-direction: column;
   align-items: center;
   gap: clamp(20px, 2.6vw, 30px);
-  margin-top: clamp(56px, 8vw, 104px);
-  padding: clamp(56px, 8vw, 104px) var(--pad);
+  margin-top: var(--section);
+  padding: var(--section) var(--pad);
   border-radius: var(--radius-lg);
   background:
     linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 100% 64px,
     linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px) 50% 0 / 64px 100%,
-    linear-gradient(180deg, var(--blue-top) 0%, var(--blue-mid) 60%, var(--blue-low) 100%);
+    linear-gradient(180deg, var(--panel-top) 0%, var(--panel-mid) 60%, var(--panel-low) 100%);
   color: #fff;
   text-align: center;
 }
