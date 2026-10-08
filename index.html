@@ -404,6 +404,33 @@
           </div>
         </section>
 
+        <!-- Founding offer: the first 10 Pro subscribers pay $29 per month. The limit is real: the
+             FOUNDING promo code in Stripe stops after 10 uses. Remove this section, the line on the
+             Pro card and the clause in the terms once the 10 places are taken. -->
+        <section class="founding" id="founding" aria-labelledby="founding-title" data-billing="on">
+          <div class="founding-card" data-reveal>
+            <div class="founding-copy">
+              <span class="founding-badge">Founding offer</span>
+              <h2 id="founding-title" class="section-title">Pro for $29 per month, <em>for good</em></h2>
+              <p>The first 10 businesses to subscribe to Pro pay $29 per month instead of $49. The price stays at $29 for as long as the subscription continues.</p>
+              <ul class="ticks">
+                <li>Everything in Pro: an account, online backup and the same data on every device</li>
+                <li>$20 less every month, with no end date</li>
+                <li>No contract, and you can cancel at any time</li>
+              </ul>
+              <a class="btn btn-primary btn-large" data-pay-founding href="#pricing">Claim the founding price</a>
+              <p class="fine">The code <strong class="founding-code">FOUNDING</strong> is applied at the checkout, which shows $29 before you pay. The offer applies to the monthly subscription only and ends when 10 businesses have taken it. If you cancel, the founding price is not held for you.</p>
+            </div>
+            <div class="founding-ticket" aria-hidden="true">
+              <span class="founding-was">$49</span>
+              <span class="founding-now">$29</span>
+              <span class="founding-per">per month</span>
+              <span class="founding-rule"></span>
+              <span class="founding-places">10 places</span>
+            </div>
+          </div>
+        </section>
+
         <!-- Plans: only in builds with a payment link (VITE_STRIPE_PAYMENT_LINK) -->
         <section class="pricing" id="pricing" aria-labelledby="pricing-title" data-billing="on">
           <div class="section-head" data-reveal>
@@ -434,6 +461,7 @@
               <p class="tier-terms">Cancel at any time; the subscription runs to the end of the month or year already paid for. Part periods are not refunded.</p>
               <a class="btn btn-primary" data-pay href="./app/index.html">Subscribe monthly</a>
               <a class="tier-alt" data-pay-yearly href="./app/index.html">Pay yearly and get two months free</a>
+              <a class="tier-alt tier-founding" href="#founding">Founding offer: $29 per month for the first 10 businesses</a>
               <p class="tier-plus">Everything in Free, and:</p>
               <ul class="ticks">
                   <li>An account, with login by email</li>

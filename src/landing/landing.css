@@ -2365,6 +2365,125 @@ html:has(dialog[open]) {
   }
 }
 
+/* ---------- Founding offer ---------- */
+
+.founding {
+  padding: clamp(56px, 8vw, 104px) var(--pad) 0;
+}
+
+.founding-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 56px);
+  max-width: 960px;
+  margin-inline: auto;
+  padding: clamp(24px, 4vw, 48px);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  box-shadow: 0 0 0 5px var(--accent-soft), var(--shadow);
+}
+
+.founding-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.founding-badge {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+
+.founding-copy p {
+  color: var(--ink-2);
+}
+
+.founding-copy .ticks {
+  margin: 0;
+}
+
+.founding-code {
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* The price ticket: the usual price struck through above the founding price */
+.founding-ticket {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 260px;
+  padding: 28px 24px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  text-align: center;
+}
+
+.founding-was {
+  color: var(--ink-2);
+  font-size: var(--step-1);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.founding-now {
+  color: var(--accent);
+  font-size: clamp(3.5rem, 9vw, 5.25rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.founding-per {
+  margin-top: 6px;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.founding-rule {
+  width: 100%;
+  margin: 18px 0 14px;
+  border-top: 1px dashed var(--accent);
+  opacity: 0.5;
+}
+
+.founding-places {
+  color: var(--ink-2);
+  font-size: var(--step--1);
+}
+
+.tier-founding {
+  margin-top: 6px;
+}
+
+@media (max-width: 760px) {
+  .founding-card {
+    grid-template-columns: 1fr;
+  }
+
+  .founding-ticket {
+    order: -1;
+    max-width: none;
+  }
+
+  .founding-copy .btn {
+    align-self: stretch;
+  }
+}
+
 /* ---------- Plans and pricing ---------- */
 
 .pricing {

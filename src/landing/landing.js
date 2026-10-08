@@ -31,6 +31,10 @@ for (const node of document.querySelectorAll('[data-billing]')) {
   if ((node.dataset.billing === 'on') !== Boolean(payLink)) node.remove()
 }
 for (const node of document.querySelectorAll('[data-pay]')) node.href = payLink
+// The founding offer goes to the same monthly checkout with its promo code already entered
+// (Stripe payment links read `prefilled_promo_code`; the link must allow promotion codes)
+const foundingLink = payLink && `${payLink}${payLink.includes('?') ? '&' : '?'}prefilled_promo_code=FOUNDING`
+for (const node of document.querySelectorAll('[data-pay-founding]')) node.href = foundingLink
 // The yearly price is optional: with no yearly link, the page only mentions the monthly price
 const payLinkYearly = import.meta.env.VITE_STRIPE_PAYMENT_LINK_YEARLY || ''
 for (const node of document.querySelectorAll('[data-pay-yearly]')) {
