@@ -11,6 +11,8 @@ export default defineConfig({
       // Landing page at the site root, the calculator at /app/, legal pages at /terms/ and /privacy/
       input: {
         main: resolve(__dirname, 'index.html'),
+        // A second landing page layout, kept beside the first for comparison
+        v2: resolve(__dirname, 'v2/index.html'),
         app: resolve(__dirname, 'app/index.html'),
         terms: resolve(__dirname, 'terms/index.html'),
         privacy: resolve(__dirname, 'privacy/index.html')

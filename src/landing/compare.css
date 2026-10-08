@@ -1,0 +1,45 @@
+/* The switch between the two landing page layouts (see compare.js) */
+.compare {
+  position: fixed;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  box-shadow: 0 10px 30px -12px rgba(16, 24, 40, 0.45);
+  font-size: 0.875rem;
+  transform: translateX(-50%);
+}
+
+.compare span {
+  padding: 0 8px 0 12px;
+  color: var(--ink-2);
+}
+
+.compare a {
+  padding: 7px 14px;
+  border-radius: 999px;
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.compare a:hover {
+  background: var(--field);
+}
+
+.compare a[aria-current] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+@media print {
+  .compare { display: none; }
+}

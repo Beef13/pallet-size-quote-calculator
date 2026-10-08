@@ -14,6 +14,10 @@ import phoneDarkWebm from './img/app-demo-phone-dark.webm'
 import phonePosterLight from './img/app-demo-phone-poster-light.webp'
 import phonePosterDark from './img/app-demo-phone-poster-dark.webp'
 import { operator } from './operator'
+import { mountCompare } from './compare'
+
+// The switch between the two landing page layouts, while both are being compared
+mountCompare()
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const root = document.documentElement
@@ -83,7 +87,7 @@ if (video) {
   // The calculator: fetched once, when the page has finished loading and is idle
   let asked = false
   const fit = () => { frame.style.transform = `scale(${demo.clientWidth / 1760})` }
-  const quiet = () => { demo.classList.remove('live'); frame.tabIndex = -1 }
+  const quiet = () => { demo.classList.remove('live'); if (frame) frame.tabIndex = -1 }
   const loadApp = () => {
     if (asked || !frame) return
     asked = true
@@ -491,7 +495,9 @@ if (expand && devices && typeof expand.showModal === 'function') {
    Without script, the links still open the PDFs directly. */
 const viewer = document.getElementById('viewer')
 if (viewer && typeof viewer.showModal === 'function') {
-  const files = { customer: './sample-quote.pdf', breakdown: './sample-breakdown.pdf' }
+  // The trial layout lives one folder down, at /v2/
+  const up = document.body.classList.contains('v2') ? '../' : './'
+  const files = { customer: `${up}sample-quote.pdf`, breakdown: `${up}sample-breakdown.pdf` }
   const pages = [...viewer.querySelectorAll('.viewer-page')]
   const download = document.getElementById('viewer-dl')
   const stage = document.getElementById('viewer-body')

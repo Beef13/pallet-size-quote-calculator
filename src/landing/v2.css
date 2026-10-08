@@ -1,0 +1,404 @@
+/* ------------------------------------------------------------------
+   The shorter landing page (/v2/). Same colours, type, buttons, cards
+   and top bar as the first page (landing.css); these are only the
+   sections that are new here. Few words, large type, one idea a screen.
+   ------------------------------------------------------------------ */
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.eyebrow-light {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ---------- Hero: a line, a button, the calculator in use ---------- */
+
+.v2-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 1.8vw, 22px);
+  padding: clamp(44px, 7vw, 96px) var(--pad) 0;
+  color: #fff;
+  text-align: center;
+}
+
+/* The blue panel stops short of the bottom, so the recording hangs over its edge */
+.v2-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 clamp(60px, 14vw, 200px);
+  z-index: -1;
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 100% 64px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px) 50% 0 / 64px 100%,
+    linear-gradient(180deg, var(--panel-top) 0%, var(--panel-mid) 60%, var(--panel-low) 100%);
+}
+
+.v2-hero h1 {
+  max-width: 14em;
+  font-size: clamp(2.5rem, 1rem + 6vw, 5.5rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.v2-hero h1 span {
+  display: block;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.v2-lede {
+  max-width: 30em;
+  font-size: var(--step-1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.v2-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 24px;
+  margin-top: 8px;
+}
+
+.v2-sample {
+  color: #fff;
+  font-weight: 500;
+  text-underline-offset: 4px;
+}
+
+.v2-note {
+  font-size: var(--step--1);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.v2-shot {
+  width: 100%;
+  max-width: 1040px;
+  margin-top: clamp(20px, 3.4vw, 44px);
+}
+
+.v2-shot .frame {
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.35), 0 40px 80px -40px rgba(16, 40, 110, 0.6);
+  animation: arrive 1s var(--ease) 0.3s backwards;
+}
+
+/* ---------- While you get on with the job ---------- */
+
+.while,
+.tabs-section,
+.control {
+  padding-top: var(--section);
+}
+
+.while .section-title {
+  max-width: 16em;
+}
+
+.while-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
+}
+
+.while-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: clamp(440px, 46vw, 580px);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--panel-top) 0%, var(--panel-mid) 55%, var(--panel-low) 100%);
+  color: #fff;
+}
+
+.while-line {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: clamp(22px, 2.6vw, 34px) clamp(20px, 2.4vw, 30px) 0;
+  font-size: clamp(1.45rem, 1rem + 1.35vw, 2.05rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.while-who,
+.while-you {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.while-what {
+  transition: opacity 0.26s ease, transform 0.26s var(--ease);
+}
+
+.while-what.out {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* The screen it happens on, rising out of the foot of the card */
+.while-shot {
+  flex: 1;
+  position: relative;
+  min-height: 200px;
+  margin: clamp(20px, 2.4vw, 30px) clamp(20px, 2.4vw, 30px) 0;
+  overflow: hidden;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.22);
+}
+
+.while-shot img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 12%;
+}
+
+.while-shot-sheet {
+  background: #fff;
+}
+
+.while-shot-sheet img {
+  object-position: 0 0;
+}
+
+/* ---------- Features: a list and one picture ---------- */
+
+.tabs {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: clamp(20px, 4vw, 56px);
+}
+
+.tabs-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab {
+  display: grid;
+  grid-template-rows: auto 0fr;
+  padding: 20px 0 20px 22px;
+  border: 0;
+  border-left: 2px solid var(--rule);
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: grid-template-rows 0.4s var(--ease), border-color 0.25s ease, color 0.25s ease;
+}
+
+.tab strong {
+  font-size: var(--step-2);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.tab span {
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tab span::before {
+  content: '';
+  display: block;
+  height: 8px;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab[aria-selected="true"] {
+  grid-template-rows: auto 1fr;
+  border-left-color: var(--accent);
+  color: var(--ink);
+}
+
+.tab[aria-selected="true"] span {
+  opacity: 1;
+  color: var(--ink-2);
+}
+
+.tabs-stage {
+  aspect-ratio: 16 / 10;
+  background: var(--field);
+}
+
+.pane {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  animation: pane-in 0.45s var(--ease);
+}
+
+.pane img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 0 0;
+}
+
+.pane-sheet {
+  padding: 3%;
+  background: #fff;
+}
+
+.pane-sheet img {
+  object-fit: contain;
+  object-position: 50% 50%;
+}
+
+@keyframes pane-in {
+  from { opacity: 0; transform: scale(0.985); }
+}
+
+/* ---------- In your control ---------- */
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
+}
+
+.control-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: clamp(18px, 2.4vw, 30px);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  box-shadow: 0 0 0 5px var(--ring), var(--shadow);
+}
+
+.control-art {
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 10px;
+  border-radius: var(--radius);
+  background: var(--field);
+}
+
+.control-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 0 30%;
+}
+
+/* The sample quote, shown as a page lying on the card */
+.control-art-doc {
+  padding: 6% 16% 0;
+}
+
+.control-art-doc img {
+  height: auto;
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 10px 30px -10px rgba(16, 24, 40, 0.35);
+}
+
+.control-card h3 {
+  font-size: var(--step-2);
+  font-weight: 500;
+}
+
+.control-card p {
+  color: var(--ink-2);
+}
+
+.control-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.control-links a {
+  color: var(--accent);
+  font-weight: 500;
+  text-underline-offset: 4px;
+}
+
+.contact-line {
+  margin-top: 24px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.contact-line a {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Room at the foot of the page for the layout switch */
+.v2 .footer {
+  padding-bottom: 84px;
+}
+
+/* ---------- Narrower screens ---------- */
+
+@media (max-width: 900px) {
+  .while-grid,
+  .control-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .while-card {
+    min-height: 0;
+  }
+
+  .while-shot {
+    flex: none;
+    height: 240px;
+  }
+
+  /* The picture first, then the list under it */
+  .tabs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tabs-stage {
+    order: -1;
+  }
+}
+
+@media (max-width: 560px) {
+  /* Phones get the recording made at phone size, shown as a handset */
+  .v2-shot .demo {
+    width: min(300px, 82%);
+    margin-inline: auto;
+    aspect-ratio: 720 / 1292;
+    border-radius: 30px;
+  }
+
+  .v2-hero::before {
+    inset-block-end: 220px;
+  }
+
+  .v2-actions .btn {
+    width: 100%;
+  }
+
+  .tab strong {
+    font-size: var(--step-1);
+  }
+}
