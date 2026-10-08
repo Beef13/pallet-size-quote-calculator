@@ -1,4 +1,4 @@
-// Who runs Pallet Quote. Shown on the Terms of use and Privacy pages.
+// Who runs Pallet Quoter. Shown on the Terms of use and Privacy pages.
 // Fill these in before the legal pages go live: anything left blank shows as "[to be confirmed]".
 export const operator = {
   name: 'Saverio Curcio',     // legal name of the business or person, e.g. "Example Pallets Pty Ltd"

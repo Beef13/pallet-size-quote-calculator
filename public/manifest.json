@@ -1,5 +1,5 @@
 {
-  "name": "Pallet Quote",
+  "name": "Pallet Quoter",
   "short_name": "Pallet Calc",
   "description": "Calculate quotes for timber pallets with 3D visualization",
   "start_url": "./app/",

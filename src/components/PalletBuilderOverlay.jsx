@@ -1817,7 +1817,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
             <rect x="3" y="17" width="18" height="2.5" rx="1" />
           </svg>
         </span>
-        <span className="brand-mark">Pallet quote</span>
+        <span className="brand-mark">Pallet Quoter</span>
       </div>
       <div className="header-total" aria-hidden="true">
         <span>{totalLabel}</span>
@@ -2660,7 +2660,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 <h3 id="account-title">{accountMode === 'signup' ? 'Create your account' : 'Log in to back up and sync'}</h3>
                 <p>{accountMode === 'signup'
                   ? 'Enter your email and we will send you a link to get started. Your prices, presets and quotes are then saved to your account and kept in step across your devices.'
-                  : 'Your prices, presets and quotes are saved to your account and kept in step across your devices. Pallet Quote still works without logging in.'}</p>
+                  : 'Your prices, presets and quotes are saved to your account and kept in step across your devices. Pallet Quoter still works without logging in.'}</p>
                 {signInState.sent ? (
                   <>
                     <p className="account-sent" role="status">Check your inbox at <strong>{signInEmail.trim()}</strong> for a link. Open it on this device to finish.</p>

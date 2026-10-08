@@ -47,7 +47,7 @@ for (const node of document.querySelectorAll('[data-pay-yearly]')) {
 }
 if (!payLinkYearly) for (const node of document.querySelectorAll('[data-pay-yearly-text]')) node.remove()
 for (const node of document.querySelectorAll('[data-interest]')) {
-  node.href = `mailto:${operator.email}?subject=${encodeURIComponent('Custom Pallet Quote for our business')}`
+  node.href = `mailto:${operator.email}?subject=${encodeURIComponent('Custom Pallet Quoter for our business')}`
 }
 
 /* The hero picture.

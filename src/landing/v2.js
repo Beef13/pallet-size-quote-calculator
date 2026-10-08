@@ -6,7 +6,7 @@ import './v2.css'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-/* "Pallet Quote ... while you ...": the middle line of each card steps through the
+/* "Pallet Quoter ... while you ...": the middle line of each card steps through the
    jobs it does. The cards change one after another, not together, and only while
    they are on screen. With reduced motion the first line simply stays. */
 const lines = [...document.querySelectorAll('[data-rotate]')]
