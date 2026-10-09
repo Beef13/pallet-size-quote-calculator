@@ -22,6 +22,7 @@ The app is local-first: there's no backend and no accounts. All data is stored i
 | `main` | **Live.** Pushing to `main` runs the price tests, builds and deploys GitHub Pages (`.github/workflows/deploy.yml`) at https://beef13.github.io/pallet-size-quote-calculator/ (landing page) and `/app/` (calculator). **Don't push or merge to `main` without the owner's explicit OK each time.** |
 | `main` (7 Oct 2026) | The owner asked for the current **app** to go live without the new landing page. `main` now has the app, styles, sync and utils from `landing-live-demo`, with the older landing, terms and privacy pages left as they were. The animated landing page and the pricing section are still only on `landing-live-demo`. |
 | `go-live` | **Go-live candidate (9 Oct 2026).** `landing-v2-compare` plus the fixes found in the pre-launch review (see section 5b). This is the branch to merge to `main` once the owner approves. |
+| `copy-editor` | **Copy editor (10 Oct 2026).** `main` plus the local-only page for rewriting the site's wording (section 5c). No change to anything that is built or deployed. Not merged: ask the owner first, because a push to `main` redeploys. |
 | `landing-v2-compare` | `landing-live-demo` plus the second landing layout at `/v2/`, the rename to Pallet Quoter and the full-screen recording on `/v2/`. Superseded by `go-live`. |
 | `landing-live-demo` | **Working branch from 6 Oct 2026.** Has everything: the animated landing page (3D laptop, phone section, live demo), the app changes from `fix/quote-calculator-bugs` (phone layout, grouped History, Quote tab) and the $49 / $490 / Custom pricing. Do new work here, then ask the owner before merging to `main`. |
 | `fix/quote-calculator-bugs` | **Superseded.** Merged into `landing-live-demo` on 6 Oct 2026. It has the older landing page; don't add to it. |
@@ -67,6 +68,7 @@ src/styles/PrintableQuote.css Print CSS (A4, 10mm margins, drawing at exactly 16
 public/sw.js               Service worker 'pallet-calc-v3': same-origin GET, network-first
 public/manifest.json       PWA manifest, start_url ./app/
 vite.config.js             Multi-page inputs (main, app); base from BASE_PATH, default /pallet-size-quote-calculator/
+tools/copy-editor/         Local-only page for editing the site's wording (`npm run editor`); see section 5c
 ```
 
 The old Markdown guides in the root (`PROJECT_SUMMARY.md`, `IMPLEMENTATION_GUIDE.md`, `UPDATE_NOTES.md` and so on) are out of date. This file is the current reference.
@@ -195,6 +197,19 @@ Known and left for the owner:
 - `public/og.png`, the screenshots and recordings on the landing pages, and the sample PDFs still show the old name "Pallet Quote". The home-screen name in `manifest.json` is still "Pallet Calc".
 - The landing pages say "for Australian pallet manufacturers" and the legal pages cite Australian law only, while the app now also offers New Zealand.
 - Privacy page: the "last updated" date in `operator.js` is 5 October though the wording changed on 8 October; one sentence still says "if we add accounts" in the build that has accounts; Resend (which sends the sign-in emails) is not named.
+
+## 5c. Copy editor (10 Oct 2026, branch `copy-editor`)
+
+The owner asked for a page where every part of the copy and titles can be rewritten, and which keeps up with the site as its layout changes. `npm run editor` starts the dev server and opens it at `/__copy/`. It covers the landing pages, terms and privacy, the calculator's labels and messages, and the fixed wording on both PDFs. Full notes are in `tools/copy-editor/README.md`.
+
+- **Local only.** It is a Vite plugin with `apply: 'serve'` (`tools/copy-editor/plugin.js`), so it is never in a build. Saving writes into the source files on that computer; the live site changes only when those files are committed and deployed. The owner chose this over a version that publishes instantly.
+- **No list of fields.** `scan.js` parses the HTML pages named in `vite.config.js` and every JS/JSX file they import, and reports the text it finds in page order. New sections, tabs and PDF lines appear by themselves; removed ones go. An open editor re-checks every few seconds.
+- **The wording lives in the page files, not in a separate copy file.** The owner was offered "one copy file", but that would have meant replacing every string in the app with a lookup and remembering to add a key for each new piece of text, which is the upkeep the owner wanted to avoid. Tell the owner if this ever needs revisiting.
+- **Edits are checked before they are written.** A JS/JSX file must hold exactly the same code afterwards (wording aside, plus any live value removed on purpose) and an HTML page the same structure, or nothing is saved.
+- **What counts as wording in code** is decided by `looksLikeCopy()`, `CODE_NAMES` and `CODE_CALLS` in `scan.js`. When adding code, nothing special is needed, but if a new string is missing from the editor or a class name shows up in it, adjust those and add a case to `scan.test.js`.
+- Tested: 22 unit tests (in `npm test`), every one of the roughly 1,000 pieces of text on the site edited in memory (twice each) without a rejected or broken file, and a browser run that edited and saved landing, app and PDF text and watched a section added to `index.html` appear in the open editor.
+- Not built: a preview of the PDFs beside the editor, and a publish button (committing and deploying is still done separately).
+
 
 ## 6. Design rules the owner has set
 

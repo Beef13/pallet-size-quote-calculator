@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Copy editor | Pallet Quoter</title>
+    <script>try{var d=localStorage.getItem('copyEditorDark'),t=d===null?localStorage.getItem('palletDarkMode'):d;if(t==='true'||(t!=='false'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}</script>
+    <link rel="stylesheet" href="./editor.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <div class="brand">
+        <span class="brand-logo" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="7" width="18" height="3.5" rx="1"/><rect x="4" y="12" width="3.5" height="4" rx="0.8"/><rect x="10.25" y="12" width="3.5" height="4" rx="0.8"/><rect x="16.5" y="12" width="3.5" height="4" rx="0.8"/><rect x="3" y="17.5" width="18" height="2.5" rx="1"/></svg>
+        </span>
+        <span>Pallet Quoter <b>Copy editor</b></span>
+      </div>
+      <label class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+        <input type="search" id="search" placeholder="Search all the wording" autocomplete="off" spellcheck="false" />
+      </label>
+      <div class="bar-actions">
+        <span class="pending" id="pending" aria-live="polite"></span>
+        <button type="button" class="btn ghost" id="discard" hidden>Discard</button>
+        <button type="button" class="btn primary" id="save" disabled>Save changes</button>
+        <button type="button" class="icon-btn" id="preview-toggle" aria-pressed="true" title="Show or hide the page beside the editor" aria-label="Show or hide the page beside the editor">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M13 4.5v15"/></svg>
+        </button>
+        <button type="button" class="icon-btn" id="theme" title="Light or dark" aria-label="Switch between light and dark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="shell" id="shell">
+      <nav class="rail" aria-label="Parts of the site">
+        <ul id="areas"></ul>
+        <div class="rail-note" id="live-note"></div>
+      </nav>
+
+      <main class="list" id="list" tabindex="-1">
+        <div class="list-head">
+          <div>
+            <h1 id="area-name">Loading…</h1>
+            <p id="area-sub"></p>
+          </div>
+          <div class="filters">
+            <label class="check"><input type="checkbox" id="only-changed" /> <span>Changed only</span></label>
+            <label class="check"><input type="checkbox" id="hide-hidden" /> <span>Hide screen-reader text</span></label>
+          </div>
+        </div>
+        <div id="groups"></div>
+      </main>
+
+      <aside class="preview" id="preview" aria-label="The page as it is now">
+        <div class="preview-head">
+          <span id="preview-name"></span>
+          <span class="preview-tools">
+            <button type="button" class="seg on" data-width="full">Computer</button>
+            <button type="button" class="seg" data-width="phone">Phone</button>
+            <a id="preview-open" target="_blank" rel="noopener" title="Open this page in its own tab">Open</a>
+          </span>
+        </div>
+        <div class="preview-stage" id="stage">
+          <iframe id="frame" title="Page preview"></iframe>
+          <p class="preview-none" id="preview-none" hidden></p>
+        </div>
+        <p class="preview-hint" id="preview-hint"></p>
+      </aside>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <script type="module" src="./editor.js"></script>
+  </body>
+</html>

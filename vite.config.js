@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+import copyEditor from './tools/copy-editor/plugin.js'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  // The copy editor (`npm run editor`) only exists while developing; it is never built or deployed
+  plugins: [react(), copyEditor()],
   base: process.env.BASE_PATH || '/pallet-size-quote-calculator/',
   build: {
     rollupOptions: {
