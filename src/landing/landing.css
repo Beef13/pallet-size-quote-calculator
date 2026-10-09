@@ -389,6 +389,61 @@ html.accounts-on .sheet [data-accounts="off"] {
   color: #fff;
 }
 
+/* The top bar never breaks a label over two lines. On narrow phones it closes up instead, so
+   the name, the theme button, Log in and Sign up still fit side by side. */
+.brand,
+.nav-link,
+.nav .btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 430px) {
+  .nav-inner {
+    gap: 8px;
+  }
+
+  .nav-actions {
+    gap: 2px;
+  }
+
+  .brand {
+    gap: 8px;
+    font-size: 1rem;
+  }
+
+  .nav-link {
+    padding: 8px 6px;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand {
+    gap: 6px;
+    font-size: 0.95rem;
+  }
+
+  .brand-logo {
+    width: 28px;
+    height: 28px;
+  }
+
+  .nav .theme-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav-link {
+    padding: 8px 4px;
+    font-size: 0.875rem;
+  }
+
+  .sheet .nav .btn {
+    height: 38px;
+    padding: 0 10px;
+    font-size: 0.875rem;
+  }
+}
+
 /* ---------- Page frame ---------- */
 
 .sheet {

@@ -163,6 +163,32 @@ describe('sync engine', () => {
     expect(JSON.parse(b.storage.get(BACKUP_KEY))[DOCUMENT_KEYS.business]).toContain('Typed on this device')
   })
 
+  // A new device asks "Where do you quote?" before anything else and saves the answer. The app
+  // saves it without calling noteLocalChange, so this is what logging in then does.
+  it('a new device that has only answered the country question takes the account\'s details and prices', async () => {
+    const { make } = setup()
+    const a = make(), b = make()
+    const details = { name: 'Real Pallets', abn: '11 111 111 111', country: 'AU' }
+    const priceList = { nailPrice: 0.02, pricing: { labourPerPallet: 4, markupPercent: 30, gstRate: 10 } }
+    a.storage.put(DOCUMENT_KEYS.business, details)
+    a.engine.noteLocalChange(DOCUMENT_KEYS.business)
+    a.storage.put(DOCUMENT_KEYS.prices, priceList)
+    a.engine.noteLocalChange(DOCUMENT_KEYS.prices)
+    await a.sync()
+
+    // saved on the new device, but not noted as a change
+    b.storage.put(DOCUMENT_KEYS.business, { name: '', abn: '', country: 'NZ' })
+    b.storage.put(DOCUMENT_KEYS.prices, { pricing: { gstRate: 15 } })
+    const result = await b.sync()
+    expect(result.pushed).toBe(0)
+    expect(b.storage.json(DOCUMENT_KEYS.business)).toEqual(details)
+    expect(b.storage.json(DOCUMENT_KEYS.prices)).toEqual(priceList)
+
+    await a.sync()
+    expect(a.storage.json(DOCUMENT_KEYS.business)).toEqual(details)
+    expect(a.storage.json(DOCUMENT_KEYS.prices)).toEqual(priceList)
+  })
+
   it('devices converge: after everyone has synced, a further sync changes nothing', async () => {
     const { now, make } = setup()
     const a = make(), b = make()

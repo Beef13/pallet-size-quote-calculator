@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import defaults from '../data/timber-prices.json'
-import { mergePrices, makeSize, addSize, removeSize, renameType, addType, removeType, resetList } from './priceList'
+import { mergePrices, signaturePrices, makeSize, addSize, removeSize, renameType, addType, removeType, resetList } from './priceList'
 
 const pine = (prices) => prices.timberTypes.find(t => t.id === 'pine-green-case')
 
@@ -98,5 +98,31 @@ describe('editing the list', () => {
     addSize(base, 'pine-green-case', 'board', 90, 22); removeSize(base, 'pine-green-case', 'board', '100x19')
     renameType(base, 'kiln-dried', 'X'); addType(base, 'n', 'N'); removeType(base, 'kiln-dried')
     expect(JSON.stringify(base)).toBe(before)
+  })
+})
+
+describe('signaturePrices: the price list as fingerprinted in a saved quote', () => {
+  // The pricing block exactly as quotes saved before the dollar markup existed recorded it
+  const legacyPricing = { labourPerPallet: 3, markupPercent: 25, gstRate: 10, showGst: true }
+
+  it('matches what older quotes recorded while markup is a percentage', () => {
+    const today = mergePrices(defaults, { pricing: legacyPricing })
+    expect(today.pricing.markupType).toBe('percent')
+    const legacy = { ...today, pricing: legacyPricing }
+    expect(JSON.stringify(signaturePrices(today))).toBe(JSON.stringify(legacy))
+  })
+
+  it('keeps the dollar markup in the fingerprint once it is in use', () => {
+    const today = mergePrices(defaults, { pricing: { ...legacyPricing, markupType: 'amount', markupAmount: 4 } })
+    expect(signaturePrices(today)).toBe(today)
+    const dearer = mergePrices(defaults, { pricing: { ...legacyPricing, markupType: 'amount', markupAmount: 5 } })
+    expect(JSON.stringify(signaturePrices(dearer))).not.toBe(JSON.stringify(signaturePrices(today)))
+  })
+
+  it('does not change the price list it is given', () => {
+    const today = mergePrices(defaults, { pricing: legacyPricing })
+    signaturePrices(today)
+    expect(today.pricing.markupType).toBe('percent')
+    expect(today.pricing.markupAmount).toBe(0)
   })
 })

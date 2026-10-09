@@ -7,7 +7,7 @@ import LockIcon from './LockIcon'
 import CountrySelect from './CountrySelect'
 import { useBottomSheet, usePhoneLayout } from './useBottomSheet'
 import PrintableQuote from './PrintableQuote'
-import { DEFAULT_PRICING, mergePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
+import { DEFAULT_PRICING, mergePrices, signaturePrices, addSize, removeSize, renameType, addType, removeType, resetList } from '../utils/priceList'
 import { REGIONS, regionFor, initialCountry, deviceTimeZone, gstRateForCountryChange } from '../utils/region'
 import { quoteAttention, sentSummary, groupQuotes, quotesByMonth, quotesTotal } from '../utils/quotes'
 import {
@@ -18,6 +18,11 @@ import '../styles/Workbench.css'
 
 // Saved or imported prices laid over the standard list (or the business's own edited list)
 const mergeSaved = (saved) => mergePrices(timberData, saved)
+// Today's saved price list. With none saved yet, the GST rate is the saved country's standard
+// rate (not the built-in 10%), so a New Zealand business that hasn't pressed "Save prices"
+// still quotes at 15%.
+const mergeSavedForCountry = (saved, country) =>
+  mergeSaved(saved || { pricing: { gstRate: regionFor(country).gstRate } })
 
 const DEFAULT_BUSINESS = {
   name: '',
@@ -123,7 +128,7 @@ function readStorage(key) {
   }
 }
 
-function writeStorage(key, value) {
+function writeStorage(key, value, { note = true } = {}) {
   if (DEMO) {
     demoStore.set(key, value)
     return true
@@ -133,8 +138,10 @@ function writeStorage(key, value) {
   } catch (e) {
     return false
   }
-  // Lets a signed-in account know there is something new to sync (does nothing otherwise)
-  noteLocalChange(key)
+  // Lets a signed-in account know there is something new to sync (does nothing otherwise).
+  // `note: false` saves without marking it as a change, so an account's own copy still wins
+  // when this device is first logged in (used for the country answer on an empty device).
+  if (note) noteLocalChange(key)
   return true
 }
 
@@ -432,10 +439,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       setLogoError(e.message || 'That logo could not be added.')
     }
   }
-  const updateBusiness = (key, value) => {
+  const updateBusiness = (key, value, options) => {
     setBusiness(prev => {
       const next = { ...prev, [key]: value }
-      writeStorage('palletBusiness', JSON.stringify(next))
+      writeStorage('palletBusiness', JSON.stringify(next), options)
       return next
     })
   }
@@ -444,10 +451,10 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   // has set a rate of its own. The new rate is saved straight away, apart from any other unsaved
   // price edits, so quotes can't go out at the old country's rate.
   const [countryNote, setCountryNote] = useState('')
-  const changeCountry = (code) => {
+  const changeCountry = (code, businessOptions) => {
     const from = business.country
     if (code === from || !REGIONS[code]) return
-    updateBusiness('country', code)
+    updateBusiness('country', code, businessOptions)
     let saved = null
     try {
       saved = JSON.parse(readStorage('timberPrices') || 'null')
@@ -458,7 +465,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       setCountryNote(`GST rate left at ${nextRate}%, the rate you set.`)
       return
     }
-    writeStorage('timberPrices', JSON.stringify({ ...(saved || {}), pricing: { ...(saved?.pricing || {}), gstRate: nextRate } }))
+    // With no price list saved yet, this record holds nothing but the country's GST rate. It is
+    // not counted as a change, or logging in would replace the account's real price list with it.
+    writeStorage('timberPrices', JSON.stringify({ ...(saved || {}), pricing: { ...(saved?.pricing || {}), gstRate: nextRate } }), { note: saved != null })
     // A saved quote being viewed keeps the rates it was issued at
     if (!ratesFromQuote) setPrices(prev => ({ ...prev, pricing: { ...(prev.pricing || DEFAULT_PRICING), gstRate: nextRate } }))
     setCountryNote(`GST rate changed to ${nextRate}%.`)
@@ -469,8 +478,12 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const [askCountry, setAskCountry] = useState(() => !DEMO && !countryIsSaved())
   const [pendingCountry, setPendingCountry] = useState(business.country) // shown in the dialog until Continue
   const answerCountry = (code) => {
-    if (code === business.country) updateBusiness('country', code)
-    else changeCountry(code)
+    // On a device with no business details yet, the answer is saved without counting as a change.
+    // Otherwise it would be the newest change, and logging in to an existing account from a new
+    // device would replace that account's business details with this empty record.
+    const options = { note: readStorage('palletBusiness') != null }
+    if (code === business.country) updateBusiness('country', code, options)
+    else changeCountry(code, options)
     setCountryNote('')
     setAskCountry(false)
   }
@@ -722,7 +735,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     if (DEMO) { setDemoNotice(true); return }
     // Always export today's saved prices, even while an old quote is open
     let savedPrices = prices
-    try { savedPrices = mergeSaved(JSON.parse(readStorage('timberPrices') || 'null')) } catch (e) { /* keep current */ }
+    try { savedPrices = mergeSavedForCountry(JSON.parse(readStorage('timberPrices') || 'null'), business.country) } catch (e) { /* keep current */ }
     const dataToExport = {
       version: '2.0',
       exportDate: new Date().toISOString(),
@@ -1126,8 +1139,11 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const signatureOf = (design, qty, name, ref, priceList) =>
     JSON.stringify([design, String(qty), name.trim(), ref.trim(), priceList])
   const currentQuote = quotes.find(q => q.id === currentQuoteId) || null
-  const currentSignature = signatureOf(designSnapshot(), quantity, customerName, customerRef, cleanPrices())
-  const isQuoteDirty = !currentQuote || currentQuote.signature !== currentSignature
+  // The signature leaves out pricing settings that are at their defaults (see signaturePrices), so
+  // quotes saved before those settings existed still match. The unshortened form is accepted too.
+  const fullSignature = signatureOf(designSnapshot(), quantity, customerName, customerRef, cleanPrices())
+  const currentSignature = signatureOf(designSnapshot(), quantity, customerName, customerRef, signaturePrices(cleanPrices()))
+  const isQuoteDirty = !currentQuote || (currentQuote.signature !== currentSignature && currentQuote.signature !== fullSignature)
 
   // Save the current quote. Drafts are updated in place; a quote that has
   // already been sent keeps its record and the changes get a new number.
@@ -1177,7 +1193,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   const useTodaysRates = () => {
     let saved = null
     try { saved = JSON.parse(readStorage('timberPrices') || 'null') } catch (e) { saved = null }
-    setPrices(mergeSaved(saved))
+    setPrices(mergeSavedForCountry(saved, business.country))
     setRatesFromQuote(null)
   }
 
@@ -1432,7 +1448,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     }
     setOnApplied((kinds) => {
       // Unsaved price edits on screen are left alone; saving them makes them the newest change
-      if (kinds.includes('prices') && pricesSavedRef.current) setPrices(mergeSaved(parseStored('timberPrices', null)))
+      if (kinds.includes('prices') && pricesSavedRef.current) setPrices(mergeSavedForCountry(parseStored('timberPrices', null), startingCountry()))
       if (kinds.includes('presets')) {
         const presets = parseStored('palletPresets', [])
         setSavedPresets(Array.isArray(presets) ? presets : [])

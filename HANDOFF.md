@@ -21,6 +21,8 @@ The app is local-first: there's no backend and no accounts. All data is stored i
 |---|---|
 | `main` | **Live.** Pushing to `main` runs the price tests, builds and deploys GitHub Pages (`.github/workflows/deploy.yml`) at https://beef13.github.io/pallet-size-quote-calculator/ (landing page) and `/app/` (calculator). **Don't push or merge to `main` without the owner's explicit OK each time.** |
 | `main` (7 Oct 2026) | The owner asked for the current **app** to go live without the new landing page. `main` now has the app, styles, sync and utils from `landing-live-demo`, with the older landing, terms and privacy pages left as they were. The animated landing page and the pricing section are still only on `landing-live-demo`. |
+| `go-live` | **Go-live candidate (9 Oct 2026).** `landing-v2-compare` plus the fixes found in the pre-launch review (see section 5b). This is the branch to merge to `main` once the owner approves. |
+| `landing-v2-compare` | `landing-live-demo` plus the second landing layout at `/v2/`, the rename to Pallet Quoter and the full-screen recording on `/v2/`. Superseded by `go-live`. |
 | `landing-live-demo` | **Working branch from 6 Oct 2026.** Has everything: the animated landing page (3D laptop, phone section, live demo), the app changes from `fix/quote-calculator-bugs` (phone layout, grouped History, Quote tab) and the $49 / $490 / Custom pricing. Do new work here, then ask the owner before merging to `main`. |
 | `fix/quote-calculator-bugs` | **Superseded.** Merged into `landing-live-demo` on 6 Oct 2026. It has the older landing page; don't add to it. |
 | `landing-copy`, `landing-redesign`, `landing-video-hero`, `landing-live-main`, `pricing-on-landing-copy` | Earlier landing page attempts, kept for history. Check `git ls-remote --heads origin` before assuming which branch is current. |
@@ -174,6 +176,25 @@ The owner wants accounts with online storage on **Supabase**, hosted on **Vercel
 3b. **Tested by the owner on the real setup (3 Oct 2026):** sign-up, emailed link, sign-in on a laptop and a phone, data uploading and appearing on the second device. Not yet tested there: a deletion or status change travelling between devices, Google sign-in (not set up).
 4. The terms and privacy pages switch to the accounts wording automatically when `VITE_SUPABASE_URL` is set. The operator details in `src/landing/operator.js` are filled in (sole trader Saverio Curcio, ABN 53 795 324 705, Victoria), so the draft banner no longer shows.
 5. Before real customers: custom email sending (Supabase's built-in sender is rate-limited), the paid Supabase plan for backups and no pausing, Vercel's paid plan for commercial use, and a lawyer's review of the legal pages.
+
+## 5b. Pre-launch review (9 Oct 2026)
+
+The working branch was reviewed and tested against the live version before going live. Four faults were fixed on `go-live`; each has a test or a browser check behind it.
+
+- **Logging in on a new device no longer blanks the account.** The country question saves its answer before anything else exists on the device. That save used to count as the newest change, so logging in to an existing account pushed an empty business record (and, if the country differed from the guess, a price list holding only a GST rate) over the account's real ones, on every device. Now `writeStorage(key, value, { note: false })` saves without calling `noteLocalChange`, and `answerCountry` / `changeCountry` use it when nothing was saved for that record before. With no change time on the device, `mergeDocument` takes the account's copy. Rule to keep: **anything the app writes by itself on an empty device must not be noted as a change.** Test: "a new device that has only answered the country question" in `engine.test.js`.
+- **Quotes saved by the older live version no longer read as changed.** `mergePricing` gained `markupType` and `markupAmount`, which changed every quote's signature, so reopening a sent quote and exporting it again issued a new quote number. `signaturePrices()` in `priceList.js` leaves those two fields out of the signature while markup is a percentage; the unshortened signature is still accepted. Rule to keep: **adding a pricing setting must not change the signature of quotes that don't use it**; extend `signaturePrices` and its tests when one is added.
+- **New Zealand devices with no saved price list keep 15% GST** after "Use today's rates", Duplicate, a sync reload and a backup export (`mergeSavedForCountry`). They used to fall back to the built-in 10%.
+- **The layout switch is for the owner only.** `mountCompare()` shows the "Layout: Current | New" pill, and listens for V, only when the address has `?compare` (for example `palletquoter.com/?compare`).
+- The landing top bar no longer breaks "Pallet Quoter" and "Log in" over two lines on phones.
+
+How it was checked (scripts were ad hoc Playwright, as in section 3): a quote made and sent with the build from `main`, then reopened and exported again with the new build in the same browser storage (still one quote); both PDFs counted at one A4 page from a computer and from a phone, with and without logo, leader boards and a dollar markup; every landing, legal and app page loaded on a computer and a phone in three builds (Vercel production settings, the same with Stripe test links, GitHub Pages) with no console errors, failed requests or broken links.
+
+Known and left for the owner:
+- The customer PDF runs to a second page (only the "valid until" footer line) when a logo, a two-line business name, a two-line address, a two-line customer name and both leader-board sets are all present. The same happens on the version that was live before, so it is not new.
+- Production has no Stripe link set in Vercel (`VITE_STRIPE_PAYMENT_LINK` exists for preview builds only, with test links), so the live page shows no prices, plans or founding offer. Nothing in the app checks for a subscription yet: accounts and syncing are free for everyone.
+- `public/og.png`, the screenshots and recordings on the landing pages, and the sample PDFs still show the old name "Pallet Quote". The home-screen name in `manifest.json` is still "Pallet Calc".
+- The landing pages say "for Australian pallet manufacturers" and the legal pages cite Australian law only, while the app now also offers New Zealand.
+- Privacy page: the "last updated" date in `operator.js` is 5 October though the wording changed on 8 October; one sentence still says "if we add accounts" in the build that has accounts; Resend (which sends the sign-in emails) is not named.
 
 ## 6. Design rules the owner has set
 

@@ -30,6 +30,20 @@ export function mergePricing(saved) {
   return p
 }
 
+/**
+ * The price list as it goes into a saved quote's signature (the fingerprint that tells whether
+ * a quote has changed since it was saved). The dollar-markup settings are left out while markup
+ * is a percentage, because quotes saved before those settings existed have no such fields: with
+ * them in, every older quote would read as changed, and exporting a sent one again would issue
+ * it under a new number. A dollar markup keeps both fields, since they then affect the price.
+ */
+export function signaturePrices(priceList) {
+  const pricing = priceList?.pricing
+  if (!pricing || pricing.markupType === 'amount') return priceList
+  const { markupType, markupAmount, ...rest } = pricing
+  return { ...priceList, pricing: rest }
+}
+
 const PRICE_KEY = { board: 'pricePerBoard', bearer: 'pricePerBearer' }
 const LIST_KEY = { board: 'boardSizes', bearer: 'bearerSizes' }
 const money = (v) => Math.max(0, Number(v) || 0)
