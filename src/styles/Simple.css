@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------
    Pallet Quoter: the plain layout (preview)
-   For people of every age: large type, dark text on white, every field
+   For people of every age: clear type, dark text on white, every field
    a clear white box with a solid border, and the build as numbered boxes
    to fill in from top to bottom that never fold away. Only applies with
    the "simple" class on the workbench; ?classic shows the earlier look.
@@ -23,10 +23,10 @@
   --accent-soft: #e6edfb;
   --ready: #11713f;
   --ready-soft: #e3f3e9;
-  --panel-width: min(620px, 50vw);
+  --panel-width: min(540px, 44vw);
   --radius: 10px;
-  --control-h: 56px;
-  --box-gap: 16px;
+  --control-h: 48px;
+  --box-gap: 12px;
   line-height: 1.5;
 }
 
@@ -48,111 +48,111 @@ html.dark-mode .workbench.simple {
   --ready-soft: #16301f;
 }
 
-/* ---------- Type sizes: every label and line about a fifth larger, nothing under 16px ---------- */
+/* ---------- Type sizes: every label and line a tenth larger than the classic layout, nothing under 15px ---------- */
 
-.workbench.simple { font-size: 18px; }
-.workbench.simple .brand-mark { font-size: 21px; }
-.workbench.simple .tab { font-size: 17px; }
-.workbench.simple .save-state { font-size: 16px; }
-.workbench.simple .section-head h2 { font-size: 21px; }
-.workbench.simple .section-cost { font-size: 16px; }
-.workbench.simple .field-label { font-size: 16px; }
-.workbench.simple .hint { font-size: 16px; }
-.workbench.simple select, .workbench.simple input[type="number"], .workbench.simple input[type="text"] { font-size: 18px; }
-.workbench.simple .unit-toggle button { font-size: 16px; }
-.workbench.simple .input-unit .unit { font-size: 16px; }
-.workbench.simple .stepper-value, .workbench.simple input.stepper-value { font-size: 20px; }
-.workbench.simple .switch { font-size: 17px; }
-.workbench.simple .btn { font-size: 17px; }
-.workbench.simple .text-btn { font-size: 16px; }
-.workbench.simple .notice { font-size: 16px; }
-.workbench.simple .preset-name { font-size: 17px; }
-.workbench.simple .preset-size { font-size: 16px; }
-.workbench.simple .modal h3 { font-size: 20px; }
-.workbench.simple .modal p { font-size: 17px; }
-.workbench.simple .country-modal h3 { font-size: 26px; }
-.workbench.simple .country-modal p { font-size: 17px; }
-.workbench.simple .country-continue { font-size: 18px; }
-.workbench.simple .country-select-trigger { font-size: 18px; }
-.workbench.simple .country-select-rate { font-size: 16px; }
-.workbench.simple .country-select-list li { font-size: 18px; }
-.workbench.simple .country-select.is-large .country-select-trigger { font-size: 20px; }
-.workbench.simple .country-select.is-large .country-select-list li { font-size: 20px; }
-.workbench.simple .quote-meta h2 { font-size: 25px; }
-.workbench.simple .empty h2 { font-size: 21px; }
-.workbench.simple .price-group-toggle { font-size: 20px; }
-.workbench.simple .price-subgroup h3 { font-size: 16px; }
-.workbench.simple .price-size { font-size: 18px; }
-.workbench.simple .price-input .unit-pre, .workbench.simple .price-input .unit { font-size: 16px; }
-.workbench.simple .show-panel-btn { font-size: 17px; }
-.workbench.simple .stamp-label { font-size: 16px; }
-.workbench.simple .stamp-qty { font-size: 16px; }
-.workbench.simple .stamp-qty .stepper-value { font-size: 18px; }
-.workbench.simple .range { font-size: 16px; }
-.workbench.simple .stage-empty p { font-size: 18px; }
-.workbench.simple .stage-hint { font-size: 16px; }
-.workbench.simple input.stepper-value { font-size: 20px; }
-.workbench.simple .stamp-qty input.stepper-value { font-size: 18px; }
-.workbench.simple .banner { font-size: 16px; }
-.workbench.simple .quote-id { font-size: 16px; }
-.workbench.simple .status-pill, .workbench.simple .status-select { font-size: 16px; }
-.workbench.simple .q-section > h3 { font-size: 20px; }
-.workbench.simple .q-item-name { font-size: 18px; }
-.workbench.simple .q-item-detail { font-size: 16px; }
-.workbench.simple .q-items .q-amount { font-size: 18px; }
-.workbench.simple .q-sums .q-row { font-size: 17px; }
-.workbench.simple .q-sums .q-row.q-price { font-size: 20px; }
-.workbench.simple .q-total .q-row { font-size: 18px; }
-.workbench.simple .quote-row-main { font-size: 20px; }
-.workbench.simple .quote-row-sub { font-size: 16px; }
-.workbench.simple select.status-select { font-size: 16px; }
-.workbench.simple .confirm { font-size: 16px; }
-.workbench.simple .settings-group .section-head h2, .workbench.simple .timber-head h2 { font-size: 20px; }
-.workbench.simple .input-unit .unit-pre { font-size: 16px; }
-.workbench.simple .fold-summary { font-size: 17px; }
-.workbench.simple .stamp .stamp-missing { font-size: 16px; }
-.workbench.simple .same-timber { font-size: 16px; }
-.workbench.simple .stamp .stamp-profit { font-size: 16px; }
-.workbench.simple input.type-name { font-size: 18px; }
-.workbench.simple .add-size-unit { font-size: 16px; }
-.workbench.simple .list-actions .confirm { font-size: 16px; }
-.workbench.simple .logo-empty { font-size: 16px; }
-.workbench.simple .quote-line { font-size: 19px; }
-.workbench.simple .quote-line-sub { font-size: 16px; }
-.workbench.simple .quote-tags .status-pill { font-size: 16px; }
-.workbench.simple .quote-detail-note { font-size: 16px; }
-.workbench.simple .quote-status-field { font-size: 16px; }
-.workbench.simple .fold-count { font-size: 16px; }
-.workbench.simple .history-month h3 { font-size: 16px; }
-.workbench.simple .quote-quick-note { font-size: 16px; }
-.workbench.simple .quick-btn { font-size: 17px; }
-.workbench.simple .confirm-question { font-size: 16px; }
-.workbench.simple .legal-links { font-size: 16px; }
-.workbench.simple .account-email { font-size: 20px; }
-.workbench.simple .account-legal { font-size: 16px; }
-.workbench.simple .account-delete { font-size: 16px; }
-.workbench.simple .account-form input[type="email"] { font-size: 18px; }
-.workbench.simple .demo-hint { font-size: 16px; }
-.workbench.simple .sheet-handle { font-size: 16px; }
-.workbench.simple .sheet-grip .stamp-label { font-size: 16px; }
-.workbench.simple .sheet-grip .stamp-qty { font-size: 16px; }
-.workbench.simple .sheet-open .sheet-grip .stamp-label { font-size: 16px; }
-.workbench.simple .sheet-open .sheet-grip .stamp-value { font-size: 24px; }
-.workbench.simple .sheet-open .sheet-grip .stamp .stamp-profit { font-size: 16px; }
-.workbench.simple .panel-footer .btn { font-size: 17px; }
+.workbench.simple { font-size: 16px; }
+.workbench.simple .brand-mark { font-size: 19px; }
+.workbench.simple .tab { font-size: 15px; }
+.workbench.simple .save-state { font-size: 15px; }
+.workbench.simple .section-head h2 { font-size: 19px; }
+.workbench.simple .section-cost { font-size: 15px; }
+.workbench.simple .field-label { font-size: 15px; }
+.workbench.simple .hint { font-size: 15px; }
+.workbench.simple select, .workbench.simple input[type="number"], .workbench.simple input[type="text"] { font-size: 16px; }
+.workbench.simple .unit-toggle button { font-size: 15px; }
+.workbench.simple .input-unit .unit { font-size: 15px; }
+.workbench.simple .stepper-value, .workbench.simple input.stepper-value { font-size: 18px; }
+.workbench.simple .switch { font-size: 15px; }
+.workbench.simple .btn { font-size: 15px; }
+.workbench.simple .text-btn { font-size: 15px; }
+.workbench.simple .notice { font-size: 15px; }
+.workbench.simple .preset-name { font-size: 15px; }
+.workbench.simple .preset-size { font-size: 15px; }
+.workbench.simple .modal h3 { font-size: 19px; }
+.workbench.simple .modal p { font-size: 15px; }
+.workbench.simple .country-modal h3 { font-size: 24px; }
+.workbench.simple .country-modal p { font-size: 15px; }
+.workbench.simple .country-continue { font-size: 16px; }
+.workbench.simple .country-select-trigger { font-size: 16px; }
+.workbench.simple .country-select-rate { font-size: 15px; }
+.workbench.simple .country-select-list li { font-size: 16px; }
+.workbench.simple .country-select.is-large .country-select-trigger { font-size: 18px; }
+.workbench.simple .country-select.is-large .country-select-list li { font-size: 18px; }
+.workbench.simple .quote-meta h2 { font-size: 23px; }
+.workbench.simple .empty h2 { font-size: 20px; }
+.workbench.simple .price-group-toggle { font-size: 18px; }
+.workbench.simple .price-subgroup h3 { font-size: 15px; }
+.workbench.simple .price-size { font-size: 16px; }
+.workbench.simple .price-input .unit-pre, .workbench.simple .price-input .unit { font-size: 15px; }
+.workbench.simple .show-panel-btn { font-size: 15px; }
+.workbench.simple .stamp-label { font-size: 15px; }
+.workbench.simple .stamp-qty { font-size: 15px; }
+.workbench.simple .stamp-qty .stepper-value { font-size: 16px; }
+.workbench.simple .range { font-size: 15px; }
+.workbench.simple .stage-empty p { font-size: 16px; }
+.workbench.simple .stage-hint { font-size: 15px; }
+.workbench.simple input.stepper-value { font-size: 18px; }
+.workbench.simple .stamp-qty input.stepper-value { font-size: 16px; }
+.workbench.simple .banner { font-size: 15px; }
+.workbench.simple .quote-id { font-size: 15px; }
+.workbench.simple .status-pill, .workbench.simple .status-select { font-size: 15px; }
+.workbench.simple .q-section > h3 { font-size: 18px; }
+.workbench.simple .q-item-name { font-size: 16px; }
+.workbench.simple .q-item-detail { font-size: 15px; }
+.workbench.simple .q-items .q-amount { font-size: 16px; }
+.workbench.simple .q-sums .q-row { font-size: 15px; }
+.workbench.simple .q-sums .q-row.q-price { font-size: 18px; }
+.workbench.simple .q-total .q-row { font-size: 16px; }
+.workbench.simple .quote-row-main { font-size: 18px; }
+.workbench.simple .quote-row-sub { font-size: 15px; }
+.workbench.simple select.status-select { font-size: 15px; }
+.workbench.simple .confirm { font-size: 15px; }
+.workbench.simple .settings-group .section-head h2, .workbench.simple .timber-head h2 { font-size: 18px; }
+.workbench.simple .input-unit .unit-pre { font-size: 15px; }
+.workbench.simple .fold-summary { font-size: 15px; }
+.workbench.simple .stamp .stamp-missing { font-size: 15px; }
+.workbench.simple .same-timber { font-size: 15px; }
+.workbench.simple .stamp .stamp-profit { font-size: 15px; }
+.workbench.simple input.type-name { font-size: 16px; }
+.workbench.simple .add-size-unit { font-size: 15px; }
+.workbench.simple .list-actions .confirm { font-size: 15px; }
+.workbench.simple .logo-empty { font-size: 15px; }
+.workbench.simple .quote-line { font-size: 17px; }
+.workbench.simple .quote-line-sub { font-size: 15px; }
+.workbench.simple .quote-tags .status-pill { font-size: 15px; }
+.workbench.simple .quote-detail-note { font-size: 15px; }
+.workbench.simple .quote-status-field { font-size: 15px; }
+.workbench.simple .fold-count { font-size: 15px; }
+.workbench.simple .history-month h3 { font-size: 15px; }
+.workbench.simple .quote-quick-note { font-size: 15px; }
+.workbench.simple .quick-btn { font-size: 15px; }
+.workbench.simple .confirm-question { font-size: 15px; }
+.workbench.simple .legal-links { font-size: 15px; }
+.workbench.simple .account-email { font-size: 18px; }
+.workbench.simple .account-legal { font-size: 15px; }
+.workbench.simple .account-delete { font-size: 15px; }
+.workbench.simple .account-form input[type="email"] { font-size: 16px; }
+.workbench.simple .demo-hint { font-size: 15px; }
+.workbench.simple .sheet-handle { font-size: 15px; }
+.workbench.simple .sheet-grip .stamp-label { font-size: 15px; }
+.workbench.simple .sheet-grip .stamp-qty { font-size: 15px; }
+.workbench.simple .sheet-open .sheet-grip .stamp-label { font-size: 15px; }
+.workbench.simple .sheet-open .sheet-grip .stamp-value { font-size: 22px; }
+.workbench.simple .sheet-open .sheet-grip .stamp .stamp-profit { font-size: 15px; }
+.workbench.simple .panel-footer .btn { font-size: 15px; }
 
 /* ---------- Tabs: big, plain words; the one you're on is filled in ---------- */
 
 .workbench.simple .tabs {
-  margin: 4px 24px 8px;
-  padding: 6px;
+  margin: 2px 22px 6px;
+  padding: 5px;
   border-radius: 14px;
   background: var(--canvas);
 }
 
 .workbench.simple .tab {
-  min-height: 50px;
-  padding: 10px 8px;
+  min-height: 42px;
+  padding: 8px 8px;
   border-radius: 10px;
   color: var(--ink);
   font-weight: 500;
@@ -255,8 +255,8 @@ html.dark-mode .workbench.simple .tab.active {
 }
 
 .workbench.simple .stepper-btn {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   background: var(--accent-soft);
   color: var(--accent);
@@ -264,8 +264,8 @@ html.dark-mode .workbench.simple .tab.active {
 }
 
 .workbench.simple .stepper-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   stroke-width: 2.4;
 }
 
@@ -275,7 +275,7 @@ html.dark-mode .workbench.simple .tab.active {
 }
 
 .workbench.simple input.stepper-value {
-  height: 42px;
+  height: 36px;
   min-width: 3ch;
   border: 0;
   background: transparent;
@@ -295,7 +295,7 @@ html.dark-mode .workbench.simple .tab.active {
 /* ---------- The build: numbered boxes, filled in from top to bottom ---------- */
 
 .workbench.simple .panel-body {
-  padding: 8px 24px 28px;
+  padding: 6px 22px 24px;
 }
 
 .workbench.simple .form-section {
@@ -308,9 +308,9 @@ html.dark-mode .workbench.simple .tab.active {
 }
 
 .workbench.simple .step-box {
-  padding: 20px 22px 22px;
+  padding: 16px 18px 18px;
   border: 2px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--paper);
 }
 
@@ -322,20 +322,20 @@ html.dark-mode .workbench.simple .tab.active {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .workbench.simple .step-n {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--accent);
   color: #fff;
-  font-size: 19px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -348,18 +348,18 @@ html.dark-mode .workbench.simple .step-n {
 }
 
 .workbench.simple .step-head h2 {
-  font-size: 23px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.2;
 }
 
 .workbench.simple .step-status {
-  padding: 5px 12px;
-  border-radius: 8px;
+  padding: 4px 10px;
+  border-radius: 7px;
   background: var(--canvas);
   color: var(--ink-2);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -381,7 +381,7 @@ html.dark-mode .workbench.simple .step-n {
 .workbench.simple .step-body {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 
 .workbench.simple .step-body .field-row {
@@ -392,24 +392,24 @@ html.dark-mode .workbench.simple .step-n {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-top: 18px;
-  padding-top: 14px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 2px solid var(--rule);
   color: var(--ink-2);
-  font-size: 17px;
+  font-size: 15px;
 }
 
 .workbench.simple .step-cost strong {
   color: var(--ink);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
 }
 
 /* The shortcut to use the same timber again: a clear button, not a small link */
 .workbench.simple .same-timber {
   align-self: flex-start;
-  min-height: 46px;
-  padding: 8px 16px;
+  min-height: 40px;
+  padding: 6px 14px;
   border: 2px solid var(--accent);
   border-radius: 10px;
   background: var(--paper);
@@ -427,16 +427,16 @@ html.dark-mode .workbench.simple .step-n {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 16px 18px;
-  border-radius: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
   background: var(--canvas);
   color: var(--ink-2);
-  font-size: 17px;
+  font-size: 15px;
 }
 
 .workbench.simple .step-total strong {
   color: var(--ink);
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -457,9 +457,9 @@ html.dark-mode .workbench.simple .step-n {
 
 /* Buttons: tall and plain */
 .workbench.simple .btn {
-  min-height: 52px;
-  padding: 0 22px;
-  border-radius: 12px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
   font-weight: 600;
 }
 
@@ -475,7 +475,7 @@ html.dark-mode .workbench.simple .step-n {
 }
 
 .workbench.simple .panel-footer {
-  padding: 16px 24px;
+  padding: 12px 22px;
   border-top: 2px solid var(--rule);
 }
 
@@ -484,9 +484,9 @@ html.dark-mode .workbench.simple .step-n {
 .workbench.simple .q-section,
 .workbench.simple .settings-group,
 .workbench.simple .history-group {
-  padding: 18px 20px;
+  padding: 14px 16px;
   border: 2px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--paper);
 }
 
@@ -535,9 +535,9 @@ html.dark-mode .workbench.simple .step-n {
 }
 
 .workbench.simple .range input[type="range"]::-webkit-slider-thumb {
-  width: 24px;
-  height: 24px;
-  margin-top: -8px;
+  width: 20px;
+  height: 20px;
+  margin-top: -6px;
 }
 
 /* The count on the price card: a smaller version of the same stepper */
@@ -549,18 +549,18 @@ html.dark-mode .workbench.simple .step-n {
 }
 
 .workbench.simple .stamp-qty .stepper {
-  height: 46px;
+  height: 40px;
   border: 0;
   background: transparent;
 }
 
 .workbench.simple .stamp-qty .stepper-btn {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
 }
 
 .workbench.simple .stamp-qty input.stepper-value {
-  height: 38px;
+  height: 32px;
 }
 
 /* ---------- Phones ---------- */
@@ -575,9 +575,9 @@ html.dark-mode .workbench.simple .step-n {
   }
 
   .workbench.simple .tab {
-    min-height: 46px;
-    padding: 8px 4px;
-    font-size: 16px;
+    min-height: 40px;
+    padding: 6px 4px;
+    font-size: 15px;
   }
 
   .workbench.simple .panel-body {
@@ -585,20 +585,11 @@ html.dark-mode .workbench.simple .step-n {
   }
 
   .workbench.simple .step-box {
-    padding: 16px;
-  }
-
-  .workbench.simple .step-head {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .workbench.simple .step-status {
-    grid-column: 2;
-    justify-self: start;
+    padding: 14px;
   }
 
   .workbench.simple .step-head h2 {
-    font-size: 21px;
+    font-size: 19px;
   }
 
   /* Counts sit under their label, so the stepper always has room */
@@ -620,13 +611,13 @@ html.dark-mode .workbench.simple .step-n {
   }
 
   .workbench.simple .sheet-grip .stamp-qty .stepper {
-    height: 44px;
+    height: 40px;
     border: 2px solid var(--rule-strong);
     border-radius: 10px;
   }
 
   .workbench.simple .sheet-grip .stamp-qty .stepper-btn {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
   }
 }
