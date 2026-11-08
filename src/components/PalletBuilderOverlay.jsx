@@ -15,6 +15,7 @@ import {
   noteLocalChange, noteQuoteDeleted, signInWithEmail, signInWithGoogle, signOut, syncNow, deleteOnlineData, dismissNotice
 } from '../sync'
 import '../styles/Workbench.css'
+import '../styles/Simple.css'
 
 // Saved or imported prices laid over the standard list (or the business's own edited list)
 const mergeSaved = (saved) => mergePrices(timberData, saved)
@@ -74,6 +75,10 @@ function readLogo(file) {
    Everything works, but nothing is kept: it never reads or writes the visitor's saved data,
    accounts are off, and saving a quote, exporting a PDF and exporting a backup are switched off. */
 const DEMO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo')
+// The plain layout: large type, high contrast, and the build as numbered boxes to fill in,
+// one after another, that never fold away. Add ?classic to the address for the earlier layout.
+const SIMPLE = typeof window === 'undefined' || !new URLSearchParams(window.location.search).has('classic')
+const STEP_STATUS = { todo: 'To fill in', partial: 'Not finished', done: 'Done' }
 // It starts with the same labour, markup and placeholder business as the sample quote on the landing page
 const demoStore = new Map(DEMO ? [
   ['timberPrices', JSON.stringify({ pricing: { labourPerPallet: 3, markupPercent: 25 } })],
@@ -283,7 +288,22 @@ function StatusMark({ status, ratio = 0 }) {
 }
 
 // A panel section that folds down to its heading and a one-line summary
-function Fold({ id, title, count, summary, cost, aside, status, ratio, open, onToggle, className = 'form-section', children }) {
+function Fold({ id, title, count, summary, cost, aside, status, ratio, open, onToggle, className = 'form-section', step, children }) {
+  // In the plain layout the build steps are boxes that are always open, with a number and a
+  // status in words, so nothing is hidden and there is no folding to learn
+  if (SIMPLE && step) {
+    return (
+      <section className={`${className} step-box ${status || ''}`} aria-labelledby={`step-${id}`} data-fold={id}>
+        <div className="step-head">
+          <span className="step-n" aria-hidden="true">{step}</span>
+          <h2 id={`step-${id}`}>{title}</h2>
+          {status && <span className={`step-status ${status}`}>{STEP_STATUS[status]}</span>}
+        </div>
+        <div className="step-body">{children}</div>
+        {cost > 0 && <p className="step-cost">Cost per pallet <strong>{formatCurrency(cost)}</strong></p>}
+      </section>
+    )
+  }
   return (
     <section className={`${className} fold ${open ? 'open' : ''}`} aria-label={title} data-fold={id}>
       <div className="section-head fold-head">
@@ -1629,7 +1649,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     <option key={size.id} value={size.id}>{size.dimensions.replace('x', ' × ')}</option>
   ))
 
-  const maxNote = (max) => (max > 0 && max < 15 ? <span className="field-note">up to {max}</span> : null)
+  const maxNote = (max) => (max > 0 && max < 15 ? <span className="field-note">{SIMPLE ? `(up to ${max} fit)` : `up to ${max}`}</span> : null)
 
   // Sections start open, except: presets when there are none yet, business details
   // once they were already filled in when the app opened, and decided quotes in History.
@@ -1723,7 +1743,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
       setLeaderSize: setSelectedBottomLeaderSize, leaderSizes: availableBottomLeaderSizes
     }
     return (
-      <Fold {...fold(deck)} title={isTop ? 'Top boards' : 'Bottom boards'} cost={sectionCosts[deck]} {...buildProgress[deck]}
+      <Fold {...fold(deck)} step={isTop ? 3 : 2} title={isTop ? 'Top boards' : 'Bottom boards'} cost={sectionCosts[deck]} {...buildProgress[deck]}
         summary={timberSummary({ count: p.count, noun: 'board', type: p.type, size: p.size, sizes: p.sizes, leaders: p.leaders, leaderSize: p.leaderSize, leaderSizes: p.leaderSizes })}>
         <div className="field-row">
           <label className="field">
@@ -1743,7 +1763,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         </div>
         {sameTimberButton(deck, p.type, p.setType)}
         <div className="field field-inline">
-          <span className="field-label" id={`${deck}-count-label`}>Boards {maxNote(p.max)}</span>
+          <span className="field-label" id={`${deck}-count-label`}>{SIMPLE ? 'How many boards' : 'Boards'} {maxNote(p.max)}</span>
           <Stepper id={`${deck}-count-label`} label={`${deck} boards`} value={p.count} onChange={p.setCount} max={p.maxUI} allowEmpty />
         </div>
         <label className="switch">
@@ -1810,7 +1830,12 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
     ? `${quantity > 1 ? `Total for ${quantity} pallets` : 'Total'}${liveQuote.showGst ? ' ex GST' : ''}`
     : 'Running total'
 
-  const tabs = [
+  const tabs = SIMPLE ? [
+    { id: 'calculator', label: 'Pallet' },
+    { id: 'quote', label: 'Quote' },
+    { id: 'history', label: 'Saved quotes' },
+    { id: 'prices', label: 'My prices' }
+  ] : [
     { id: 'calculator', label: 'Build' },
     { id: 'quote', label: 'Quote' },
     { id: 'history', label: 'History' },
@@ -1889,7 +1914,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
   )
 
   return (
-    <div ref={sheet.rootRef} className={`workbench ${isPanelCollapsed ? 'panel-collapsed' : ''} ${isPhone ? 'phone' : ''} ${isPhone && sheet.open ? 'sheet-open' : ''}`}>
+    <div ref={sheet.rootRef} className={`workbench ${SIMPLE ? 'simple' : ''} ${isPanelCollapsed ? 'panel-collapsed' : ''} ${isPhone ? 'phone' : ''} ${isPhone && sheet.open ? 'sheet-open' : ''}`}>
       {/* Left panel; on phones, the card that slides up from the bottom */}
       <aside ref={sheet.sheetRef} className="panel" aria-hidden={isPanelCollapsed && !isPhone} {...demoGuard}>
         {DEMO && (
@@ -1935,7 +1960,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
         {activeTab === 'calculator' && (
           <>
             <div className="panel-body">
-              <Fold {...fold('presets')} title="Saved presets" className="form-section presets"
+              {(!SIMPLE || savedPresets.length > 0) && <Fold {...fold('presets')} title="Saved presets" className="form-section presets"
                 summary={savedPresets.length > 0 ? `${savedPresets.length} saved` : 'None saved yet'}
                 aside={
                   <div className="text-actions">
@@ -1964,9 +1989,9 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 ) : (
                   <p className="hint">Save a build you quote often and load it here in one click.</p>
                 )}
-              </Fold>
+              </Fold>}
 
-              <Fold {...fold('size')} title="Pallet size" summary={sizeSummary} {...buildProgress.size}>
+              <Fold {...fold('size')} step={1} title="Pallet size" summary={sizeSummary} {...buildProgress.size}>
                 <label className="field">
                   <span className="field-label">Start from</span>
                   <select
@@ -2025,7 +2050,7 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
               {renderDeck('bottom')}
               {renderDeck('top')}
 
-              <Fold {...fold('bearers')} title="Bearers" cost={sectionCosts.bearers} {...buildProgress.bearers}
+              <Fold {...fold('bearers')} step={4} title="Bearers" cost={sectionCosts.bearers} {...buildProgress.bearers}
                 summary={timberSummary({ count: displayedBearers, noun: 'bearer', type: selectedBearerType, size: selectedBearerSize, sizes: availableBearerSizes })}>
                 <div className="field-row">
                   <label className="field">
@@ -2045,10 +2070,35 @@ function PalletBuilderOverlay({ onQuoteCalculated, quoteData }) {
                 </div>
                 {sameTimberButton('bearers', selectedBearerType, changeBearerType)}
                 <div className="field field-inline">
-                  <span className="field-label" id="bearer-count-label">Bearers {maxNote(maxBearersAllowed)}</span>
+                  <span className="field-label" id="bearer-count-label">{SIMPLE ? 'How many bearers' : 'Bearers'} {maxNote(maxBearersAllowed)}</span>
                   <Stepper id="bearer-count-label" label="bearers" value={displayedBearers} onChange={setNumberOfBearers} max={maxBearersForUI} allowEmpty />
                 </div>
               </Fold>
+
+              {SIMPLE && (
+                <section className="form-section step-box step-last" aria-labelledby="step-quantity">
+                  <div className="step-head">
+                    <span className="step-n" aria-hidden="true">5</span>
+                    <h2 id="step-quantity">How many pallets?</h2>
+                  </div>
+                  <div className="step-body">
+                    <div className="field field-inline">
+                      <span className="field-label" id="build-qty-label">Number of pallets</span>
+                      <Stepper id="build-qty-label" label="pallets" value={palletQuantity} min={1} max={9999}
+                        onChange={(v) => setPalletQuantity(v)} />
+                    </div>
+                    <div className={`step-total ${liveQuote.isComplete ? 'complete' : ''}`}>
+                      <span>{liveQuote.hasAnyPrice ? totalLabel : 'Fill in the boxes above to see the price'}</span>
+                      {liveQuote.hasAnyPrice && <strong><Money value={(liveQuote.totalPrice || 0) * quantity} /></strong>}
+                      {missingText && liveQuote.hasAnyPrice && <p>Still to fill in: {missingText}</p>}
+                    </div>
+                    <button type="button" className="btn btn-primary step-next" onClick={() => setActiveTab('quote')}
+                      disabled={!liveQuote.hasAnyPrice}>
+                      Next: customer and quote
+                    </button>
+                  </div>
+                </section>
+              )}
 
               {(error || layoutWarnings.length > 0) && (
                 <div className="notice" role="alert">
